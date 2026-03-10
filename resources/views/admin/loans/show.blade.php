@@ -59,7 +59,7 @@
 
 <div class="mo" id="payModal"><div class="mb">
   <div class="mh"><span class="mt">Record Manual Payment</span><button class="mc" onclick="closeModal('payModal')">&times;</button></div>
-  <form method="POST" action="{{ route('admin.loans.mark-payment',$loan) }}">@csrf
+  <form method="POST" action="{{ route('admin.loans.record-payment',$loan) }}">@csrf
     <div class="mbody">
       <div class="fg"><label class="fl">Installment</label><select name="installment_id" class="fc" required>@foreach($loan->installments->whereNotIn('status',['paid','waived']) as $i)<option value="{{$i->id}}">#{{$i->installment_number}} — {{$i->due_date->format('d M Y')}} (L{{ number_format($i->outstanding_amount,2) }})</option>@endforeach</select></div>
       <div class="g2" style="gap:14px">

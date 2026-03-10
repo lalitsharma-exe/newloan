@@ -179,7 +179,7 @@
 {{-- OVERRIDE --}}
 <div class="mo" id="ovModal"><div class="mb">
   <div class="mh"><span class="mt"><i class="bi bi-pencil-fill"></i> Override Terms</span><button class="mc" onclick="closeModal('ovModal')">&times;</button></div>
-  <form method="POST" action="{{ route('admin.applications.override',$application) }}">@csrf
+  <form method="POST" action="{{ route('admin.applications.override-terms',$application) }}">@csrf
     <div class="mbody"><div class="g2" style="gap:14px">
       <div class="fg"><label class="fl">Amount (L)</label><input type="number" name="loan_amount" class="fc" value="{{ $application->requested_amount }}" step="0.01"></div>
       <div class="fg"><label class="fl">Rate (%/mo)</label><input type="number" name="interest_rate" class="fc" value="{{ $application->loanProduct?->interest_rate }}" step="0.01"></div>

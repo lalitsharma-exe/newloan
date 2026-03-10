@@ -5,7 +5,7 @@
 <div style="max-width:600px">
 <div class="card">
     <div class="card-header"><span class="card-title">Edit User</span></div>
-    <form method="POST" action="{{ route('admin.users.update, $user') }}">
+    <form method="POST" action="{{ route('admin.users.update', $user) }}">
         @csrf
         @method("PUT")
         <div class="card-body">
