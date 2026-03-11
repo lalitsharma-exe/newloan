@@ -22,11 +22,11 @@ class Payment extends Model {
 
     public function getStatusBadgeAttribute(): string {
         return match($this->status) {
-            "verified"  => "success",
-            "pending"   => "warning",
-            "rejected"  => "danger",
-            "failed"    => "danger",
-            default     => "secondary",
+            'verified' => 'ok',
+            'pending'  => 'w',
+            'rejected',
+            'failed'   => 'e',
+            default    => 's',
         };
     }
 }
