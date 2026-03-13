@@ -142,22 +142,20 @@ Route::prefix('admin')->name('admin.')->group(function () {
         */
         Route::prefix('payments')->name('payments.')->group(function () {
 
+            // ── Static routes FIRST (before any {payment} wildcard) ──
             Route::get('/',                     [PaymentController::class, 'index'])->name('index');
             Route::get('/export',               [PaymentController::class, 'export'])->name('export');
             Route::get('/pending',              [PaymentController::class, 'pending'])->name('pending');
+            Route::get('/reconciliation',       [PaymentController::class, 'reconciliation'])->name('reconciliation');
+            Route::post('/reconcile',           [PaymentController::class, 'reconcile'])->name('reconcile');
+            Route::post('/bulk-verify',         [PaymentController::class, 'bulkVerify'])->name('bulk-verify');
+            Route::post('/bulk-reject',         [PaymentController::class, 'bulkReject'])->name('bulk-reject');
 
+            // ── Wildcard routes LAST ──
             Route::get('/{payment}',            [PaymentController::class, 'show'])->name('show');
             Route::post('/{payment}/verify',    [PaymentController::class, 'verify'])->name('verify');
             Route::post('/{payment}/reject',    [PaymentController::class, 'reject'])->name('reject');
             Route::post('/{payment}/reverse',   [PaymentController::class, 'reverse'])->name('reverse');
-
-            // Bulk actions
-            Route::post('/bulk-verify',         [PaymentController::class, 'bulkVerify'])->name('bulk-verify');
-            Route::post('/bulk-reject',         [PaymentController::class, 'bulkReject'])->name('bulk-reject');
-
-            // Reconciliation
-            Route::get('/reconciliation',       [PaymentController::class, 'reconciliation'])->name('reconciliation');
-            Route::post('/reconcile',           [PaymentController::class, 'reconcile'])->name('reconcile');
         });
 
         /*

@@ -137,6 +137,17 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     <div class="nav-item"><a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*')?'active':'' }}"><i class="bi bi-people-fill"></i> Users</a></div>
     <div class="nav-item"><a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*')?'active':'' }}"><i class="bi bi-box-fill"></i> Loan Products</a></div>
     <div class="nav-item"><a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*')?'active':'' }}"><i class="bi bi-gear-fill"></i> Settings</a></div>
+    <div class="nav-lbl">System</div>
+    <div class="nav-item">
+      <a href="{{ route('admin.notifications.index') }}" class="{{ request()->routeIs('admin.notifications.*')?'active':'' }}">
+        <i class="bi bi-bell-fill"></i> Notifications
+        @php $unreadNotifs = \App\Models\Notification::where('user_id', auth('admin')->id())->where('is_read',false)->count(); @endphp
+        @if($unreadNotifs > 0)
+        <span style="margin-left:auto;background:var(--err);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;line-height:1.8">{{ $unreadNotifs }}</span>
+        @endif
+      </a>
+    </div>
+    <div class="nav-item"><a href="{{ route('admin.audit.index') }}" class="{{ request()->routeIs('admin.audit.*')?'active':'' }}"><i class="bi bi-journal-text"></i> Audit Log</a></div>
   </nav>
   <div class="sb-foot">
     <div class="upill">
@@ -151,7 +162,11 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     <div><div class="topbar-title">@yield('page-title','Dashboard')</div>@hasSection('bc')<div class="topbar-bc">@yield('bc')</div>@endif</div>
     <div class="spacer"></div>
     <div class="flex aic gap2">
-      <button class="tbtn"><i class="bi bi-bell"></i><span class="ndot"></span></button>
+      @php $bellUnread = \App\Models\Notification::where('user_id', auth('admin')->id())->where('is_read',false)->count(); @endphp
+      <a href="{{ route('admin.notifications.index') }}" class="tbtn" style="text-decoration:none;position:relative" title="Notifications">
+        <i class="bi bi-bell{{ $bellUnread > 0 ? '-fill' : '' }}" style="{{ $bellUnread > 0 ? 'color:var(--p)' : '' }}"></i>
+        @if($bellUnread > 0)<span class="ndot"></span>@endif
+      </a>
       <form method="POST" action="{{ route('admin.logout') }}" style="margin:0">@csrf<button type="submit" class="tbtn" title="Logout"><i class="bi bi-box-arrow-right"></i></button></form>
     </div>
   </header>

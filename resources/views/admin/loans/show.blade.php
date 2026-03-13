@@ -9,6 +9,7 @@
     <div class="flex aic gap3"><div class="av av-lg">{{ strtoupper(substr($loan->user->name??'U',0,1)) }}</div><div><div style="font-size:17px;font-weight:800">{{$loan->user->name}}</div><div class="muted">{{$loan->loan_number}} · {{$loan->loanProduct->name??'—'}}</div></div></div>
     <div class="flex gap2" style="flex-wrap:wrap">
       <a href="{{ route('admin.loans.agreement',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-file-pdf"></i> Agreement</a>
+      <a href="{{ route('admin.loans.statement',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-file-earmark-text"></i> Statement</a>
       @if($loan->status==='active')
       <button onclick="openModal('payModal')" class="btn btn-sm btn-ok"><i class="bi bi-cash"></i> Record Payment</button>
       <button onclick="openModal('closeModal')" class="btn btn-sm btn-e"><i class="bi bi-x-lg"></i> Close Loan</button>
