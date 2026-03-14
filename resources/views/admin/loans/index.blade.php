@@ -13,6 +13,13 @@
   <div class="fg"><label class="fl">Product</label><select name="product" class="fc"><option value="">All</option>@foreach($products as $p)<option value="{{$p->id}}" {{ ($filters['product']??'')==$p->id?'selected':'' }}>{{$p->name}}</option>@endforeach</select></div>
   <div class="flex gap2 aic" style="align-self:flex-end"><button type="submit" class="btn btn-p"><i class="bi bi-search"></i> Filter</button><a href="{{ route('admin.loans.index') }}" class="btn btn-o">Clear</a></div>
 </form>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+  <a href="{{ route('admin.loans.bulk-repayment') }}" class="btn btn-o"><i class="bi bi-collection"></i> Bulk Repayment</a>
+  <a href="{{ route('admin.loans.import') }}" class="btn btn-o"><i class="bi bi-file-earmark-arrow-up"></i> Import Loans</a>
+  <a href="{{ route('admin.loans.collection-sheet') }}" class="btn btn-o"><i class="bi bi-clipboard2-check"></i> Collection Sheet</a>
+  <a href="{{ route('admin.loans.repayment-chart') }}" class="btn btn-o"><i class="bi bi-bar-chart-line"></i> Repayment Charts</a>
+  <a href="{{ route('admin.loans.export', request()->query()) }}" class="btn btn-o"><i class="bi bi-download"></i> Export CSV</a>
+</div>
 <div class="card">
   <div class="card-hdr"><span class="card-title">All Loans ({{ $loans->total() }})</span></div>
   <div style="overflow-x:auto"><table class="dt">

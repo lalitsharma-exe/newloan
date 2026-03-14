@@ -84,7 +84,7 @@
       <table style="width:100%;border-collapse:collapse">
         <thead>
           <tr style="background:#f8fafc">
-            @foreach(['#','Due Date','Total','Principal','Interest','Late Fee','Paid','Outstanding','Status'] as $h)
+            @foreach(['#','Due Date','Principal','Interest','Initiation','Admin','Total','Paid','Penalty','Outstanding','Status'] as $h)
             <th style="padding:9px 10px;text-align:left;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:2px solid var(--border)">{{ $h }}</th>
             @endforeach
           </tr>
@@ -95,12 +95,14 @@
           <tr>
             <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border)">{{ $inst->installment_number }}</td>
             <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);white-space:nowrap">{{ $inst->due_date->format('d M Y') }}</td>
-            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);font-weight:600">L{{ number_format($inst->total_amount,2) }}</td>
-            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);color:var(--p)">L{{ number_format($inst->principal_amount,2) }}</td>
-            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);color:#f59e0b">L{{ number_format($inst->interest_amount,2) }}</td>
-            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);color:#ef4444">{{ $inst->late_fee > 0 ? 'L'.number_format($inst->late_fee,2) : '—' }}</td>
-            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);color:#10b981">L{{ number_format($inst->paid_amount,2) }}</td>
-            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border)">L{{ number_format($inst->outstanding_amount,2) }}</td>
+            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);color:var(--p)">M{{ number_format($inst->principal_amount,2) }}</td>
+            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);color:#f59e0b">M{{ number_format($inst->interest_amount,2) }}</td>
+            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);color:#8b5cf6">M{{ number_format($inst->initiation_fee_amount??0,2) }}</td>
+            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);color:#64748b">M{{ number_format($inst->admin_fee_amount??0,2) }}</td>
+            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);font-weight:600">M{{ number_format($inst->total_amount,2) }}</td>
+            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);color:#10b981">M{{ number_format($inst->paid_amount,2) }}</td>
+            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border);color:#ef4444">{{ $inst->late_fee > 0 ? 'M'.number_format($inst->late_fee,2) : '—' }}</td>
+            <td style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--border)">M{{ number_format($inst->outstanding_amount,2) }}</td>
             <td style="padding:8px 10px;border-bottom:1px solid var(--border)"><span style="background:{{ $bc }};color:{{ $tc }};font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">{{ ucfirst($inst->status) }}</span></td>
           </tr>
           @endforeach

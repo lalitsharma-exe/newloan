@@ -10,6 +10,10 @@
     <div class="flex gap2" style="flex-wrap:wrap">
       <a href="{{ route('admin.loans.agreement',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-file-pdf"></i> Agreement</a>
       <a href="{{ route('admin.loans.statement',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-file-earmark-text"></i> Statement</a>
+      <a href="{{ route('admin.loans.settlement-quotation',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-receipt"></i> Quotation</a>
+      @if(in_array($loan->status,['paid_off','closed']))
+      <a href="{{ route('admin.loans.settlement-letter',$loan) }}" class="btn btn-sm btn-ok"><i class="bi bi-patch-check"></i> Settlement Letter</a>
+      @endif
       @if($loan->status==='active')
       <button onclick="openModal('payModal')" class="btn btn-sm btn-ok"><i class="bi bi-cash"></i> Record Payment</button>
       <button onclick="openModal('closeModal')" class="btn btn-sm btn-e"><i class="bi bi-x-lg"></i> Close Loan</button>
@@ -26,14 +30,18 @@
 <div class="card mb4">
   <div class="card-hdr"><span class="card-title">Repayment Schedule</span></div>
   <div style="overflow-x:auto"><table class="dt">
-    <thead><tr><th>#</th><th>Due Date</th><th>Principal</th><th>Interest</th><th>Total</th><th>Paid</th><th>Outstanding</th><th>Status</th></tr></thead>
+    <thead><tr><th>#</th><th>Due Date</th><th>Principal</th><th>Interest</th><th>Initiation</th><th>Admin</th><th>Total</th><th>Paid</th><th>Outstanding</th><th>Penalty</th><th>Status</th></tr></thead>
     <tbody>@foreach($loan->installments as $i)
       <tr style="{{ $i->status==='overdue'?'background:#fef2f2':'' }}">
         <td>{{$i->installment_number}}</td><td>{{$i->due_date->format('d M Y')}}</td>
-        <td>L{{ number_format($i->principal_amount,2) }}</td><td>L{{ number_format($i->interest_amount,2) }}</td>
-        <td><strong>L{{ number_format($i->total_amount,2) }}</strong></td>
-        <td style="color:#10b981">L{{ number_format($i->paid_amount,2) }}</td>
-        <td style="color:#ef4444">L{{ number_format($i->outstanding_amount,2) }}</td>
+        <td>M{{ number_format($i->principal_amount,2) }}</td>
+        <td>M{{ number_format($i->interest_amount,2) }}</td>
+        <td>M{{ number_format($i->initiation_fee_amount??0,2) }}</td>
+        <td>M{{ number_format($i->admin_fee_amount??0,2) }}</td>
+        <td><strong>M{{ number_format($i->total_amount,2) }}</strong></td>
+        <td style="color:#10b981">M{{ number_format($i->paid_amount,2) }}</td>
+        <td style="color:#ef4444">M{{ number_format($i->outstanding_amount,2) }}</td>
+        <td style="color:#dc2626">{{ $i->late_fee > 0 ? 'M'.number_format($i->late_fee,2) : '—' }}</td>
         <td><span class="badge {{ $i->status==='paid'?'bok':($i->status==='overdue'?'be':($i->status==='partial'?'bw':'bs')) }}">{{ ucfirst($i->status) }}</span></td>
       </tr>@endforeach
     </tbody>

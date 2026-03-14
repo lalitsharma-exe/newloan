@@ -56,6 +56,27 @@
   </div>
 </form>
 
+{{-- Bulk Import CSV --}}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-hdr">
+    <span class="card-title"><i class="bi bi-upload" style="color:var(--p)"></i> Bulk Import Borrowers</span>
+    <a href="{{ route('admin.users.export') }}" class="btn btn-sm btn-o"><i class="bi bi-download"></i> Export CSV</a>
+  </div>
+  <div style="padding:16px 20px">
+    <form method="POST" action="{{ route('admin.users.import') }}" enctype="multipart/form-data" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+      @csrf
+      <div class="form-group" style="margin-bottom:0;flex:1;min-width:240px">
+        <label class="form-label">CSV File (columns: name, email, phone, password)</label>
+        <input type="file" name="file" class="form-control" accept=".csv,.txt" required>
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-people-fill"></i> Import Borrowers</button>
+    </form>
+    <div style="margin-top:8px;font-size:12px;color:var(--muted)">
+      CSV must have headers: <code>name,email,phone,password</code> — password column is optional (defaults to Password@123)
+    </div>
+  </div>
+</div>
+
 {{-- Table --}}
 <div class="card">
   <div class="card-hdr">

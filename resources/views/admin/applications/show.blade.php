@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 @section('title','Application #'.$application->application_number)
 @section('page-title','Application Review')
-@section('bc','Applications'.$application->application_number)
+@section('bc','<a href="'.route('admin.applications.index').'">Applications</a> / #'.$application->application_number)
 @section('content')
 
 @php
@@ -130,6 +130,35 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
 
     {{-- Loan Details tab --}}
     <div class="tpanel" data-pg="app" data-p="loan">
+
+      {{-- ── AFFORDABILITY CHECK ─────────────────────────────────────── --}}
+      @php
+        $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability($application);
+      @endphp
+      @if($afford['net_salary'] > 0)
+        @if(!$afford['passes'])
+        <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:flex-start;gap:12px">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#d97706;font-size:18px;flex-shrink:0;margin-top:1px"></i>
+          <div>
+            <div style="font-weight:700;color:#92400e;font-size:13px">Affordability Warning</div>
+            <div style="font-size:13px;color:#78350f;margin-top:3px">{{ $afford['warning'] }}</div>
+            <div style="font-size:12px;color:#92400e;margin-top:4px">
+              Net Salary: M{{ number_format($afford['net_salary'],2) }} &nbsp;·&nbsp;
+              30% Limit: M{{ number_format($afford['max_allowed'],2) }} &nbsp;·&nbsp;
+              Monthly Installment: M{{ number_format($afford['monthly'],2) }}
+            </div>
+          </div>
+        </div>
+        @else
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 18px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+          <i class="bi bi-check-circle-fill" style="color:#10b981;font-size:16px"></i>
+          <div style="font-size:13px;color:#065f46">
+            <strong>Affordability OK</strong> — Monthly M{{ number_format($afford['monthly'],2) }} is within the 30% limit of M{{ number_format($afford['max_allowed'],2) }} (Net salary: M{{ number_format($afford['net_salary'],2) }})
+          </div>
+        </div>
+        @endif
+      @endif
+
       <div class="card" style="margin-bottom:16px">
         <div class="card-hdr">
           <span class="card-title">Requested Loan Terms</span>
@@ -456,11 +485,12 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
           <div class="fg"><label class="fl">Interest Rate (%/month) *</label><input type="number" name="interest_rate" class="fc" id="mRate" value="{{ $application->loanProduct?->interest_rate }}" step="0.01" min="0" required oninput="liveCalc()"></div>
           <div class="fg"><label class="fl">Disbursement Date *</label><input type="date" name="disbursement_date" class="fc" value="{{ now()->addDay()->format('Y-m-d') }}" required></div>
         </div>
-        <div id="modalCalc" style="background:#f0fdf4;border:1px solid #d1fae5;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;gap:20px;flex-wrap:wrap">
+        <div id="modalCalc" style="background:#f0fdf4;border:1px solid #d1fae5;border-radius:10px;padding:12px 14px;margin-bottom:6px;display:flex;gap:20px;flex-wrap:wrap">
           <div style="text-align:center"><div style="font-size:11px;color:#065f46;font-weight:600">MONTHLY</div><div style="font-size:18px;font-weight:800;color:#059669" id="mc-monthly">—</div></div>
           <div style="text-align:center"><div style="font-size:11px;color:#065f46;font-weight:600">TOTAL</div><div style="font-size:18px;font-weight:800;color:#059669" id="mc-total">—</div></div>
           <div style="text-align:center"><div style="font-size:11px;color:#065f46;font-weight:600">INTEREST</div><div style="font-size:18px;font-weight:800;color:#059669" id="mc-interest">—</div></div>
         </div>
+        <div id="mc-afford" style="display:none;background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:8px 12px;font-size:12px;color:#92400e;margin-bottom:10px"></div>
         <div class="fg"><label class="fl">Approval Notes</label><textarea name="notes" class="fc" rows="2" placeholder="Optional internal notes…"></textarea></div>
       </div>
       <div class="mf"><button type="button" class="btn btn-o" onclick="closeModal('aModal')">Cancel</button><button type="submit" class="btn btn-ok"><i class="bi bi-check-lg"></i> Approve & Create Loan</button></div>
@@ -523,58 +553,110 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
 </div>
 
 <script>
-// Live calculator in approve modal
-function liveCalc() {
-  const amount   = parseFloat(document.querySelector('[name=approved_amount]')?.value || 0);
-  const term     = parseInt(document.getElementById('mTerm')?.value || 0);
-  const rate     = parseFloat(document.getElementById('mRate')?.value || 0) / 100;
-  if (!amount || !term) return;
-  const monthly  = rate > 0 ? amount*(rate*Math.pow(1+rate,term))/(Math.pow(1+rate,term)-1) : amount/term;
-  const total    = monthly * term;
-  document.getElementById('mc-monthly').textContent  = 'L ' + monthly.toFixed(2);
-  document.getElementById('mc-total').textContent    = 'L ' + total.toFixed(2);
-  document.getElementById('mc-interest').textContent = 'L ' + (total-amount).toFixed(2);
+// ── FLAT interest calculator (MyLoan rules) ──────────────────────────────
+// interest = principal × rate × term  (flat, same every month)
+// initiation = principal × 40%
+// admin = M50 × term
+// total = principal + interest + initiation + admin
+// monthly = total ÷ term
+const INITIATION_RATE = {{ $application->loanProduct?->initiation_fee_rate ?? 40 }} / 100;
+const ADMIN_PER_MONTH = {{ $application->loanProduct?->admin_fee_fixed ?? 50 }};
+
+function flatCalc(amount, ratePercent, term) {
+  if (!amount || !term) return null;
+  const rate       = ratePercent / 100;
+  const interest   = amount * rate * term;
+  const initiation = amount * INITIATION_RATE;
+  const admin      = ADMIN_PER_MONTH * term;
+  const total      = amount + interest + initiation + admin;
+  const monthly    = total / term;
+  return { rate, interest, initiation, admin, total, monthly,
+           principalPerMonth: amount/term,
+           interestPerMonth:  amount*rate,
+           initiationPerMonth: initiation/term };
 }
 
-// Schedule preview
+// Live calculator in approve modal
+function liveCalc() {
+  const amount = parseFloat(document.querySelector('[name=approved_amount]')?.value || 0);
+  const term   = parseInt(document.getElementById('mTerm')?.value || 0);
+  const rate   = parseFloat(document.getElementById('mRate')?.value || 0);
+  const c = flatCalc(amount, rate, term);
+  if (!c) return;
+  document.getElementById('mc-monthly').textContent   = 'M ' + c.monthly.toFixed(2);
+  document.getElementById('mc-total').textContent     = 'M ' + c.total.toFixed(2);
+  document.getElementById('mc-interest').textContent  = 'M ' + c.interest.toFixed(2);
+  // Show affordability warning inline
+  const netSal = {{ (float)($application->affordabilityAssessment?->net_salary ?? 0) }};
+  const warn = document.getElementById('mc-afford');
+  if (warn && netSal > 0) {
+    const limit = netSal * 0.3;
+    if (c.monthly > limit) {
+      warn.style.display = 'block';
+      warn.textContent   = '⚠ Monthly M'+c.monthly.toFixed(2)+' exceeds 30% limit M'+limit.toFixed(2);
+    } else {
+      warn.style.display = 'none';
+    }
+  }
+}
+
+// Schedule preview tab — uses flat interest
 function previewSchedule() {
   const amount = parseFloat(document.getElementById('schAmt').value || 0);
-  const rate   = parseFloat(document.getElementById('schRate').value || 0) / 100;
+  const rateP  = parseFloat(document.getElementById('schRate').value || 0);
   const term   = parseInt(document.getElementById('schTerm').value || 0);
-  if (!amount || !term) return;
+  const c = flatCalc(amount, rateP, term);
+  if (!c) return;
 
-  const monthly = rate > 0 ? amount*(rate*Math.pow(1+rate,term))/(Math.pow(1+rate,term)-1) : amount/term;
-  let balance = amount, rows = '';
-  let totPrincipal = 0, totInterest = 0;
+  let rows = '';
+  let remainPrincipal = amount;
 
   for (let i = 1; i <= term; i++) {
-    const interest  = parseFloat((balance * rate).toFixed(2));
-    const principal = parseFloat(Math.min(monthly - interest, balance).toFixed(2));
-    balance         = parseFloat(Math.max(0, balance - principal).toFixed(2));
-    totPrincipal   += principal;
-    totInterest    += interest;
+    const isLast = i === term;
+    const prin   = isLast ? parseFloat(remainPrincipal.toFixed(2)) : parseFloat(c.principalPerMonth.toFixed(2));
+    const init   = isLast ? parseFloat((c.initiation - c.initiationPerMonth*(term-1)).toFixed(2)) : parseFloat(c.initiationPerMonth.toFixed(2));
+    const total  = parseFloat((prin + c.interestPerMonth + ADMIN_PER_MONTH + init).toFixed(2));
+    remainPrincipal = Math.max(0, remainPrincipal - prin);
+
     rows += `<tr style="font-size:12.5px">
-      <td style="padding:9px 12px;border-bottom:1px solid var(--border)">${i}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid var(--border);font-weight:600">L ${monthly.toFixed(2)}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid var(--border);color:var(--p)">L ${principal.toFixed(2)}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid var(--border);color:#f59e0b">L ${interest.toFixed(2)}</td>
-      <td style="padding:9px 12px;border-bottom:1px solid var(--border)">${i===term?'L 0.00':'L '+balance.toFixed(2)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border)">${i}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--p)">M ${prin.toFixed(2)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#f59e0b">M ${c.interestPerMonth.toFixed(2)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#8b5cf6">M ${init.toFixed(2)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#64748b">M ${ADMIN_PER_MONTH.toFixed(2)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:700">M ${total.toFixed(2)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid var(--border)">M ${remainPrincipal.toFixed(2)}</td>
     </tr>`;
   }
 
   document.getElementById('scheduleResult').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;text-align:center">
-      <div style="background:rgba(79,70,229,.06);border-radius:10px;padding:12px;border:1px solid rgba(79,70,229,.12)"><div style="font-size:11px;color:var(--muted)">Monthly Payment</div><div style="font-size:20px;font-weight:800;color:var(--p)">L ${monthly.toFixed(2)}</div></div>
-      <div style="background:rgba(16,185,129,.06);border-radius:10px;padding:12px;border:1px solid rgba(16,185,129,.12)"><div style="font-size:11px;color:var(--muted)">Total Repayment</div><div style="font-size:20px;font-weight:800;color:#10b981">L ${(monthly*term).toFixed(2)}</div></div>
-      <div style="background:rgba(245,158,11,.06);border-radius:10px;padding:12px;border:1px solid rgba(245,158,11,.12)"><div style="font-size:11px;color:var(--muted)">Total Interest</div><div style="font-size:20px;font-weight:800;color:#f59e0b">L ${totInterest.toFixed(2)}</div></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;text-align:center;font-size:13px">
+      <div style="background:rgba(79,70,229,.06);border-radius:10px;padding:12px;border:1px solid rgba(79,70,229,.12)">
+        <div style="font-size:11px;color:var(--muted)">Monthly Payment</div>
+        <div style="font-size:19px;font-weight:800;color:var(--p)">M ${c.monthly.toFixed(2)}</div>
+      </div>
+      <div style="background:rgba(16,185,129,.06);border-radius:10px;padding:12px;border:1px solid rgba(16,185,129,.12)">
+        <div style="font-size:11px;color:var(--muted)">Total Repayment</div>
+        <div style="font-size:19px;font-weight:800;color:#10b981">M ${c.total.toFixed(2)}</div>
+      </div>
+      <div style="background:rgba(245,158,11,.06);border-radius:10px;padding:12px;border:1px solid rgba(245,158,11,.12)">
+        <div style="font-size:11px;color:var(--muted)">Interest + Fees</div>
+        <div style="font-size:19px;font-weight:800;color:#f59e0b">M ${(c.interest+c.initiation+c.admin).toFixed(2)}</div>
+      </div>
+      <div style="background:rgba(100,116,139,.06);border-radius:10px;padding:12px;border:1px solid rgba(100,116,139,.12)">
+        <div style="font-size:11px;color:var(--muted)">Cash to Client</div>
+        <div style="font-size:19px;font-weight:800;color:#475569">M ${amount.toFixed(2)}</div>
+      </div>
     </div>
     <table style="width:100%;border-collapse:collapse">
-      <thead><tr style="background:#f8fafc">
-        <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--border)">#</th>
-        <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--border)">Payment</th>
-        <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--border)">Principal</th>
-        <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--border)">Interest</th>
-        <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--border)">Balance</th>
+      <thead><tr style="background:#f8fafc;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">
+        <th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">#</th>
+        <th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Principal</th>
+        <th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Interest</th>
+        <th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Initiation</th>
+        <th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Admin</th>
+        <th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Total</th>
+        <th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Balance</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;

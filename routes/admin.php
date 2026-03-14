@@ -113,6 +113,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/export',       [LoanController::class, 'export'])->name('export');
             Route::get('/overdue',      [LoanController::class, 'overdue'])->name('overdue');
 
+            // ── Static feature routes (BEFORE /{loan} wildcard) ──
+            Route::get('/bulk-repayment',  [LoanController::class, 'bulkRepayment'])->name('bulk-repayment');
+            Route::post('/bulk-repayment', [LoanController::class, 'bulkRepayment'])->name('bulk-repayment.post');
+            Route::get('/import',          [LoanController::class, 'importLoans'])->name('import');
+            Route::post('/import',         [LoanController::class, 'importLoans'])->name('import.post');
+            Route::get('/collection-sheet',[LoanController::class, 'collectionSheet'])->name('collection-sheet');
+            Route::get('/repayment-chart', [LoanController::class, 'repaymentChart'])->name('repayment-chart');
+            Route::get('/lookup',          [LoanController::class, 'lookup'])->name('lookup');
+
             Route::get('/{loan}',                   [LoanController::class, 'show'])->name('show');
 
             // Schedule management
@@ -133,8 +142,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{loan}/mark-defaulted',   [LoanController::class, 'markDefaulted'])->name('mark-defaulted');
 
             // Documents
-            Route::get('/{loan}/agreement',         [LoanController::class, 'downloadAgreement'])->name('agreement');
-            Route::get('/{loan}/statement',         [LoanController::class, 'statement'])->name('statement');
+            Route::get('/{loan}/agreement',              [LoanController::class, 'agreement'])->name('agreement');
+            Route::get('/{loan}/statement',              [LoanController::class, 'statement'])->name('statement');
+            Route::get('/{loan}/receipt/{payment}',      [LoanController::class, 'receipt'])->name('receipt');
+            Route::get('/{loan}/settlement-quotation',   [LoanController::class, 'settlementQuotation'])->name('settlement-quotation');
+            Route::get('/{loan}/settlement-letter',      [LoanController::class, 'settlementLetter'])->name('settlement-letter');
         });
 
         /*
@@ -193,6 +205,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/',                         [UserController::class, 'index'])->name('index');
             Route::get('/create',                   [UserController::class, 'create'])->name('create');
             Route::post('/',                        [UserController::class, 'store'])->name('store');
+            Route::get('/export',                   [UserController::class, 'export'])->name('export');
+            Route::post('/import',                  [UserController::class, 'import'])->name('import');
             Route::get('/{user}',                   [UserController::class, 'show'])->name('show');
             Route::get('/{user}/edit',              [UserController::class, 'edit'])->name('edit');
             Route::put('/{user}',                   [UserController::class, 'update'])->name('update');

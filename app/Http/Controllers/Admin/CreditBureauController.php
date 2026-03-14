@@ -21,8 +21,22 @@ class CreditBureauController extends Controller {
         $result = $this->svc->submitMonthlyFile();
         return back()->with($result["success"]?"success":"error",$result["success"]?"Submitted ".$result["count"]." records.":$result["message"]);
     }
-    public function viewReport(CreditReport $report) {
-        $report->load("user");
-        return view("admin.credit.report",compact("report"));
+    public function reports(Request $request) {
+        $reports = \App\Models\CreditReport::with('user')
+            ->when($request->user_id, fn($q) => $q->where('user_id', $request->user_id))
+            ->when($request->status,  fn($q) => $q->where('status', $request->status))
+            ->latest()->paginate(20);
+        return view('admin.credit.reports', compact('reports'));
+    }
+
+    public function monthlySubmissions(Request $request) {
+        // Stub — list of monthly credit bureau submissions
+        $submissions = collect(); // Replace with actual DB table when available
+        return view('admin.credit.monthly-submissions', compact('submissions'));
+    }
+
+    public function viewSubmission($id) {
+        // Stub — individual submission detail
+        return view('admin.credit.view-submission', ['id' => $id]);
     }
 }

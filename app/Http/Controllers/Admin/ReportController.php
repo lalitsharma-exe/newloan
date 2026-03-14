@@ -67,6 +67,13 @@ class ReportController extends Controller
         ]);
     }
 
+    public function borrowerDemographics(Request $r) {
+        return view('admin.reports.borrower-demographics', [
+            'data'    => $this->svc->getBorrowerDemographicsReport($r->all()),
+            'filters' => $r->all(),
+        ]);
+    }
+
     // Scheduled reports
     public function scheduledIndex() {
         $scheduled = \DB::table('scheduled_reports')->orderBy('created_at','desc')->get();

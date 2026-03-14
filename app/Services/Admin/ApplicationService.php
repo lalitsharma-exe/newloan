@@ -111,36 +111,84 @@ class ApplicationService
         ]);
     }
 
+    // ── Public helper: calculate monthly installment for preview/affordability ──
+    public function calcMonthly(float $principal, float $ratePercent, int $term, ?object $product = null): float
+    {
+        $rate           = $ratePercent / 100;
+        $initiationRate = ($product->initiation_fee_rate ?? 40) / 100;
+        $adminPerMonth  = $product->admin_fee_fixed ?? 50;
+
+        $totalInterest   = round($principal * $rate * $term, 2);
+        $totalInitiation = round($principal * $initiationRate, 2);
+        $totalAdmin      = $adminPerMonth * $term;
+        $totalRepay      = $principal + $totalInterest + $totalInitiation + $totalAdmin;
+
+        return round($totalRepay / $term, 2);
+    }
+
+    // ── Public helper: affordability check (30% rule) ─────────────────────────
+    public function checkAffordability(LoanApplication $app): array
+    {
+        $assessment    = $app->affordabilityAssessment;
+        $netSalary     = (float) ($assessment?->net_salary ?? 0);
+        $maxAllowed    = round($netSalary * 0.30, 2);
+        $product       = $app->loanProduct;
+        $principal     = (float) ($app->approved_amount ?? $app->requested_amount ?? 0);
+        $rate          = (float) ($app->approved_interest_rate ?? $product?->interest_rate ?? 15);
+        $term          = (int)   ($app->approved_term ?? $app->requested_term ?? 1);
+        $monthly       = $principal > 0 ? $this->calcMonthly($principal, $rate, $term, $product) : 0;
+
+        return [
+            'net_salary'  => $netSalary,
+            'max_allowed' => $maxAllowed,
+            'monthly'     => $monthly,
+            'passes'      => ($netSalary > 0 && $monthly <= $maxAllowed),
+            'warning'     => ($netSalary > 0 && $monthly > $maxAllowed)
+                ? "Monthly installment M".number_format($monthly,2)." exceeds the 30% affordability limit of M".number_format($maxAllowed,2)
+                : null,
+        ];
+    }
+
     private function createLoanFromApplication(LoanApplication $app): Loan
     {
-        $amount  = $app->approved_amount;
-        $rate    = $app->approved_interest_rate / 100;
-        $term    = $app->approved_term;
-        $product = $app->loanProduct;
-        $fee     = $product?->processing_fee_type === 'percentage'
-                     ? round($amount * $product->processing_fee / 100, 2)
-                     : ($product?->processing_fee ?? 0);
+        $principal = (float) $app->approved_amount;
+        $term      = (int)   $app->approved_term;
+        $product   = $app->loanProduct;
 
-        // Monthly amortised payment
-        $monthly = $rate > 0
-            ? $amount * ($rate * pow(1 + $rate, $term)) / (pow(1 + $rate, $term) - 1)
-            : $amount / $term;
-        $monthly = round($monthly, 2);
+        // ── FLAT INTEREST (15% per month on original principal — same every month) ──
+        $monthlyRate     = (float) $app->approved_interest_rate / 100; // e.g. 0.15
+        $totalInterest   = round($principal * $monthlyRate * $term, 2);
+
+        // ── INITIATION FEE (40% of principal — split evenly over term) ──────────
+        $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
+        $totalInitiation = round($principal * $initiationRate, 2);
+
+        // ── ADMIN FEE (fixed M50 per month) ──────────────────────────────────────
+        $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 50);
+        $totalAdmin      = $adminPerMonth * $term;
+
+        // ── TOTALS ────────────────────────────────────────────────────────────────
+        $totalRepay      = $principal + $totalInterest + $totalInitiation + $totalAdmin;
+        $monthly         = round($totalRepay / $term, 2);
 
         $disbDate = Carbon::parse($app->disbursement_date);
 
+        // Loan number: LN-00001 format (sequential, padded)
+        $nextId      = (Loan::max('id') ?? 0) + 1;
+        $loanNumber  = 'LN-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+
         $loan = Loan::create([
-            'loan_number'         => 'LN-' . strtoupper(Str::random(8)),
+            'loan_number'         => $loanNumber,
             'user_id'             => $app->user_id,
             'loan_product_id'     => $app->loan_product_id,
             'application_id'      => $app->id,
-            'principal_amount'    => $amount,
+            'principal_amount'    => $principal,
             'interest_rate'       => $app->approved_interest_rate,
             'term_months'         => $term,
-            'total_amount'        => round($monthly * $term, 2),
-            'outstanding_balance' => $amount,
+            'total_amount'        => $totalRepay,
+            'outstanding_balance' => $totalRepay,   // borrower owes full amount incl. all fees
             'monthly_installment' => $monthly,
-            'processing_fee'      => $fee,
+            'processing_fee'      => $totalInitiation,
             'status'              => 'active',
             'disbursement_date'   => $disbDate->toDateString(),
             'first_payment_date'  => $disbDate->copy()->addMonth()->startOfMonth()->toDateString(),
@@ -149,25 +197,33 @@ class ApplicationService
             'collection_method'   => $app->collection_method,
         ]);
 
-        // Generate installments
-        $balance  = $amount;
-        $payDate  = $disbDate->copy()->addMonth()->startOfMonth();
+        // ── GENERATE INSTALLMENTS ─────────────────────────────────────────────────
+        // Each month: same principal slice, same flat interest, same admin, same initiation slice
+        $principalPerMonth  = round($principal / $term, 2);
+        $interestPerMonth   = round($principal * $monthlyRate, 2);  // FLAT — identical every month
+        $initiationPerMonth = round($totalInitiation / $term, 2);
+
+        $payDate = $disbDate->copy()->addMonth()->startOfMonth();
 
         for ($i = 1; $i <= $term; $i++) {
-            $interest  = round($balance * $rate, 2);
-            $principal = min(round($monthly - $interest, 2), $balance);
-            $balance   = max(0, round($balance - $principal, 2));
+            $isLast = ($i === $term);
+            // Last month absorbs any rounding cents
+            $prin  = $isLast ? round($principal - $principalPerMonth * ($term - 1), 2) : $principalPerMonth;
+            $init  = $isLast ? round($totalInitiation - $initiationPerMonth * ($term - 1), 2) : $initiationPerMonth;
+            $total = round($prin + $interestPerMonth + $adminPerMonth + $init, 2);
 
             LoanInstallment::create([
-                'loan_id'            => $loan->id,
-                'installment_number' => $i,
-                'due_date'           => $payDate->copy()->toDateString(),
-                'principal_amount'   => $principal,
-                'interest_amount'    => $interest,
-                'total_amount'       => $principal + $interest,
-                'paid_amount'        => 0,
-                'outstanding_amount' => $principal + $interest,
-                'status'             => 'pending',
+                'loan_id'               => $loan->id,
+                'installment_number'    => $i,
+                'due_date'              => $payDate->copy()->toDateString(),
+                'principal_amount'      => $prin,
+                'interest_amount'       => $interestPerMonth,
+                'initiation_fee_amount' => $init,
+                'admin_fee_amount'      => $adminPerMonth,
+                'total_amount'          => $total,
+                'paid_amount'           => 0,
+                'outstanding_amount'    => $total,
+                'status'                => 'pending',
             ]);
 
             $payDate->addMonth();

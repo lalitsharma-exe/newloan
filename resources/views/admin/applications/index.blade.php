@@ -1,8 +1,11 @@
 @extends('admin.layouts.app')
 @section('title','Applications')
 @section('page-title','Applications')
-@section('bc','<a href="'.route('admin.dashboard').'">Home</a> / Applications')
+@section('bc')
+<a href="{{ route('admin.dashboard') }}">Home</a> / Applications
+@endsection
 @section('content')
+
 
 @if(session('success'))
 <div style="background:rgba(16,185,129,.08);color:#065f46;border:1px solid rgba(16,185,129,.2);padding:12px 16px;border-radius:11px;font-size:13px;display:flex;align-items:center;gap:9px;margin-bottom:20px">

@@ -30,7 +30,7 @@
   @php
   $kpis = [
     ['Approved Today',      $stats['loans_approved_today'],              'check-circle-fill',    '#10b981','rgba(16,185,129,.1)',  route('admin.loans.index')],
-    ['Payments Today',      'L '.number_format($stats['payments_received_today'],0), 'cash-stack', '#4f46e5','rgba(79,70,229,.1)',  route('admin.payments.index')],
+    ['Payments Today',      'M '.number_format($stats['payments_received_today'],0), 'cash-stack', '#4f46e5','rgba(79,70,229,.1)',  route('admin.payments.index')],
     ['Pending Applications',$stats['applications_pending'],              'hourglass-split',      '#f59e0b','rgba(245,158,11,.1)',  route('admin.applications.index')],
     ['Overdue Loans',       $stats['overdue_loans'],                     'exclamation-triangle-fill','#ef4444','rgba(239,68,68,.1)',route('admin.loans.index',['status'=>'overdue'])],
   ];
@@ -52,9 +52,9 @@
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
   @php
   $kpis2 = [
-    ['Expected This Month', 'L '.number_format($stats['expected_collections'],0),  'calendar-check',      '#06b6d4'],
-    ['Active Portfolio',    'L '.number_format($stats['total_portfolio'],0),        'pie-chart-fill',      '#0ea5e9'],
-    ['Disbursed This Month','L '.number_format($stats['total_disbursed_month'],0),  'arrow-up-circle-fill','#8b5cf6'],
+    ['Expected This Month', 'M '.number_format($stats['expected_collections'],0),  'calendar-check',      '#06b6d4'],
+    ['Active Portfolio',    'M '.number_format($stats['total_portfolio'],0),        'pie-chart-fill',      '#0ea5e9'],
+    ['Disbursed This Month','M '.number_format($stats['total_disbursed_month'],0),  'arrow-up-circle-fill','#8b5cf6'],
     ['Total Borrowers',     number_format($stats['total_borrowers']),               'people-fill',         '#10b981'],
   ];
   @endphp
@@ -108,7 +108,7 @@
         <div style="font-size:11.5px;color:var(--muted)">{{ $loan->loan_number }}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:13px;font-weight:700;color:#ef4444">L{{ number_format($loan->outstanding_balance,0) }}</div>
+        <div style="font-size:13px;font-weight:700;color:#ef4444">M{{ number_format($loan->outstanding_balance,0) }}</div>
         <div style="font-size:11px;color:var(--muted)">{{ $loan->days_overdue }}d overdue</div>
       </div>
     </a>
@@ -157,7 +157,7 @@
               </div>
             </td>
             <td style="font-size:12.5px;color:var(--muted)">{{ $app->loanProduct->name ?? '—' }}</td>
-            <td style="font-weight:700;font-size:13px">L{{ number_format($app->requested_amount ?? 0, 0) }}</td>
+            <td style="font-weight:700;font-size:13px">M{{ number_format($app->requested_amount ?? 0, 0) }}</td>
             <td>
               <span class="badge b{{ $app->status_badge }}">{{ ucfirst(str_replace('_',' ',$app->status)) }}</span>
             </td>
@@ -196,7 +196,7 @@
         <div style="font-size:11.5px;color:var(--muted);margin-top:1px">{{ $pay->loan->user->name ?? '—' }}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:13px;font-weight:700">L{{ number_format($pay->amount,0) }}</div>
+        <div style="font-size:13px;font-weight:700">M{{ number_format($pay->amount,0) }}</div>
         <span class="badge b{{ $pay->status_badge }}" style="font-size:10.5px;padding:2px 7px">{{ ucfirst($pay->status) }}</span>
       </div>
     </div>

@@ -37,29 +37,41 @@ class LoanService
 
     public function adjustSchedule(Loan $loan, array $data, User $admin): void
     {
-        // Recalculate remaining installments
-        $remaining = $loan->installments()->where('status', 'pending')->orderBy('installment_number')->get();
-        $newRate    = isset($data['interest_rate']) ? $data['interest_rate'] / 100 : $loan->interest_rate / 100;
-        $newTerm    = count($remaining);
-
+        $remaining = $loan->installments()->whereIn('status',['pending','partial'])->orderBy('installment_number')->get();
+        $newTerm   = count($remaining);
         if ($newTerm === 0) return;
 
-        $balance = $loan->outstanding_balance;
-        $monthly = $newRate > 0
-            ? $balance * ($newRate * pow(1+$newRate, $newTerm)) / (pow(1+$newRate, $newTerm)-1)
-            : $balance / $newTerm;
+        $product       = $loan->loanProduct;
+        $newRate       = isset($data['interest_rate']) ? (float)$data['interest_rate'] / 100 : $loan->interest_rate / 100;
+        $adminPerMonth = (float) ($product?->admin_fee_fixed ?? 50);
+
+        // Flat: recalculate on remaining outstanding principal only
+        $outstandingPrincipal = $remaining->sum('principal_amount');
+        $initiationRate       = ($product?->initiation_fee_rate ?? 40) / 100;
+
+        $interestPerMonth    = round($outstandingPrincipal * $newRate, 2);
+        $principalPerMonth   = round($outstandingPrincipal / $newTerm, 2);
+        $initiationPerMonth  = round(($outstandingPrincipal * $initiationRate) / $newTerm, 2);
 
         foreach ($remaining as $idx => $inst) {
-            $interest  = round($balance * $newRate, 2);
-            $principal = min(round($monthly - $interest, 2), $balance);
-            $balance   = max(0, round($balance - $principal, 2));
+            $isLast = ($idx === $newTerm - 1);
+            $prin   = $isLast ? round($outstandingPrincipal - $principalPerMonth * ($newTerm - 1), 2) : $principalPerMonth;
+            $init   = $isLast ? round(($outstandingPrincipal * $initiationRate) - $initiationPerMonth * ($newTerm - 1), 2) : $initiationPerMonth;
+            $total  = round($prin + $interestPerMonth + $adminPerMonth + $init, 2);
 
             $inst->update([
-                'principal_amount'   => $principal,
-                'interest_amount'    => $interest,
-                'total_amount'       => $principal + $interest,
-                'outstanding_amount' => $principal + $interest,
+                'principal_amount'      => $prin,
+                'interest_amount'       => $interestPerMonth,
+                'initiation_fee_amount' => $init,
+                'admin_fee_amount'      => $adminPerMonth,
+                'total_amount'          => $total,
+                'outstanding_amount'    => $total,
             ]);
+        }
+
+        // Update loan's monthly_installment to new amount
+        if ($remaining->count() > 0) {
+            $loan->update(['monthly_installment' => $remaining->first()->fresh()->total_amount]);
         }
     }
 
@@ -78,28 +90,37 @@ class LoanService
             'verified_at'       => now(),
         ]);
 
-        // Apply to oldest pending/overdue installment
-        $installment = $loan->installments()
+        // Apply to oldest pending/overdue/partial installment
+        $remaining = (float) $data['amount'];
+        $installments = $loan->installments()
             ->whereIn('status', ['pending','overdue','partial'])
             ->orderBy('due_date')
-            ->first();
+            ->get();
 
-        if ($installment) {
-            $installment->update([
-                'paid_amount'        => $installment->paid_amount + $data['amount'],
-                'outstanding_amount' => max(0, $installment->outstanding_amount - $data['amount']),
-                'paid_at'            => now(),
-                'status'             => $data['amount'] >= $installment->outstanding_amount ? 'paid' : 'partial',
+        foreach ($installments as $inst) {
+            if ($remaining <= 0) break;
+            $canPay = min($remaining, (float) $inst->outstanding_amount);
+            $newPaid = round((float) $inst->paid_amount + $canPay, 2);
+            $newOutstanding = round((float) $inst->total_amount - $newPaid, 2);
+            $inst->update([
+                'paid_amount'        => $newPaid,
+                'outstanding_amount' => max(0, $newOutstanding),
+                'paid_at'            => $newOutstanding <= 0 ? now() : $inst->paid_at,
+                'status'             => $newOutstanding <= 0 ? 'paid' : 'partial',
             ]);
-            $payment->update(['installment_id' => $installment->id]);
+            if (!$payment->installment_id) {
+                $payment->update(['installment_id' => $inst->id]);
+            }
+            $remaining -= $canPay;
         }
 
         // Update loan balance
         $loan->decrement('outstanding_balance', $data['amount']);
 
-        // Check if fully paid
-        if ($loan->fresh()->outstanding_balance <= 0) {
-            $loan->update(['status' => 'paid_off']);
+        // Check fully paid
+        $loan->refresh();
+        if ($loan->outstanding_balance <= 0 || $loan->installments()->whereNotIn('status',['paid','waived'])->count() === 0) {
+            $loan->update(['status' => 'paid_off', 'last_payment_date' => now()]);
         }
 
         return $payment;
@@ -115,9 +136,209 @@ class LoanService
         ]);
     }
 
+    // ── Bulk repayment: record up to 30 payments at once ──────────────────────
+    public function recordBulkPayments(array $rows, string $method, User $admin): array
+    {
+        $results = ['success' => 0, 'failed' => 0, 'errors' => []];
+
+        foreach ($rows as $i => $row) {
+            $loanNumber = trim($row['loan_number'] ?? '');
+            $amount     = (float) ($row['amount'] ?? 0);
+            if (!$loanNumber || $amount <= 0) { $results['failed']++; continue; }
+
+            $loan = Loan::where('loan_number', $loanNumber)
+                        ->whereIn('status', ['active','overdue'])
+                        ->with('installments','loanProduct')
+                        ->first();
+
+            if (!$loan) {
+                $results['failed']++;
+                $results['errors'][] = "Row ".($i+1).": Loan {$loanNumber} not found or not active.";
+                continue;
+            }
+
+            try {
+                $this->recordManualPayment($loan, [
+                    'amount' => $amount,
+                    'method' => $method,
+                    'notes'  => $row['notes'] ?? 'Bulk repayment entry',
+                ], $admin);
+                $results['success']++;
+            } catch (\Exception $e) {
+                $results['failed']++;
+                $results['errors'][] = "Row ".($i+1)." ({$loanNumber}): ".$e->getMessage();
+            }
+        }
+
+        return $results;
+    }
+
+    // ── Import loans from CSV ─────────────────────────────────────────────────
+    public function importLoansFromCsv(array $rows, User $admin): array
+    {
+        $results = ['success' => 0, 'failed' => 0, 'errors' => []];
+
+        foreach ($rows as $i => $row) {
+            try {
+                $userEmail  = trim($row['email'] ?? '');
+                $principal  = (float) ($row['principal_amount'] ?? $row['amount'] ?? 0);
+                $term       = (int) ($row['term_months'] ?? $row['term'] ?? 1);
+                $rate       = (float) ($row['interest_rate'] ?? 15);
+                $disbDate   = $row['disbursement_date'] ?? now()->format('Y-m-d');
+
+                if (!$userEmail || $principal <= 0) {
+                    $results['failed']++;
+                    $results['errors'][] = "Row ".($i+1).": email and amount are required.";
+                    continue;
+                }
+
+                $user = \App\Models\User::where('email', $userEmail)->first();
+                if (!$user) {
+                    $results['failed']++;
+                    $results['errors'][] = "Row ".($i+1).": No borrower found with email {$userEmail}.";
+                    continue;
+                }
+
+                // Find or use default product
+                $productName = $row['product'] ?? '';
+                $product     = $productName
+                    ? \App\Models\LoanProduct::where('name', 'like', "%{$productName}%")->first()
+                    : \App\Models\LoanProduct::active()->first();
+
+                $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
+                $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 50);
+                $totalInterest   = round($principal * ($rate / 100) * $term, 2);
+                $totalInitiation = round($principal * $initiationRate, 2);
+                $totalAdmin      = $adminPerMonth * $term;
+                $totalRepay      = $principal + $totalInterest + $totalInitiation + $totalAdmin;
+                $monthly         = round($totalRepay / $term, 2);
+                $nextId          = (Loan::max('id') ?? 0) + $results['success'] + 1;
+
+                $loan = Loan::create([
+                    'loan_number'         => 'LN-' . str_pad($nextId, 5, '0', STR_PAD_LEFT),
+                    'user_id'             => $user->id,
+                    'loan_product_id'     => $product?->id,
+                    'principal_amount'    => $principal,
+                    'interest_rate'       => $rate,
+                    'term_months'         => $term,
+                    'total_amount'        => $totalRepay,
+                    'outstanding_balance' => $totalRepay,
+                    'monthly_installment' => $monthly,
+                    'processing_fee'      => $totalInitiation,
+                    'status'              => 'active',
+                    'disbursement_date'   => $disbDate,
+                    'first_payment_date'  => \Carbon\Carbon::parse($disbDate)->addMonth()->startOfMonth()->toDateString(),
+                    'maturity_date'       => \Carbon\Carbon::parse($disbDate)->addMonths($term)->toDateString(),
+                    'collection_method'   => $row['collection_method'] ?? 'payroll',
+                    'payout_method'       => $row['payout_method'] ?? 'bank_transfer',
+                ]);
+
+                // Generate installments
+                $principalPerMonth  = round($principal / $term, 2);
+                $interestPerMonth   = round($principal * ($rate / 100), 2);
+                $initiationPerMonth = round($totalInitiation / $term, 2);
+                $payDate = \Carbon\Carbon::parse($disbDate)->addMonth()->startOfMonth();
+
+                for ($m = 1; $m <= $term; $m++) {
+                    $isLast = ($m === $term);
+                    $prin   = $isLast ? round($principal - $principalPerMonth * ($term - 1), 2) : $principalPerMonth;
+                    $init   = $isLast ? round($totalInitiation - $initiationPerMonth * ($term - 1), 2) : $initiationPerMonth;
+                    $total  = round($prin + $interestPerMonth + $adminPerMonth + $init, 2);
+
+                    \App\Models\LoanInstallment::create([
+                        'loan_id'               => $loan->id,
+                        'installment_number'    => $m,
+                        'due_date'              => $payDate->copy()->toDateString(),
+                        'principal_amount'      => $prin,
+                        'interest_amount'       => $interestPerMonth,
+                        'initiation_fee_amount' => $init,
+                        'admin_fee_amount'      => $adminPerMonth,
+                        'total_amount'          => $total,
+                        'paid_amount'           => 0,
+                        'outstanding_amount'    => $total,
+                        'status'                => 'pending',
+                    ]);
+                    $payDate->addMonth();
+                }
+
+                $results['success']++;
+            } catch (\Exception $e) {
+                $results['failed']++;
+                $results['errors'][] = "Row ".($i+1).": ".$e->getMessage();
+            }
+        }
+
+        return $results;
+    }
+
+    // ── Collection sheet: loans with payments due today / this week ───────────
+    public function getCollectionSheet(string $date, ?int $officerId = null): array
+    {
+        $targetDate = \Carbon\Carbon::parse($date);
+
+        $q = \App\Models\LoanInstallment::with(['loan.user', 'loan.loanProduct', 'loan.application.assignedOfficer'])
+            ->whereIn('status', ['pending', 'overdue', 'partial'])
+            ->whereDate('due_date', '<=', $targetDate)
+            ->orderBy('due_date');
+
+        if ($officerId) {
+            $q->whereHas('loan.application', fn($a) => $a->where('assigned_officer_id', $officerId));
+        }
+
+        $installments = $q->get();
+
+        return [
+            'date'          => $date,
+            'installments'  => $installments,
+            'total_due'     => $installments->sum('outstanding_amount'),
+            'total_count'   => $installments->count(),
+            'overdue_count' => $installments->where('status', 'overdue')->count(),
+            'by_officer'    => $installments->groupBy(fn($i) =>
+                $i->loan->application?->assignedOfficer?->name ?? 'Unassigned'
+            ),
+        ];
+    }
+
+    // ── Repayment chart data: monthly collections last 12 months ─────────────
+    public function getRepaymentChartData(): array
+    {
+        $months = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $m       = now()->subMonths($i);
+            $label   = $m->format('M Y');
+            $start   = $m->startOfMonth()->format('Y-m-d');
+            $end     = $m->copy()->endOfMonth()->format('Y-m-d');
+
+            $collected = Payment::where('status', 'verified')
+                ->whereDate('verified_at', '>=', $start)
+                ->whereDate('verified_at', '<=', $end)
+                ->sum('amount');
+
+            $disbursed = Loan::whereDate('disbursement_date', '>=', $start)
+                ->whereDate('disbursement_date', '<=', $end)
+                ->sum('principal_amount');
+
+            $months[] = [
+                'label'     => $label,
+                'collected' => round((float) $collected, 2),
+                'disbursed' => round((float) $disbursed, 2),
+            ];
+        }
+
+        // By method (all time last 12 months)
+        $byMethod = Payment::where('status', 'verified')
+            ->whereDate('verified_at', '>=', now()->subMonths(12)->format('Y-m-d'))
+            ->selectRaw('method, SUM(amount) as total')
+            ->groupBy('method')
+            ->pluck('total', 'method')
+            ->map(fn($v) => round((float) $v, 2))
+            ->toArray();
+
+        return ['months' => $months, 'by_method' => $byMethod];
+    }
+
     public function generateAgreementPdf(Loan $loan): string
     {
-        // Stub — integrate DomPDF/mPDF here
         return storage_path("app/agreements/loan_{$loan->loan_number}.pdf");
     }
 }

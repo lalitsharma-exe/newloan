@@ -5,8 +5,8 @@ use Illuminate\Database\Eloquent\Model;
 class LoanInstallment extends Model {
     protected $fillable = [
         "loan_id","installment_number","due_date",
-        "principal_amount","interest_amount","total_amount",
-        "paid_amount","outstanding_amount","late_fee",
+        "principal_amount","interest_amount","initiation_fee_amount","admin_fee_amount",
+        "total_amount","paid_amount","outstanding_amount","late_fee",
         "status","paid_at",
     ];
 

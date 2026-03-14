@@ -74,4 +74,88 @@ class UserController extends Controller {
         $this->svc->delete($user);
         return redirect()->route('admin.users.index')->with('success', "{$name} deleted successfully.");
     }
+
+    public function resetPassword(Request $request, User $user) {
+        $request->validate(['password' => 'required|string|min:8|confirmed']);
+        $user->update(['password' => \Illuminate\Support\Facades\Hash::make($request->password)]);
+        \App\Models\AuditLog::record('user.reset_password', "Password reset for {$user->name}", $user);
+        return back()->with('success', "Password reset for {$user->name}.");
+    }
+
+    public function impersonate(User $user) {
+        // Safety — only admins can impersonate borrowers
+        if (auth('admin')->user()->role !== 'admin') {
+            return back()->with('error', 'Only administrators can impersonate users.');
+        }
+        if ($user->role === 'admin') {
+            return back()->with('error', 'Cannot impersonate admin accounts.');
+        }
+        session(['impersonating_user' => $user->id, 'impersonating_from' => 'admin']);
+        \App\Models\AuditLog::record('user.impersonate', "Started impersonating {$user->name}", $user);
+        return redirect()->route('borrower.dashboard')->with('info', "Viewing as {$user->name}. Close tab to return.");
+    }
+
+    public function activity(User $user) {
+        $logs = \App\Models\AuditLog::where('user_id', $user->id)->latest()->paginate(20);
+        return view('admin.users.activity', compact('user', 'logs'));
+    }
+
+    public function loans(User $user) {
+        $user->load(['loans.loanProduct', 'loans.installments']);
+        return view('admin.users.loans', compact('user'));
+    }
+
+    public function applications(User $user) {
+        $user->load(['loanApplications.loanProduct']);
+        return view('admin.users.applications', compact('user'));
+    }
+    public function import(Request $request) {
+        $request->validate(['file' => 'required|file|mimes:csv,txt|max:2048']);
+        $path = $request->file('file')->path();
+        $rows = array_map('str_getcsv', file($path));
+        if (count($rows) < 2) return back()->with('error', 'CSV file is empty or has no data rows.');
+
+        $header  = array_map('trim', array_shift($rows));
+        $imported = 0;
+        $skipped  = 0;
+
+        foreach ($rows as $row) {
+            if (count($row) < count($header)) { $skipped++; continue; }
+            $data = array_combine($header, array_map('trim', $row));
+            if (empty($data['email'])) { $skipped++; continue; }
+
+            User::updateOrCreate(['email' => $data['email']], [
+                'name'      => $data['name']  ?? $data['email'],
+                'phone'     => $data['phone'] ?? null,
+                'role'      => 'borrower',
+                'password'  => \Illuminate\Support\Facades\Hash::make($data['password'] ?? 'Password@123'),
+                'is_active' => true,
+            ]);
+            $imported++;
+        }
+
+        \App\Models\AuditLog::record('users.import', "Imported {$imported} borrowers via CSV", null, [], ['count' => $imported]);
+        return back()->with('success', "{$imported} borrowers imported successfully." . ($skipped ? " {$skipped} rows skipped.": ''));
+    }
+
+    // ── Export CSV ──────────────────────────────────────────────────
+    public function export(Request $request) {
+        $filters = $request->only(['role','status','search']);
+        $users   = $this->svc->getPaginated($filters, 9999);
+        $csv = "Name,Email,Phone,Role,Status,Created\n";
+        foreach ($users as $u) {
+            $csv .= implode(',', [
+                '"'.$u->name.'"',
+                $u->email,
+                $u->phone ?? '',
+                $u->role,
+                $u->is_active ? 'Active' : 'Inactive',
+                $u->created_at->format('Y-m-d'),
+            ]) . "\n";
+        }
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="borrowers-'.now()->format('Y-m-d').'.csv"',
+        ]);
+    }
 }

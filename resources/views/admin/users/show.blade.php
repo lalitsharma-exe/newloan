@@ -36,6 +36,7 @@
             <i class="bi bi-{{ $user->is_active?'lock':'unlock' }}"></i> {{ $user->is_active?'Disable Account':'Enable Account' }}
           </button>
         </form>
+        <button onclick="document.getElementById('pwModal').style.display='flex'" class="btn btn-o" style="justify-content:center"><i class="bi bi-key"></i> Reset Password</button>
         @if($user->id !== auth('admin')->id())
         <button onclick="document.getElementById('delModal').style.display='flex'" class="btn btn-e" style="justify-content:center"><i class="bi bi-trash"></i> Delete User</button>
         @endif
@@ -182,6 +183,28 @@
         <button type="submit" class="btn btn-e" style="width:100%;justify-content:center"><i class="bi bi-trash"></i> Delete</button>
       </form>
     </div>
+  </div>
+</div>
+
+
+{{-- RESET PASSWORD MODAL --}}
+<div id="pwModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.5);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:18px;width:100%;max-width:420px;margin:20px;box-shadow:0 25px 60px rgba(0,0,0,.2)">
+    <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:15px;font-weight:700"><i class="bi bi-key" style="color:var(--p)"></i> Reset Password</span>
+      <button onclick="document.getElementById('pwModal').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--muted)">&times;</button>
+    </div>
+    <form method="POST" action="{{ route('admin.users.reset-password',$user) }}">
+      @csrf
+      <div style="padding:22px">
+        <div class="fg"><label class="fl">New Password *</label><input type="password" name="password" class="fc" placeholder="Minimum 8 characters" required></div>
+        <div class="fg"><label class="fl">Confirm Password *</label><input type="password" name="password_confirmation" class="fc" required></div>
+      </div>
+      <div style="padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:9px">
+        <button type="button" onclick="document.getElementById('pwModal').style.display='none'" class="btn btn-o">Cancel</button>
+        <button type="submit" class="btn btn-p"><i class="bi bi-check-lg"></i> Reset Password</button>
+      </div>
+    </form>
   </div>
 </div>
 
