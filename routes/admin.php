@@ -177,21 +177,22 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::get('/', [ReportController::class, 'index'])->name('index');
 
-            // Individual report pages
             Route::get('/portfolio',            [ReportController::class, 'portfolio'])->name('portfolio');
             Route::get('/disbursement',         [ReportController::class, 'disbursement'])->name('disbursement');
             Route::get('/repayment',            [ReportController::class, 'repayment'])->name('repayment');
             Route::get('/arrears',              [ReportController::class, 'arrears'])->name('arrears');
             Route::get('/collections',          [ReportController::class, 'collections'])->name('collections');
+            Route::get('/outstanding',          [ReportController::class, 'outstanding'])->name('outstanding');
+            Route::get('/par',                  [ReportController::class, 'par'])->name('par');
+            Route::get('/default',              [ReportController::class, 'default'])->name('default');
+            Route::get('/applications',         [ReportController::class, 'applications'])->name('applications');
+            Route::get('/payment-failures',     [ReportController::class, 'paymentFailures'])->name('payment-failures');
             Route::get('/product-performance',  [ReportController::class, 'productPerformance'])->name('product-performance');
             Route::get('/officer-performance',  [ReportController::class, 'officerPerformance'])->name('officer-performance');
             Route::get('/income-statement',     [ReportController::class, 'incomeStatement'])->name('income-statement');
             Route::get('/borrower-demographics',[ReportController::class, 'borrowerDemographics'])->name('borrower-demographics');
 
-            // Export (POST with format + date range)
             Route::post('/export',              [ReportController::class, 'export'])->name('export');
-
-            // Scheduled report config
             Route::get('/scheduled',            [ReportController::class, 'scheduledIndex'])->name('scheduled.index');
             Route::post('/scheduled',           [ReportController::class, 'scheduledStore'])->name('scheduled.store');
             Route::delete('/scheduled/{id}',    [ReportController::class, 'scheduledDestroy'])->name('scheduled.destroy');

@@ -1,7 +1,9 @@
 @extends('admin.layouts.app')
 @section('title','Dashboard')
 @section('page-title','Dashboard')
-@section('bc','Home')
+@section('bc')
+Home
+@endsection
 @section('content')
 
 {{-- Flash --}}
@@ -29,17 +31,17 @@
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px">
   @php
   $kpis = [
-    ['Approved Today',      $stats['loans_approved_today'],              'check-circle-fill',    '#10b981','rgba(16,185,129,.1)',  route('admin.loans.index')],
-    ['Payments Today',      'M '.number_format($stats['payments_received_today'],0), 'cash-stack', '#4f46e5','rgba(79,70,229,.1)',  route('admin.payments.index')],
-    ['Pending Applications',$stats['applications_pending'],              'hourglass-split',      '#f59e0b','rgba(245,158,11,.1)',  route('admin.applications.index')],
-    ['Overdue Loans',       $stats['overdue_loans'],                     'exclamation-triangle-fill','#ef4444','rgba(239,68,68,.1)',route('admin.loans.index',['status'=>'overdue'])],
+    ['Approved Today',       $stats['loans_approved_today'],                          'check-circle-fill',         '#10b981','rgba(16,185,129,.1)',  route('admin.loans.index')],
+    ['Disbursed Today',      $stats['loans_disbursed_today'].' (M'.number_format($stats['disbursed_today_amount'],0).')', 'arrow-up-circle-fill','#8b5cf6','rgba(139,92,246,.1)', route('admin.loans.index')],
+    ['Collections Today',    'M '.number_format($stats['payments_received_today'],0), 'cash-stack',                '#4f46e5','rgba(79,70,229,.1)',   route('admin.payments.index')],
+    ['Pending Applications', $stats['applications_pending'],                          'hourglass-split',           '#f59e0b','rgba(245,158,11,.1)',  route('admin.applications.index')],
   ];
   @endphp
   @foreach($kpis as [$label,$value,$icon,$color,$bg,$link])
-  <a href="{{ $link }}" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px 22px;display:flex;align-items:flex-start;justify-content:space-between;text-decoration:none;transition:all .2s;group" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,.08)';this.style.borderColor='{{ $color }}44'" onmouseout="this.style.boxShadow='none';this.style.borderColor='var(--border)'">
+  <a href="{{ $link }}" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px 22px;display:flex;align-items:flex-start;justify-content:space-between;text-decoration:none;transition:all .2s" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,.08)';this.style.borderColor='{{ $color }}44'" onmouseout="this.style.boxShadow='none';this.style.borderColor='var(--border)'">
     <div>
       <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">{{ $label }}</div>
-      <div style="font-size:28px;font-weight:800;color:var(--dark);line-height:1">{{ $value }}</div>
+      <div style="font-size:26px;font-weight:800;color:var(--dark);line-height:1">{{ $value }}</div>
     </div>
     <div style="width:48px;height:48px;border-radius:14px;background:{{ $bg }};display:flex;align-items:center;justify-content:center;font-size:21px;color:{{ $color }};flex-shrink:0">
       <i class="bi bi-{{ $icon }}"></i>
@@ -48,24 +50,26 @@
   @endforeach
 </div>
 
-{{-- 4 secondary KPI cards --}}
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+{{-- 6 secondary KPI cards including PAR 30 and Default Rate --}}
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px">
   @php
   $kpis2 = [
-    ['Expected This Month', 'M '.number_format($stats['expected_collections'],0),  'calendar-check',      '#06b6d4'],
-    ['Active Portfolio',    'M '.number_format($stats['total_portfolio'],0),        'pie-chart-fill',      '#0ea5e9'],
-    ['Disbursed This Month','M '.number_format($stats['total_disbursed_month'],0),  'arrow-up-circle-fill','#8b5cf6'],
-    ['Total Borrowers',     number_format($stats['total_borrowers']),               'people-fill',         '#10b981'],
+    ['Portfolio',        'M '.number_format($stats['total_portfolio'],0),       'pie-chart-fill',      '#0ea5e9'],
+    ['Disbursed Month',  'M '.number_format($stats['total_disbursed_month'],0), 'arrow-up-circle-fill','#8b5cf6'],
+    ['Due This Month',   'M '.number_format($stats['expected_collections'],0),  'calendar-check',      '#06b6d4'],
+    ['Borrowers',        number_format($stats['total_borrowers']),              'people-fill',         '#10b981'],
+    ['PAR 30',           $stats['par30_pct'].'%',                               'shield-exclamation',  $stats['par30_pct'] < 5 ? '#10b981' : ($stats['par30_pct'] < 10 ? '#f59e0b' : '#ef4444')],
+    ['Default Rate',     $stats['default_rate'].'%',                            'x-circle-fill',       $stats['default_rate'] < 3 ? '#10b981' : ($stats['default_rate'] < 8 ? '#f59e0b' : '#ef4444')],
   ];
   @endphp
   @foreach($kpis2 as [$label,$value,$icon,$color])
-  <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px">
-    <div style="width:42px;height:42px;border-radius:12px;background:{{ $color }}18;display:flex;align-items:center;justify-content:center;font-size:18px;color:{{ $color }};flex-shrink:0">
+  <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:12px">
+    <div style="width:40px;height:40px;border-radius:11px;background:{{ $color }}18;display:flex;align-items:center;justify-content:center;font-size:17px;color:{{ $color }};flex-shrink:0">
       <i class="bi bi-{{ $icon }}"></i>
     </div>
     <div>
-      <div style="font-size:18px;font-weight:800;color:var(--dark)">{{ $value }}</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:2px">{{ $label }}</div>
+      <div style="font-size:17px;font-weight:800;color:var(--dark)">{{ $value }}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:1px">{{ $label }}</div>
     </div>
   </div>
   @endforeach

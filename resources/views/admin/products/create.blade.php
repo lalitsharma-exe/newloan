@@ -70,12 +70,12 @@
 
         <div class="fg">
           <label class="fl">Min Term (months) *</label>
-          <input type="number" name="min_term_months" class="fc" value="{{ old('min_term_months',1) }}" min="1" max="6" required>
+          <input type="number" name="min_term_months" class="fc" value="{{ old('min_term_months',1) }}" min="1" max="24" required>
         </div>
 
         <div class="fg">
-          <label class="fl">Max Term (months, max 6) *</label>
-          <input type="number" name="max_term_months" class="fc" value="{{ old('max_term_months',6) }}" min="1" max="6" required>
+          <label class="fl">Max Term (months, max 24) *</label>
+          <input type="number" name="max_term_months" class="fc" value="{{ old('max_term_months',6) }}" min="1" max="24" required>
         </div>
 
         <div class="fg" style="display:flex;align-items:center;gap:10px;margin-top:8px">

@@ -11,7 +11,7 @@ class AdminSeeder extends Seeder {
         // MyLoan rules: 15%/month FLAT, 40% initiation fee, M50/month admin, M20/10-days penalty, max 6 months
         $feeDefaults = ['interest_rate'=>15,'initiation_fee_rate'=>40,'admin_fee_fixed'=>50,'interest_method'=>'flat',
             'processing_fee'=>0,'processing_fee_type'=>'fixed','late_payment_fee'=>20,
-            'min_term_months'=>1,'max_term_months'=>6,'max_term_months_allowed'=>6,'is_active'=>true];
+            'min_term_months'=>1,'max_term_months'=>24,'max_term_months_allowed'=>24,'is_active'=>true];
 
         $products=[
             array_merge($feeDefaults,["name"=>"Government Loan","slug"=>"government-loan","min_amount"=>500,"max_amount"=>50000,"description"=>"For government employees with stable income."]),

@@ -67,11 +67,23 @@ class ReportController extends Controller
         ]);
     }
 
+    public function outstanding(Request $r) {
+        return view('admin.reports.outstanding', ['data' => $this->svc->getOutstandingReport($r->all()), 'filters' => $r->all()]);
+    }
+    public function par(Request $r) {
+        return view('admin.reports.par', ['data' => $this->svc->getParReport($r->all()), 'filters' => $r->all()]);
+    }
+    public function default(Request $r) {
+        return view('admin.reports.default', ['data' => $this->svc->getDefaultReport($r->all()), 'filters' => $r->all()]);
+    }
+    public function applications(Request $r) {
+        return view('admin.reports.applications', ['data' => $this->svc->getApplicationReport($r->all()), 'filters' => $r->all()]);
+    }
+    public function paymentFailures(Request $r) {
+        return view('admin.reports.payment-failures', ['data' => $this->svc->getPaymentFailureReport($r->all()), 'filters' => $r->all()]);
+    }
     public function borrowerDemographics(Request $r) {
-        return view('admin.reports.borrower-demographics', [
-            'data'    => $this->svc->getBorrowerDemographicsReport($r->all()),
-            'filters' => $r->all(),
-        ]);
+        return view('admin.reports.borrower-demographics', ['data' => $this->svc->getBorrowerDemographicsReport($r->all()), 'filters' => $r->all()]);
     }
 
     // Scheduled reports

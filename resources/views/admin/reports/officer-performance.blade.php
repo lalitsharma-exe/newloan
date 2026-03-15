@@ -1,36 +1,51 @@
 @extends('admin.layouts.app')
-@section('title','Officer Performance Report')
+@section('title','Officer Performance')
 @section('page-title','Officer Performance Report')
+@section('bc')
+<a href="{{ route('admin.reports.index') }}">Reports</a> / Officer Performance
+@endsection
 @section('content')
-<div class="card mb-4">
-  <div class="card-header">
-    <span class="card-title">Officer Performance Report</span>
-    <form method="POST" action="{{ route('admin.reports.export') }}" style="display:inline">@csrf<input type="hidden" name="report_type" value="{{ str_replace('-','_','officer-performance') }}"><input type="hidden" name="format" value="csv"><button class="btn btn-sm btn-outline"><i class="bi bi-download"></i> Export CSV</button></form>
-  </div>
-  <div class="card-body">
-    <form method="GET" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
-      <div class="form-group" style="margin-bottom:0"><label class="form-label">From</label><input type="date" name="date_from" class="form-control" value="{{ $filters['date_from'] ?? now()->startOfMonth()->format('Y-m-d') }}"></div>
-      <div class="form-group" style="margin-bottom:0"><label class="form-label">To</label><input type="date" name="date_to" class="form-control" value="{{ $filters['date_to'] ?? now()->format('Y-m-d') }}"></div>
-      <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Filter</button>
-    </form>
-  </div>
-</div>
+<form method="GET" class="filter-bar">
+  <div class="fg" style="margin-bottom:0"><label class="fl">From</label><input type="date" name="date_from" class="fc" value="{{ $filters['date_from'] ?? now()->startOfMonth()->format('Y-m-d') }}"></div>
+  <div class="fg" style="margin-bottom:0"><label class="fl">To</label><input type="date" name="date_to" class="fc" value="{{ $filters['date_to'] ?? now()->format('Y-m-d') }}"></div>
+  <div class="flex gap2 aic" style="align-self:flex-end"><button type="submit" class="btn btn-p btn-sm"><i class="bi bi-funnel"></i> Filter</button><a href="{{ route('admin.reports.officer-performance') }}" class="btn btn-o btn-sm">Clear</a></div>
+</form>
 <div class="card">
-  <div class="card-body">
-    @if(isset($data['loans']))
-    <table class="data-table"><thead><tr><th>Loan #</th><th>Borrower</th><th>Product</th><th>Amount</th><th>Outstanding</th><th>Status</th></tr></thead><tbody>
-    @forelse($data['loans'] as $loan)
-    <tr><td style="font-weight:700;color:#4f46e5">{{ $loan->loan_number }}</td><td>{{ $loan->user->name??'—' }}</td><td>{{ $loan->loanProduct->name??'—' }}</td><td>L {{ number_format($loan->principal_amount,0) }}</td><td>L {{ number_format($loan->outstanding_balance,0) }}</td><td><span class="badge badge-{{ $loan->status==='active'?'success':($loan->status==='overdue'?'danger':'secondary') }}">{{ ucfirst($loan->status) }}</span></td></tr>
-    @empty<tr><td colspan="6"><div class="empty-state"><i class="bi bi-inbox"></i><p>No data for this period</p></div></td></tr>@endforelse
-    </tbody></table>
-    @elseif(isset($data['payments']))
-    <table class="data-table"><thead><tr><th>Reference</th><th>Borrower</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead><tbody>
-    @forelse($data['payments'] as $p)
-    <tr><td style="font-weight:700;color:#4f46e5">{{ $p->payment_reference }}</td><td>{{ $p->loan->user->name??'—' }}</td><td>L {{ number_format($p->amount,2) }}</td><td>{{ ucfirst(str_replace('_',' ',$p->method)) }}</td><td>{{ $p->created_at->format('d M Y') }}</td></tr>
-    @empty<tr><td colspan="5"><div class="empty-state"><i class="bi bi-inbox"></i><p>No data</p></div></td></tr>@endforelse
-    </tbody></table>
-    @else<div class="empty-state"><i class="bi bi-bar-chart"></i><p>No data available for the selected period.</p></div>
-    @endif
-  </div>
+  <div class="card-hdr"><span class="card-title">Officer Performance Summary</span></div>
+  <div style="overflow-x:auto"><table class="dt">
+    <thead>
+      <tr>
+        <th>Officer</th><th>Total Apps</th><th>Approved</th><th>Declined</th>
+        <th>Active Loans</th><th>Portfolio Value</th><th>Collection Rate</th><th>Default Rate</th>
+      </tr>
+    </thead>
+    <tbody>
+    @forelse($data['officers'] as $row)
+    <tr>
+      <td>
+        <div style="font-weight:700;font-size:13px">{{ $row['officer']->name??'—' }}</div>
+        <div class="muted">{{ $row['officer']->email??'' }}</div>
+      </td>
+      <td><strong>{{ $row['total_apps'] }}</strong></td>
+      <td><span class="badge bok">{{ $row['approved'] }}</span></td>
+      <td><span class="badge be">{{ $row['declined'] }}</span></td>
+      <td>{{ $row['active_loans'] }}</td>
+      <td><strong>M{{ number_format($row['portfolio'],0) }}</strong></td>
+      <td>
+        <span class="badge {{ $row['coll_rate'] >= 90 ? 'bok' : ($row['coll_rate'] >= 70 ? 'bw' : 'be') }}">
+          {{ $row['coll_rate'] }}%
+        </span>
+      </td>
+      <td>
+        <span class="badge {{ $row['def_rate'] < 3 ? 'bok' : ($row['def_rate'] < 8 ? 'bw' : 'be') }}">
+          {{ $row['def_rate'] }}%
+        </span>
+      </td>
+    </tr>
+    @empty
+    <tr><td colspan="8"><div class="empty"><i class="bi bi-person-badge"></i><p>No loan officers found</p></div></td></tr>
+    @endforelse
+    </tbody>
+  </table></div>
 </div>
 @endsection
