@@ -177,8 +177,9 @@
           <div style="font-size:22px;font-weight:800;color:var(--p)" id="ar-limit">M0</div>
         </div>
         <div style="background:#fff;border-radius:10px;padding:14px;border:1px solid var(--border)">
-          <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">You Qualify For</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase">Max Monthly Installment</div>
           <div style="font-size:22px;font-weight:800" id="ar-qualify">M0</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">Loan amount may be higher</div>
         </div>
       </div>
       <div id="ar-message" style="font-size:13px;padding:10px 14px;border-radius:8px;text-align:center"></div>
@@ -340,11 +341,19 @@
         <div id="rev-loan" style="font-size:13.5px;line-height:2.1"></div>
       </div>
     </div>
+
+    {{-- Affordability summary on review --}}
+    <div id="rev-afford" style="margin-top:16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;display:none">
+      <div style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px"><i class="bi bi-calculator-fill"></i> Affordability</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center" id="rev-afford-grid"></div>
+    </div>
+
     {{-- Flat interest summary on review --}}
-    <div id="rev-calc" style="margin-top:16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;display:none">
-      <div style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px"><i class="bi bi-calculator-fill"></i> Repayment Summary</div>
+    <div id="rev-calc" style="margin-top:14px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:14px;display:none">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px"><i class="bi bi-calculator-fill"></i> Repayment Summary</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;text-align:center" id="rev-calc-grid"></div>
     </div>
+
     <div class="alert a-i" style="margin-top:16px;margin-bottom:0">
       <i class="bi bi-info-circle-fill"></i>
       Application will be submitted for review. You can then approve, decline, or assign it to a loan officer.
@@ -407,10 +416,10 @@ function calcAffordability() {
   const msg = document.getElementById('ar-message');
   if (qualifies) {
     msg.style.background = '#d1fae5'; msg.style.color = '#065f46'; msg.style.border = '1px solid #a7f3d0';
-    msg.innerHTML = '<i class="bi bi-check-circle-fill"></i> Borrower qualifies for a maximum monthly installment of <strong>M' + available.toFixed(2) + '</strong>';
+    msg.innerHTML = '<i class="bi bi-check-circle-fill"></i> Borrower can afford a loan whose monthly installment does not exceed <strong>M' + available.toFixed(2) + '</strong>. The loan amount and period will be set in the next step.';
   } else {
     msg.style.background = '#fee2e2'; msg.style.color = '#991b1b'; msg.style.border = '1px solid #fca5a5';
-    msg.innerHTML = '<i class="bi bi-x-circle-fill"></i> Borrower does not qualify — existing deductions exceed 30% limit';
+    msg.innerHTML = '<i class="bi bi-x-circle-fill"></i> Borrower does not qualify — existing deductions exceed the 30% affordability limit';
   }
 
   document.getElementById('affordResult').style.color = 'inherit';
@@ -509,6 +518,16 @@ function goStep(n) {
     const pm  = document.querySelector('[name=collection_method]').value;
     const lp  = document.querySelector('[name=loan_purpose]').value;
     if (!pid || !amt || !trm || !pp || !pm || !lp) { alert('Please complete all required loan fields.'); return; }
+
+    // Hard block if monthly installment exceeds affordability limit
+    const maxMonthly = parseFloat(document.getElementById('hiddenMaxLoan').value) || 0;
+    if (maxMonthly > 0) {
+      const calc = calcMonthly();
+      if (calc && calc.monthly > maxMonthly) {
+        alert('Cannot proceed: the monthly installment of M' + calc.monthly.toFixed(2) + ' exceeds the affordability limit of M' + maxMonthly.toFixed(2) + '.\n\nPlease reduce the loan amount or shorten the term so the monthly installment stays within M' + maxMonthly.toFixed(2) + '.');
+        return;
+      }
+    }
     buildReview();
   }
 
@@ -547,7 +566,8 @@ function buildReview() {
   const last     = document.getElementById('fieldSurname').value;
   const cell     = document.getElementById('fieldCell').value;
   const email    = document.getElementById('fieldEmail').value;
-  const net      = document.getElementById('netSalary').value;
+  const net      = parseFloat(document.getElementById('netSalary').value) || 0;
+  const maxMonthly = parseFloat(document.getElementById('hiddenMaxLoan').value) || 0;
 
   const amount   = parseFloat(document.getElementById('reqAmount').value || 0);
   const term     = document.getElementById('reqTerm').value;
@@ -556,19 +576,40 @@ function buildReview() {
   const coll     = document.querySelector('[name=collection_method] option:checked').text;
 
   document.getElementById('rev-applicant').innerHTML =
-    `<b>Account:</b> ${borrower}<br><b>Name:</b> ${first} ${last}<br><b>Cell:</b> ${cell||'—'}<br><b>Email:</b> ${email||'—'}<br><b>Net Salary:</b> M${parseFloat(net||0).toFixed(2)}`;
+    `<b>Account:</b> ${borrower}<br><b>Name:</b> ${first} ${last}<br><b>Cell:</b> ${cell||'—'}<br><b>Email:</b> ${email||'—'}<br><b>Net Salary:</b> M${net.toFixed(2)}`;
 
   const calc = calcMonthly();
   document.getElementById('rev-loan').innerHTML =
     `<b>Product:</b> ${prodName}<br><b>Amount:</b> M${amount.toLocaleString()}<br><b>Term:</b> ${term} months<br><b>Monthly:</b> M${calc?.monthly.toFixed(2)||'—'}<br><b>Payout:</b> ${pout}<br><b>Collection:</b> ${coll}`;
 
+  // Affordability summary
+  if (net > 0) {
+    const limit30 = net * 0.30;
+    const passes  = calc && calc.monthly <= maxMonthly;
+    document.getElementById('rev-afford').style.display = 'block';
+    document.getElementById('rev-afford-grid').innerHTML = `
+      <div style="background:#fff;border-radius:8px;padding:11px;border:1px solid #d1fae5;text-align:center">
+        <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Net Salary</div>
+        <div style="font-size:18px;font-weight:800">M${net.toFixed(2)}</div>
+      </div>
+      <div style="background:#fff;border-radius:8px;padding:11px;border:1px solid #d1fae5;text-align:center">
+        <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Max Monthly Installment</div>
+        <div style="font-size:18px;font-weight:800;color:var(--p)">M${maxMonthly.toFixed(2)}</div>
+      </div>
+      <div style="background:#fff;border-radius:8px;padding:11px;border:1px solid ${passes?'#d1fae5':'#fca5a5'};text-align:center">
+        <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Affordability</div>
+        <div style="font-size:18px;font-weight:800;color:${passes?'var(--ok)':'var(--err)'}">${passes?'✓ Passes':'✗ Fails'}</div>
+      </div>
+    `;
+  }
+
   if (calc) {
     document.getElementById('rev-calc').style.display = 'block';
     document.getElementById('rev-calc-grid').innerHTML = `
-      <div style="background:#f8fafc;border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Monthly</div><div style="font-size:18px;font-weight:800;color:var(--p)">M${calc.monthly.toFixed(2)}</div></div>
-      <div style="background:#f8fafc;border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Interest</div><div style="font-size:16px;font-weight:700;color:#f59e0b">M${calc.interest.toFixed(2)}</div></div>
-      <div style="background:#f8fafc;border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Initiation</div><div style="font-size:16px;font-weight:700;color:#8b5cf6">M${calc.initiation.toFixed(2)}</div></div>
-      <div style="background:#f8fafc;border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Total Repay</div><div style="font-size:16px;font-weight:800;color:#1e3a5f">M${calc.total.toFixed(2)}</div></div>
+      <div style="background:#fff;border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Monthly</div><div style="font-size:18px;font-weight:800;color:var(--p)">M${calc.monthly.toFixed(2)}</div></div>
+      <div style="background:#fff;border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Interest</div><div style="font-size:16px;font-weight:700;color:#f59e0b">M${calc.interest.toFixed(2)}</div></div>
+      <div style="background:#fff;border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Initiation</div><div style="font-size:16px;font-weight:700;color:#8b5cf6">M${calc.initiation.toFixed(2)}</div></div>
+      <div style="background:#fff;border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Total Repay</div><div style="font-size:16px;font-weight:800;color:#1e3a5f">M${calc.total.toFixed(2)}</div></div>
     `;
   }
 }
