@@ -1,18 +1,39 @@
 <?php
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Loan extends Model {
+class Loan extends Model
+{
     use SoftDeletes;
 
     protected $fillable = [
-        'loan_number','user_id','loan_product_id','application_id',
-        'status','principal_amount','interest_rate','term_months',
-        'total_amount','outstanding_balance','monthly_installment','processing_fee',
-        'disbursement_date','maturity_date','first_payment_date','last_payment_date',
-        'payout_method','collection_method',
-        'closed_at','closed_reason','closed_by',
+        'loan_number',
+        'disbursement_reference',
+        'user_id',
+        'loan_product_id',
+        'application_id',
+        'status',
+        'principal_amount',
+        'interest_rate',
+        'term_months',
+        'total_amount',
+        'outstanding_balance',
+        'monthly_installment',
+        'processing_fee',          // DB column kept; labelled "Initiation Fee" in UI
+        'disbursement_date',
+        'maturity_date',
+        'first_payment_date',
+        'last_payment_date',
+        'payout_method',
+        'collection_method',
+        'disbursement_method',
+        'disbursement_phone',
+        'disbursement_provider',
+        'closed_at',
+        'closed_reason',
+        'closed_by',
     ];
 
     protected $casts = [
@@ -24,10 +45,10 @@ class Loan extends Model {
     ];
 
     // ── Scopes ────────────────────────────────────────────────────
-    public function scopeActive($q)   { return $q->where('status', 'active'); }
-    public function scopeOverdue($q)  { return $q->where('status', 'overdue'); }
-    public function scopePaidOff($q)  { return $q->where('status', 'paid_off'); }
-    public function scopeClosed($q)   { return $q->where('status', 'closed'); }
+    public function scopeActive($q)  { return $q->where('status', 'active'); }
+    public function scopeOverdue($q) { return $q->where('status', 'overdue'); }
+    public function scopePaidOff($q) { return $q->where('status', 'paid_off'); }
+    public function scopeClosed($q)  { return $q->where('status', 'closed'); }
 
     // ── Relationships ─────────────────────────────────────────────
     public function user()         { return $this->belongsTo(User::class); }
@@ -38,9 +59,20 @@ class Loan extends Model {
     public function closedBy()     { return $this->belongsTo(User::class, 'closed_by'); }
 
     // ── Accessors ─────────────────────────────────────────────────
-    public function getDaysOverdueAttribute(): int {
+
+    // "Initiation Fee" is the correct term — processing_fee is the DB column name
+    public function getInitiationFeeAttribute(): float
+    {
+        return (float) $this->processing_fee;
+    }
+
+    public function getDaysOverdueAttribute(): int
+    {
         if ($this->status !== 'overdue') return 0;
-        $inst = $this->installments()->where('status', 'overdue')->orderBy('due_date')->first();
+        $inst = $this->installments()
+            ->where('status', 'overdue')
+            ->orderBy('due_date')
+            ->first();
         return $inst ? now()->diffInDays($inst->due_date) : 0;
     }
 }

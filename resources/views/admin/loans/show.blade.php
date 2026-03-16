@@ -10,6 +10,9 @@
   <div style="padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
     <div class="flex aic gap3"><div class="av av-lg">{{ strtoupper(substr($loan->user->name??'U',0,1)) }}</div><div><div style="font-size:17px;font-weight:800">{{$loan->user->name}}</div><div class="muted">{{$loan->loan_number}} · {{$loan->loanProduct->name??'—'}}</div></div></div>
     <div class="flex gap2" style="flex-wrap:wrap">
+      @if(in_array($loan->status,['active','overdue']) === false && $loan->disbursement_date === null)
+      <a href="{{ route('admin.loans.disburse.confirm',$loan) }}" class="btn btn-sm btn-ok"><i class="bi bi-send-fill"></i> Disburse Loan</a>
+      @endif
       <a href="{{ route('admin.loans.agreement',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-file-pdf"></i> Agreement</a>
       <a href="{{ route('admin.loans.statement',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-file-earmark-text"></i> Statement</a>
       <a href="{{ route('admin.loans.settlement-quotation',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-receipt"></i> Quotation</a>
@@ -66,7 +69,19 @@
 </div>
 <div style="width:280px;flex-shrink:0">
   <div class="card"><div class="card-hdr"><span class="card-title">Loan Info</span></div><div style="padding:14px">
-    @foreach(['Status'=>ucfirst(str_replace('_',' ',$loan->status)),'Disbursed'=>$loan->disbursement_date?->format('d M Y'),'Maturity'=>$loan->maturity_date?->format('d M Y'),'1st Payment'=>$loan->first_payment_date?->format('d M Y'),'Monthly'=>"M ".number_format($loan->monthly_installment,2),'Processing Fee'=>"M ".number_format($loan->processing_fee,2)] as $l=>$v)
+    @foreach([
+      'Status'           => ucfirst(str_replace('_',' ',$loan->status)),
+      'Disbursed'        => $loan->disbursement_date?->format('d M Y') ?? '—',
+      'Disburse Ref'     => $loan->disbursement_reference ?? '—',
+      'Method'           => ucfirst(str_replace('_',' ',$loan->disbursement_method ?? $loan->payout_method ?? '—')),
+      'Maturity'         => $loan->maturity_date?->format('d M Y') ?? '—',
+      '1st Payment'      => $loan->first_payment_date?->format('d M Y') ?? '—',
+      'Monthly'          => 'M '.number_format($loan->monthly_installment,2),
+      'Principal'        => 'M '.number_format($loan->principal_amount,2),
+      'Interest Rate'    => $loan->interest_rate.'% / mo',
+      'Initiation Fee'   => 'M '.number_format($loan->processing_fee,2),
+      'Collection'       => ucfirst(str_replace('_',' ',$loan->collection_method ?? '—')),
+    ] as $l=>$v)
     <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:12.5px;border-bottom:1px solid #f1f5f9"><span class="muted">{{$l}}</span><span style="font-weight:600">{{$v??'—'}}</span></div>@endforeach
   </div></div>
 </div>

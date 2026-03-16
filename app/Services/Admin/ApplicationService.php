@@ -1,7 +1,7 @@
 <?php
 namespace App\Services\Admin;
 
-use App\Models\{Loan, LoanApplication, LoanInstallment, User};
+use App\Models\{Loan, LoanApplication, LoanInstallment, LoanProduct, User};
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -12,18 +12,18 @@ class ApplicationService
         $q = LoanApplication::with(['user', 'loanProduct', 'assignedOfficer'])
             ->where('status', '!=', 'draft');
 
-        if (!empty($filters['status']))   $q->where('status', $filters['status']);
-        if (!empty($filters['product']))  $q->where('loan_product_id', $filters['product']);
+        if (!empty($filters['status']))    $q->where('status', $filters['status']);
+        if (!empty($filters['product']))   $q->where('loan_product_id', $filters['product']);
         if (!empty($filters['date_from'])) $q->whereDate('created_at', '>=', $filters['date_from']);
         if (!empty($filters['date_to']))   $q->whereDate('created_at', '<=', $filters['date_to']);
         if (!empty($filters['search'])) {
             $s = $filters['search'];
             $q->where(function ($q) use ($s) {
                 $q->where('application_number', 'like', "%{$s}%")
-                  ->orWhere('first_name', 'like', "%{$s}%")
-                  ->orWhere('surname', 'like', "%{$s}%")
+                  ->orWhere('first_name',  'like', "%{$s}%")
+                  ->orWhere('surname',     'like', "%{$s}%")
                   ->orWhere('cell_number', 'like', "%{$s}%")
-                  ->orWhereHas('user', fn($u) => $u->where('name','like',"%{$s}%")->orWhere('email','like',"%{$s}%"));
+                  ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$s}%")->orWhere('phone', 'like', "%{$s}%"));
             });
         }
 
@@ -42,13 +42,31 @@ class ApplicationService
 
     public function approve(LoanApplication $app, array $data, User $admin): Loan
     {
+        // Validate against loan product limits
+        $product = $app->loanProduct;
+        if ($product) {
+            $amount = (float) $data['approved_amount'];
+            $term   = (int)   $data['approved_term'];
+
+            if ($amount < $product->min_amount || $amount > $product->max_amount) {
+                throw new \InvalidArgumentException(
+                    "Approved amount M{$amount} is outside product limits (M{$product->min_amount} – M{$product->max_amount})."
+                );
+            }
+            if ($term < $product->min_term_months || $term > $product->max_term_months) {
+                throw new \InvalidArgumentException(
+                    "Approved term {$term} months is outside product limits ({$product->min_term_months} – {$product->max_term_months} months)."
+                );
+            }
+        }
+
         $app->update([
-            'status'               => 'approved',
-            'approved_amount'      => $data['approved_amount'],
-            'approved_term'        => $data['approved_term'],
+            'status'                 => 'approved',
+            'approved_amount'        => $data['approved_amount'],
+            'approved_term'          => $data['approved_term'],
             'approved_interest_rate' => $data['interest_rate'],
-            'disbursement_date'    => $data['disbursement_date'],
-            'decided_at'           => now(),
+            'disbursement_date'      => $data['disbursement_date'],
+            'decided_at'             => now(),
         ]);
 
         if (!empty($data['notes'])) {
@@ -111,42 +129,97 @@ class ApplicationService
         ]);
     }
 
-    // ── Public helper: calculate monthly installment for preview/affordability ──
+    // ── Calculate monthly installment (flat interest) ──────────────────────────
     public function calcMonthly(float $principal, float $ratePercent, int $term, ?object $product = null): float
     {
-        $rate           = $ratePercent / 100;
-        $initiationRate = ($product->initiation_fee_rate ?? 40) / 100;
-        $adminPerMonth  = $product->admin_fee_fixed ?? 50;
-
+        $rate            = $ratePercent / 100;
+        $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
+        $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 50);
         $totalInterest   = round($principal * $rate * $term, 2);
         $totalInitiation = round($principal * $initiationRate, 2);
         $totalAdmin      = $adminPerMonth * $term;
         $totalRepay      = $principal + $totalInterest + $totalInitiation + $totalAdmin;
-
         return round($totalRepay / $term, 2);
     }
 
-    // ── Public helper: affordability check (30% rule) ─────────────────────────
+    // ── Affordability check with actionable message ────────────────────────────
     public function checkAffordability(LoanApplication $app): array
     {
-        $assessment    = $app->affordabilityAssessment;
-        $netSalary     = (float) ($assessment?->net_salary ?? 0);
-        $maxAllowed    = round($netSalary * 0.30, 2);
-        $product       = $app->loanProduct;
-        $principal     = (float) ($app->approved_amount ?? $app->requested_amount ?? 0);
-        $rate          = (float) ($app->approved_interest_rate ?? $product?->interest_rate ?? 15);
-        $term          = (int)   ($app->approved_term ?? $app->requested_term ?? 1);
-        $monthly       = $principal > 0 ? $this->calcMonthly($principal, $rate, $term, $product) : 0;
+        $assessment  = $app->affordability;
+        $disposable  = (float) ($assessment?->disposable_income ?? 0);
+        $netSalary   = (float) ($assessment?->net_salary ?? 0);
+
+        // Use 30% of net salary as max allowed (configurable via settings)
+        $maxAllowed  = round($disposable * 1.0, 2); // 100% of disposable income
+        $product     = $app->loanProduct;
+        $principal   = (float) ($app->approved_amount ?? $app->requested_amount ?? 0);
+        $rate        = (float) ($app->approved_interest_rate ?? $product?->interest_rate ?? 15);
+        $term        = (int)   ($app->approved_term ?? $app->requested_term ?? 1);
+        $monthly     = $principal > 0 ? $this->calcMonthly($principal, $rate, $term, $product) : 0;
+
+        $passes = $disposable > 0 && $monthly <= $disposable;
+
+        $warning = null;
+        if ($disposable > 0 && $monthly > $disposable) {
+            // Calculate what amount would be affordable
+            $affordableMonthly = $disposable;
+            // Reverse-calculate affordable principal from affordable monthly
+            $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 50);
+            $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
+            $rateDecimal     = $rate / 100;
+            // monthly = principal * (1 + rate*term + initiationRate) / term + adminPerMonth
+            // => principal = (monthly - adminPerMonth) * term / (1 + rate*term + initiationRate)
+            $divisor         = 1 + ($rateDecimal * $term) + $initiationRate;
+            $affordablePrincipal = $divisor > 0
+                ? round(($affordableMonthly - $adminPerMonth) * $term / $divisor, 2)
+                : 0;
+            $affordablePrincipal = max(0, $affordablePrincipal);
+
+            // Calculate what term would make it affordable
+            // Solve: monthly = principal * (1 + rate*t + initiationRate) / t + adminPerMonth
+            // => monthly - adminPerMonth = principal * (1 + initiationRate) / t + principal * rate
+            // => t = principal * (1 + initiationRate) / (monthly - adminPerMonth - principal * rate)
+            $denominator    = $affordableMonthly - $adminPerMonth - ($principal * $rateDecimal);
+            $affordableTerm = $denominator > 0
+                ? (int) ceil($principal * (1 + $initiationRate) / $denominator)
+                : null;
+
+            $warning = sprintf(
+                '⚠️ Monthly installment M%s exceeds affordability limit of M%s. You can either: Decrease the loan amount requested (affordable amount ≈ M%s) or Increase the loan term to reduce the monthly installment%s.',
+                number_format($monthly, 2),
+                number_format($disposable, 2),
+                number_format(max(0, $affordablePrincipal), 2),
+                $affordableTerm ? " (suggested term: {$affordableTerm} months)" : ''
+            );
+        }
 
         return [
-            'net_salary'  => $netSalary,
-            'max_allowed' => $maxAllowed,
-            'monthly'     => $monthly,
-            'passes'      => ($netSalary > 0 && $monthly <= $maxAllowed),
-            'warning'     => ($netSalary > 0 && $monthly > $maxAllowed)
-                ? "Monthly installment M".number_format($monthly,2)." exceeds the 30% affordability limit of M".number_format($maxAllowed,2)
-                : null,
+            'net_salary'          => $netSalary,
+            'disposable_income'   => $disposable,
+            'max_allowed'         => $maxAllowed,
+            'monthly'             => $monthly,
+            'passes'              => $passes,
+            'warning'             => $warning,
+            'assessment'          => $assessment,
         ];
+    }
+
+    // ── Validate loan amount/term against product rules ────────────────────────
+    public function validateProductLimits(float $amount, int $term, LoanProduct $product): ?string
+    {
+        if ($amount < $product->min_amount) {
+            return "Loan amount M{$amount} is below the minimum of M{$product->min_amount} for {$product->name}.";
+        }
+        if ($amount > $product->max_amount) {
+            return "Loan amount M{$amount} exceeds the maximum of M{$product->max_amount} for {$product->name}.";
+        }
+        if ($term < $product->min_term_months) {
+            return "Loan term {$term} months is below the minimum of {$product->min_term_months} months for {$product->name}.";
+        }
+        if ($term > $product->max_term_months) {
+            return "Loan term {$term} months exceeds the maximum of {$product->max_term_months} months for {$product->name}.";
+        }
+        return null;
     }
 
     private function createLoanFromApplication(LoanApplication $app): Loan
@@ -155,27 +228,18 @@ class ApplicationService
         $term      = (int)   $app->approved_term;
         $product   = $app->loanProduct;
 
-        // ── FLAT INTEREST (15% per month on original principal — same every month) ──
-        $monthlyRate     = (float) $app->approved_interest_rate / 100; // e.g. 0.15
+        $monthlyRate     = (float) $app->approved_interest_rate / 100;
         $totalInterest   = round($principal * $monthlyRate * $term, 2);
-
-        // ── INITIATION FEE (40% of principal — split evenly over term) ──────────
         $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
         $totalInitiation = round($principal * $initiationRate, 2);
-
-        // ── ADMIN FEE (fixed M50 per month) ──────────────────────────────────────
         $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 50);
         $totalAdmin      = $adminPerMonth * $term;
-
-        // ── TOTALS ────────────────────────────────────────────────────────────────
         $totalRepay      = $principal + $totalInterest + $totalInitiation + $totalAdmin;
         $monthly         = round($totalRepay / $term, 2);
 
-        $disbDate = Carbon::parse($app->disbursement_date);
-
-        // Loan number: LN-00001 format (sequential, padded)
-        $nextId      = (Loan::max('id') ?? 0) + 1;
-        $loanNumber  = 'LN-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+        $disbDate   = Carbon::parse($app->disbursement_date);
+        $nextId     = (Loan::max('id') ?? 0) + 1;
+        $loanNumber = 'LN-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
 
         $loan = Loan::create([
             'loan_number'         => $loanNumber,
@@ -186,51 +250,15 @@ class ApplicationService
             'interest_rate'       => $app->approved_interest_rate,
             'term_months'         => $term,
             'total_amount'        => $totalRepay,
-            'outstanding_balance' => $totalRepay,   // borrower owes full amount incl. all fees
+            'outstanding_balance' => $totalRepay,
             'monthly_installment' => $monthly,
-            'processing_fee'      => $totalInitiation,
-            'status'              => 'active',
-            'disbursement_date'   => $disbDate->toDateString(),
-            'first_payment_date'  => $disbDate->copy()->addMonth()->startOfMonth()->toDateString(),
-            'maturity_date'       => $disbDate->copy()->addMonths($term)->toDateString(),
+            'processing_fee'      => $totalInitiation, // kept for DB compatibility; labelled as Initiation Fee in UI
+            'status'              => 'approved',        // stays 'approved' until disbursed
             'payout_method'       => $app->payout_method,
             'collection_method'   => $app->collection_method,
         ]);
 
-        // ── GENERATE INSTALLMENTS ─────────────────────────────────────────────────
-        // Each month: same principal slice, same flat interest, same admin, same initiation slice
-        $principalPerMonth  = round($principal / $term, 2);
-        $interestPerMonth   = round($principal * $monthlyRate, 2);  // FLAT — identical every month
-        $initiationPerMonth = round($totalInitiation / $term, 2);
-
-        $payDate = $disbDate->copy()->addMonth()->startOfMonth();
-
-        for ($i = 1; $i <= $term; $i++) {
-            $isLast = ($i === $term);
-            // Last month absorbs any rounding cents
-            $prin  = $isLast ? round($principal - $principalPerMonth * ($term - 1), 2) : $principalPerMonth;
-            $init  = $isLast ? round($totalInitiation - $initiationPerMonth * ($term - 1), 2) : $initiationPerMonth;
-            $total = round($prin + $interestPerMonth + $adminPerMonth + $init, 2);
-
-            LoanInstallment::create([
-                'loan_id'               => $loan->id,
-                'installment_number'    => $i,
-                'due_date'              => $payDate->copy()->toDateString(),
-                'principal_amount'      => $prin,
-                'interest_amount'       => $interestPerMonth,
-                'initiation_fee_amount' => $init,
-                'admin_fee_amount'      => $adminPerMonth,
-                'total_amount'          => $total,
-                'paid_amount'           => 0,
-                'outstanding_amount'    => $total,
-                'status'                => 'pending',
-            ]);
-
-            $payDate->addMonth();
-        }
-
-        $app->update(['status' => 'disbursed']);
-
+        // Installments are created at disbursement time, not approval
         return $loan;
     }
 }

@@ -144,7 +144,7 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
             <div style="font-size:13px;color:#78350f;margin-top:3px">{{ $afford['warning'] }}</div>
             <div style="font-size:12px;color:#92400e;margin-top:4px">
               Net Salary: M{{ number_format($afford['net_salary'],2) }} &nbsp;·&nbsp;
-              30% Limit: M{{ number_format($afford['max_allowed'],2) }} &nbsp;·&nbsp;
+              Disposable Income: M{{ number_format($afford['disposable_income'],2) }} &nbsp;·&nbsp;
               Monthly Installment: M{{ number_format($afford['monthly'],2) }}
             </div>
           </div>
@@ -153,7 +153,7 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
         <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 18px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
           <i class="bi bi-check-circle-fill" style="color:#10b981;font-size:16px"></i>
           <div style="font-size:13px;color:#065f46">
-            <strong>Affordability OK</strong> — Monthly M{{ number_format($afford['monthly'],2) }} is within the 30% limit of M{{ number_format($afford['max_allowed'],2) }} (Net salary: M{{ number_format($afford['net_salary'],2) }})
+            <strong>Affordable</strong> — Monthly M{{ number_format($afford['monthly'],2) }} is within disposable income of M{{ number_format($afford['disposable_income'],2) }} (Net salary: M{{ number_format($afford['net_salary'],2) }})
           </div>
         </div>
         @endif
@@ -224,42 +224,122 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
 
     {{-- Affordability tab --}}
     <div class="tpanel" data-pg="app" data-p="afford">
+      @php $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability($application); @endphp
+
+      {{-- Actionable affordability warning/pass banner --}}
+      @if($afford['disposable_income'] > 0)
+        @if(!$afford['passes'])
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:14px 18px;display:flex;align-items:flex-start;gap:12px;margin-bottom:16px">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#d97706;font-size:20px;flex-shrink:0;margin-top:1px"></i>
+          <div>
+            <div style="font-weight:700;color:#92400e;font-size:13.5px;margin-bottom:4px">Affordability Warning</div>
+            <div style="font-size:13px;color:#78350f;line-height:1.6">{{ $afford['warning'] }}</div>
+          </div>
+        </div>
+        @else
+        <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <i class="bi bi-check-circle-fill" style="color:#10b981;font-size:18px;flex-shrink:0"></i>
+          <div style="font-size:13px;color:#065f46;font-weight:600">
+            Affordable — Monthly instalment M{{ number_format($afford['monthly'],2) }} is within disposable income of M{{ number_format($afford['disposable_income'],2) }}
+          </div>
+        </div>
+        @endif
+      @endif
+
       <div class="card">
-        <div class="card-hdr"><span class="card-title">Affordability Assessment</span></div>
+        <div class="card-hdr"><span class="card-title"><i class="bi bi-calculator" style="color:var(--p)"></i> Affordability Assessment</span></div>
         <div class="card-body">
           @if($application->affordability)
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
-            <div style="background:#f8fafc;border-radius:12px;padding:16px">
-              <div style="font-weight:700;margin-bottom:12px;font-size:13px;color:var(--dark)">Income & Deductions</div>
-              @foreach(['Monthly Earnings'=>$application->affordability->monthly_earnings,'Tax Deduction'=>$application->affordability->tax_deduction,'Existing Loans'=>$application->affordability->existing_loans_deduction,'Other Deductions'=>$application->affordability->other_deductions,'Net Salary'=>$application->affordability->net_salary] as $l=>$v)
-              <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
+          @php $a = $application->affordability; @endphp
+
+          {{-- Income Section --}}
+          <div style="margin-bottom:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px">1. Income Information</div>
+            <div style="background:#f8fafc;border-radius:12px;padding:14px 16px">
+              @foreach([
+                'Gross / Basic Salary' => [$a->monthly_earnings, false],
+                'Tax Deductions'       => [$a->tax_deduction, true],
+                'Existing Loan Deductions' => [$a->existing_loans_deduction, true],
+                'Other Deductions'     => [$a->other_deductions, true],
+              ] as $l => [$v, $isDeduction])
+              <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
                 <span style="color:var(--muted)">{{ $l }}</span>
-                <span style="font-weight:600;{{ $l==='Net Salary'?'color:var(--p)':'' }}">L {{ number_format($v??0,2) }}</span>
+                <span style="font-weight:600;{{ $isDeduction ? 'color:#ef4444' : '' }}">{{ $isDeduction ? '– ' : '' }}M{{ number_format($v??0,2) }}</span>
               </div>
               @endforeach
+              <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13.5px;font-weight:800;color:var(--p)">
+                <span>Net Salary</span>
+                <span>M{{ number_format($a->net_salary??0,2) }}</span>
+              </div>
             </div>
-            <div style="background:#f8fafc;border-radius:12px;padding:16px">
-              <div style="font-weight:700;margin-bottom:12px;font-size:13px;color:var(--dark)">Monthly Expenses</div>
-              @foreach(['Transport'=>$application->affordability->transport,'Groceries'=>$application->affordability->groceries,'Utilities'=>$application->affordability->utilities,'Rent/Mortgage'=>$application->affordability->rent,'Other Expenses'=>$application->affordability->other_expenses,'Disposable Income'=>$application->affordability->disposable_income] as $l=>$v)
+          </div>
+
+          {{-- Expenses Section --}}
+          <div style="margin-bottom:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px">2. Monthly Living Expenses</div>
+            <div style="background:#f8fafc;border-radius:12px;padding:14px 16px">
+              @foreach([
+                'Rent / Housing'         => $a->rent,
+                'Groceries / Food'       => $a->groceries,
+                'Transport'              => $a->transport,
+                'Utilities'              => $a->utilities,
+                'Education'              => $a->education ?? 0,
+                'Communication'          => $a->communication ?? 0,
+                'Other Insurance'        => $a->other_insurance ?? 0,
+                'Medical Expenses'       => $a->medical ?? 0,
+                'Other Loan Repayments'  => $a->other_loan_repayments ?? 0,
+                'Family Support'         => $a->family_support ?? 0,
+                'Entertainment'          => $a->entertainment ?? 0,
+                'Other Expenses'         => $a->other_expenses,
+              ] as $l => $v)
+              @if(($v ?? 0) > 0)
               <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
                 <span style="color:var(--muted)">{{ $l }}</span>
-                <span style="font-weight:600;{{ $l==='Disposable Income'?'color:#10b981':'' }}">L {{ number_format($v??0,2) }}</span>
+                <span style="font-weight:600;color:#ef4444">– M{{ number_format($v??0,2) }}</span>
               </div>
+              @endif
               @endforeach
+              <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;font-weight:700;color:#dc2626">
+                <span>Total Expenses</span>
+                <span>M{{ number_format($a->total_living_expenses??0,2) }}</span>
+              </div>
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-            <div style="background:rgba(79,70,229,.06);border-radius:12px;padding:16px;text-align:center;border:1px solid rgba(79,70,229,.12)">
-              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Suggested Loan</div>
-              <div style="font-size:26px;font-weight:800;color:var(--p);margin-top:6px">L {{ number_format($application->affordability->suggested_loan_amount??0,0) }}</div>
+
+          {{-- Results --}}
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+            <div style="background:rgba(26,92,46,.06);border-radius:12px;padding:16px;text-align:center;border:1px solid rgba(26,92,46,.12)">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Net Salary</div>
+              <div style="font-size:22px;font-weight:800;color:var(--p)">M{{ number_format($a->net_salary??0,0) }}</div>
             </div>
-            <div style="background:rgba(16,185,129,.06);border-radius:12px;padding:16px;text-align:center;border:1px solid rgba(16,185,129,.12)">
-              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Max Loan</div>
-              <div style="font-size:26px;font-weight:800;color:#10b981;margin-top:6px">L {{ number_format($application->affordability->max_loan_amount??0,0) }}</div>
+            <div style="background:rgba(239,68,68,.06);border-radius:12px;padding:16px;text-align:center;border:1px solid rgba(239,68,68,.1)">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Total Expenses</div>
+              <div style="font-size:22px;font-weight:800;color:#dc2626">M{{ number_format($a->total_living_expenses??0,0) }}</div>
+            </div>
+            <div style="background:{{ ($a->disposable_income??0) > 0 ? 'rgba(16,185,129,.08)' : 'rgba(239,68,68,.06)' }};border-radius:12px;padding:16px;text-align:center;border:1px solid {{ ($a->disposable_income??0) > 0 ? 'rgba(16,185,129,.2)' : 'rgba(239,68,68,.15)' }}">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Disposable Income</div>
+              <div style="font-size:22px;font-weight:800;color:{{ ($a->disposable_income??0) > 0 ? '#10b981' : '#ef4444' }}">M{{ number_format($a->disposable_income??0,0) }}</div>
             </div>
           </div>
+
+          @if($afford['monthly'] > 0)
+          <div style="margin-top:14px;background:#f8fafc;border-radius:10px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;font-size:13px">
+            <span style="color:var(--muted)">Monthly Installment vs Disposable Income</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-weight:700">M{{ number_format($afford['monthly'],2) }}</span>
+              <span style="color:var(--muted)">vs</span>
+              <span style="font-weight:700;color:#10b981">M{{ number_format($a->disposable_income??0,2) }}</span>
+              <span class="badge {{ $afford['passes'] ? 'bok' : 'be' }}">{{ $afford['passes'] ? 'Affordable' : 'Not Affordable' }}</span>
+            </div>
+          </div>
+          @endif
+
           @else
-          <div style="text-align:center;padding:50px;color:var(--muted)"><i class="bi bi-calculator" style="font-size:44px;opacity:.25;display:block;margin-bottom:12px"></i><div style="font-weight:600">No affordability data</div></div>
+          <div style="text-align:center;padding:50px;color:var(--muted)">
+            <i class="bi bi-calculator" style="font-size:44px;opacity:.25;display:block;margin-bottom:12px"></i>
+            <div style="font-weight:600">No affordability assessment data</div>
+            <div style="font-size:12px;margin-top:4px">Borrower has not completed the income and expenses section</div>
+          </div>
           @endif
         </div>
       </div>

@@ -90,32 +90,73 @@ class LoanService
             'verified_at'       => now(),
         ]);
 
-        // Apply to oldest pending/overdue/partial installment
+        // ── Payment allocation order: Penalty → Admin Fee → Interest → Principal ──
+        // Per client spec: overdue instalments first, then by allocation priority within each
         $remaining = (float) $data['amount'];
         $installments = $loan->installments()
             ->whereIn('status', ['pending','overdue','partial'])
-            ->orderBy('due_date')
+            ->orderBy('due_date')   // oldest first
             ->get();
 
         foreach ($installments as $inst) {
             if ($remaining <= 0) break;
-            $canPay = min($remaining, (float) $inst->outstanding_amount);
-            $newPaid = round((float) $inst->paid_amount + $canPay, 2);
-            $newOutstanding = round((float) $inst->total_amount - $newPaid, 2);
+
+            // Amounts already paid per component (tracked proportionally from paid_amount)
+            $totalComp   = (float) $inst->total_amount;
+            $alreadyPaid = (float) $inst->paid_amount;
+            $stillOwed   = max(0, round($totalComp - $alreadyPaid, 2));
+            if ($stillOwed <= 0) continue;
+
+            // Component breakdown of what's still owed, in allocation order:
+            // 1. Penalty Fee   2. Admin Fee   3. Interest   4. Principal
+            $components = [
+                'late_fee'              => (float) $inst->late_fee,
+                'admin_fee_amount'      => (float) ($inst->admin_fee_amount ?? 0),
+                'interest_amount'       => (float) $inst->interest_amount,
+                'principal_amount'      => (float) $inst->principal_amount,
+                'initiation_fee_amount' => (float) ($inst->initiation_fee_amount ?? 0),
+            ];
+
+            // Calculate how much of each component has been paid proportionally
+            // (simple approach: payment fills components in order until exhausted)
+            $paidSoFar = $alreadyPaid;
+            $componentPaid = [];
+            foreach ($components as $comp => $compTotal) {
+                if ($paidSoFar <= 0) { $componentPaid[$comp] = 0; continue; }
+                $compPaid = min($paidSoFar, $compTotal);
+                $componentPaid[$comp] = $compPaid;
+                $paidSoFar -= $compPaid;
+            }
+
+            // Now apply remaining payment to components in order
+            $appliedToInst = 0;
+            foreach ($components as $comp => $compTotal) {
+                if ($remaining <= 0) break;
+                $compOwed = max(0, $compTotal - ($componentPaid[$comp] ?? 0));
+                if ($compOwed <= 0) continue;
+                $pay = min($remaining, $compOwed);
+                $remaining      -= $pay;
+                $appliedToInst  += $pay;
+            }
+
+            $newPaid        = round($alreadyPaid + $appliedToInst, 2);
+            $newOutstanding = round(max(0, $totalComp - $newPaid), 2);
+
             $inst->update([
                 'paid_amount'        => $newPaid,
-                'outstanding_amount' => max(0, $newOutstanding),
+                'outstanding_amount' => $newOutstanding,
                 'paid_at'            => $newOutstanding <= 0 ? now() : $inst->paid_at,
                 'status'             => $newOutstanding <= 0 ? 'paid' : 'partial',
             ]);
+
             if (!$payment->installment_id) {
                 $payment->update(['installment_id' => $inst->id]);
             }
-            $remaining -= $canPay;
         }
 
-        // Update loan balance
-        $loan->decrement('outstanding_balance', $data['amount']);
+        // Update loan outstanding balance
+        $actualApplied = (float) $data['amount'] - $remaining;
+        $loan->decrement('outstanding_balance', $actualApplied);
 
         // Check fully paid
         $loan->refresh();
@@ -340,5 +381,108 @@ class LoanService
     public function generateAgreementPdf(Loan $loan): string
     {
         return storage_path("app/agreements/loan_{$loan->loan_number}.pdf");
+    }
+
+
+    // ── Pre-disbursement checks ────────────────────────────────────────────────
+    public function preDisbursementChecks(Loan $loan): array
+    {
+        $app          = $loan->application;
+        $docs         = $app?->documents ?? collect();
+        $affordability= $app?->affordability;
+
+        // KYC: national_id document verified
+        $kycDoc = $docs->where('type', 'national_id')->where('status', 'verified')->first();
+        // Payslip verified
+        $payslipDoc = $docs->where('type', 'payslip')->where('status', 'verified')->first();
+
+        // Affordability: assessment exists and disposable income > 0
+        $affordabilityPassed = $affordability && ((float)$affordability->disposable_income) > 0;
+
+        // Approved: application status is approved or disbursed
+        $isApproved = $app && in_array($app->status, ['approved', 'disbursed']);
+
+        // Repayment method: collection_method is set
+        $repaymentActive = !empty($loan->collection_method);
+
+        return [
+            [
+                'label'    => 'KYC Verified',
+                'pass'     => (bool) $kycDoc,
+                'required' => true,
+                'detail'   => $kycDoc ? 'National ID document verified' : 'National ID document missing or not verified',
+            ],
+            [
+                'label'    => 'Affordability Passed',
+                'pass'     => $affordabilityPassed,
+                'required' => true,
+                'detail'   => $affordabilityPassed
+                    ? 'Disposable income: M'.number_format($affordability->disposable_income, 2)
+                    : 'Affordability assessment not completed',
+            ],
+            [
+                'label'    => 'Loan Approved',
+                'pass'     => $isApproved,
+                'required' => true,
+                'detail'   => $isApproved ? 'Application approved' : 'Application has not been approved yet',
+            ],
+            [
+                'label'    => 'Repayment Method Active',
+                'pass'     => $repaymentActive,
+                'required' => false,
+                'detail'   => $repaymentActive
+                    ? 'Collection method: '.ucfirst(str_replace('_',' ',$loan->collection_method))
+                    : 'No collection method set (warning only)',
+            ],
+            [
+                'label'    => 'Supporting Documents',
+                'pass'     => (bool) $payslipDoc,
+                'required' => false,
+                'detail'   => $payslipDoc ? 'Payslip verified' : 'Payslip missing or not verified (warning only)',
+            ],
+        ];
+    }
+
+    // ── Generate installments for an already-approved loan ───────────────────
+    public function generateInstallments(Loan $loan): void
+    {
+        $principal  = (float) $loan->principal_amount;
+        $term       = (int)   $loan->term_months;
+        $product    = $loan->loanProduct;
+
+        $monthlyRate     = (float) $loan->interest_rate / 100;
+        $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
+        $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 50);
+
+        $totalInterest   = round($principal * $monthlyRate * $term, 2);
+        $totalInitiation = round($principal * $initiationRate, 2);
+
+        $principalPerMonth  = round($principal / $term, 2);
+        $interestPerMonth   = round($principal * $monthlyRate, 2);
+        $initiationPerMonth = round($totalInitiation / $term, 2);
+
+        $payDate = \Carbon\Carbon::parse($loan->disbursement_date)->addMonth()->startOfMonth();
+
+        for ($i = 1; $i <= $term; $i++) {
+            $isLast = ($i === $term);
+            $prin   = $isLast ? round($principal - $principalPerMonth * ($term - 1), 2) : $principalPerMonth;
+            $init   = $isLast ? round($totalInitiation - $initiationPerMonth * ($term - 1), 2) : $initiationPerMonth;
+            $total  = round($prin + $interestPerMonth + $adminPerMonth + $init, 2);
+
+            \App\Models\LoanInstallment::create([
+                'loan_id'               => $loan->id,
+                'installment_number'    => $i,
+                'due_date'              => $payDate->copy()->toDateString(),
+                'principal_amount'      => $prin,
+                'interest_amount'       => $interestPerMonth,
+                'initiation_fee_amount' => $init,
+                'admin_fee_amount'      => $adminPerMonth,
+                'total_amount'          => $total,
+                'paid_amount'           => 0,
+                'outstanding_amount'    => $total,
+                'status'                => 'pending',
+            ]);
+            $payDate->addMonth();
+        }
     }
 }
