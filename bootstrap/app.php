@@ -12,11 +12,18 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             \Illuminate\Support\Facades\Route::middleware('web')
                 ->group(base_path('routes/admin.php'));
+
+            \Illuminate\Support\Facades\Route::middleware('web')
+                ->group(base_path('routes/officer.php'));
+
+            \Illuminate\Support\Facades\Route::middleware('web')
+                ->group(base_path('routes/borrower.php'));
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin.active' => \App\Http\Middleware\AdminActive::class,
+            'admin.active'   => \App\Http\Middleware\AdminActive::class,
+            'officer.active' => \App\Http\Middleware\OfficerActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

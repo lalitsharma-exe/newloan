@@ -43,11 +43,19 @@
   <a href="javascript:history.back()" style="background:#f1f5f9;color:#374151;border:none;padding:9px 20px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;text-decoration:none">← Back</a>
 </div>
 
-{{-- Header --}}
-<div class="center" style="margin-bottom:20px">
-  <div style="font-size:22px;font-weight:900;color:#1a5c2e;letter-spacing:1px">MYLOAN LIMITED</div>
-  <div style="font-size:11px;color:#64748b;margin-top:2px">L&amp;M Complex, Ha Thamae, Maseru · Lesotho</div>
-  <div style="font-size:17px;font-weight:800;margin-top:10px;color:#0f172a;letter-spacing:.5px">LOAN AGREEMENT</div>
+{{-- Header: Regulatory statement + Logo (no address repetition) --}}
+<div class="center" style="margin-bottom:18px">
+  <div style="border:1.5px solid #9ca3af;border-radius:4px;padding:10px 24px;display:inline-block;max-width:680px;margin:0 auto">
+    <p style="font-size:11px;color:#374151;text-align:center;line-height:1.7;margin:0">
+      Myloan Limited is a company licensed under the Financial Institutions Act 2012 and Financial Institutions (Credit only and Deposit taking Financial Institutions) (Amendment) Regulations 2014, as amended in 2018, as a Credit Only Micro Finance Institution tier II and regulated by the Central Bank of Lesotho.
+    </p>
+  </div>
+  <div style="margin-top:10px">
+    {{-- MyLoan logo text-based since no image asset --}}
+    <div style="font-size:24px;font-weight:900;color:#1a5c2e;letter-spacing:2px">MYLOAN</div>
+    <div style="font-size:9px;color:#6b7280;letter-spacing:3px;text-transform:uppercase;margin-top:-2px">Simple, Fast and Secure</div>
+  </div>
+  <div style="margin-top:14px;font-size:17px;font-weight:800;color:#0f172a;letter-spacing:.5px">LOAN AGREEMENT</div>
   <div style="font-size:11px;color:#64748b;margin-top:3px">Agreement Reference: <strong>{{ $loan->loan_number }}</strong></div>
 </div>
 
@@ -205,6 +213,8 @@
 <div class="clause"><h3>14. CONTACT INFORMATION OBLIGATION</h3>
 <p>The Borrower must maintain an active phone number throughout the loan duration and must notify the Lender within five (5) business days of any changes to phone number, residential address, employment details, or banking details.</p></div>
 
+<div class="page-break"></div>
+
 <div class="clause"><h3>15. TRACING PERMISSION</h3>
 <p>If the Borrower becomes unreachable or fails to repay, the Borrower authorises the Lender to contact the employer, next of kin, and references provided during the loan application for tracing purposes.</p></div>
 
@@ -244,23 +254,30 @@
 
 <div class="sig-grid">
   <div class="sig-box">
-    <div style="font-weight:700;margin-bottom:20px">BORROWER</div>
-    <div style="margin-bottom:30px">Name: {{ $loan->user->name }}</div>
-    <div style="margin-bottom:6px">Signature: ___________________________</div>
-    <div style="margin-top:16px">Phone: {{ $loan->user->phone ?? '—' }}</div>
-    <div style="margin-top:8px">Date: ___________________________</div>
+    <div style="font-weight:700;margin-bottom:12px">BORROWER</div>
+    <div style="margin-bottom:24px;font-size:12px">Name: {{ $loan->user->name }}</div>
+    <div style="height:60px;border-bottom:1px dashed #9ca3af;margin-bottom:6px"></div>
+    <div style="font-size:10px;color:#64748b">Borrower Signature</div>
+    <div style="margin-top:14px;font-size:12px">Phone: {{ $loan->user->phone ?? '—' }}</div>
+    <div style="margin-top:8px;font-size:12px">Date: ___________________________</div>
   </div>
+
   <div class="sig-box">
-    <div style="font-weight:700;margin-bottom:20px">FOR MYLOAN (LENDER)</div>
-    <div style="margin-bottom:30px">Authorised Representative: ___________________________</div>
-    <div style="margin-bottom:6px">Signature: ___________________________</div>
-    <div style="margin-top:16px">Designation: ___________________________</div>
-    <div style="margin-top:8px">Date: ___________________________</div>
+    <div style="font-weight:700;margin-bottom:12px">FOR MYLOAN LIMITED (LENDER)</div>
+    <div style="margin-bottom:4px;font-size:12px">Authorised Representative: <strong>Tjale Maila</strong></div>
+    {{-- Pre-signed signature rendered as SVG approximation of the handwritten signature --}}
+    <div style="height:70px;display:flex;align-items:center;padding:4px 0">
+      <svg viewBox="0 0 320 70" xmlns="http://www.w3.org/2000/svg" style="height:65px;width:auto;max-width:280px">
+        <path d="M 20 50 L 35 20 M 28 35 L 55 30 M 60 25 Q 75 10 85 30 Q 90 45 80 50 Q 70 55 65 45 Q 60 35 70 28 Q 85 18 100 30 M 105 28 Q 115 15 125 35 Q 130 50 120 52 M 130 35 Q 145 20 160 35 Q 170 48 158 52 Q 148 55 142 45 M 165 30 Q 185 48 195 38 Q 205 28 200 42 Q 196 55 210 50 Q 225 45 230 30 M 230 50 Q 245 60 260 55 Q 275 50 270 65" stroke="#111" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div style="font-size:10px;color:#64748b;margin-top:2px">Signature — Tjale Maila (Director)</div>
+    <div style="margin-top:10px;font-size:12px">Date: {{ now()->format('d F Y') }}</div>
   </div>
 </div>
 
 <hr class="divider" style="margin-top:30px">
-<p class="center muted" style="margin-top:8px">MyLoan Limited · L&amp;M Complex, Ha Thamae, Maseru · Generated: {{ now()->format('d F Y H:i') }}</p>
+<p class="center muted" style="margin-top:8px">MyLoan Limited · L&amp;M Complex, Ha Thamae, Maseru, Lesotho · Generated: {{ now()->format('d F Y H:i') }}</p>
 
 </body>
 </html>

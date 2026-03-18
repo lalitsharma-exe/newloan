@@ -28,7 +28,6 @@ use App\Http\Controllers\LoanOfficer\NotificationController;
 */
 
 Route::prefix('officer')->name('officer.')->group(function () {
-
     /*
     |------------------------------------------------------------------
     | PUBLIC (guest) — Login / Forgot / Reset
