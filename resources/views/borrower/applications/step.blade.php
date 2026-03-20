@@ -44,11 +44,75 @@ $stepTitle = $titles[$step] ?? 'Step '.$step;
 
       {{-- STEP 2: Address --}}
       @elseif($step === 2)
+      <div style="margin-bottom:18px;padding:12px 16px;background:rgba(13,27,62,.05);border-left:3px solid var(--navy,#0d1b3e);border-radius:0 6px 6px 0;font-size:13px;color:#4b5a72">
+        <i class="bi bi-info-circle-fill" style="margin-right:6px;color:#2b4bad"></i>
+        Your address is required for verification and traceability. Please be as accurate as possible.
+      </div>
       <div class="g2">
-        <div class="fg" style="grid-column:span 2"><label class="fl">Residential Address *</label><input type="text" name="residential_address" class="fc" value="{{ old('residential_address',$application->residential_address) }}" placeholder="Village/Street, District" required></div>
-        <div class="fg"><label class="fl">Village / Town</label><input type="text" name="village" class="fc" value="{{ old('village',$application->village) }}"></div>
-        <div class="fg"><label class="fl">District</label><input type="text" name="district" class="fc" value="{{ old('district',$application->district) }}"></div>
-        <div class="fg"><label class="fl">Duration at Address</label><select name="address_duration" class="fc"><option value="">—</option>@foreach(['less_than_1'=>'Less than 1 year','1_to_3'=>'1–3 years','3_to_5'=>'3–5 years','more_than_5'=>'More than 5 years'] as $v=>$l)<option value="{{ $v }}" {{ $application->address_duration===$v?'selected':'' }}>{{ $l }}</option>@endforeach</select></div>
+        <div class="fg" style="grid-column:span 2">
+          <label class="fl">Residential Address *</label>
+          <input type="text" name="residential_address" class="fc" value="{{ old('residential_address',$application->residential_address) }}" placeholder="e.g. Ha Thamae, Block 5, House No. 23" required>
+        </div>
+        <div class="fg">
+          <label class="fl">Village / Area *</label>
+          <input type="text" name="village" class="fc" value="{{ old('village',$application->village) }}" placeholder="e.g. Ha Thamae" required>
+        </div>
+        <div class="fg">
+          <label class="fl">Town / City *</label>
+          <input type="text" name="town" class="fc" value="{{ old('town',$application->town) }}" placeholder="e.g. Maseru" required>
+        </div>
+        <div class="fg">
+          <label class="fl">District *</label>
+          <select name="district" class="fc" required>
+            <option value="">— Select District —</option>
+            @foreach(['Maseru','Berea','Leribe','Butha-Buthe','Mafeteng','Mohale\'s Hoek','Qacha\'s Nek','Quthing','Thaba-Tseka','Mokhotlong'] as $d)
+            <option {{ old('district',$application->district)===$d?'selected':'' }}>{{ $d }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Duration at this Address *</label>
+          <select name="address_duration" class="fc" required>
+            <option value="">— Select —</option>
+            <option value="less_than_6_months" {{ old('address_duration',$application->address_duration)==='less_than_6_months'?'selected':'' }}>Less than 6 months</option>
+            <option value="6_to_12_months" {{ old('address_duration',$application->address_duration)==='6_to_12_months'?'selected':'' }}>6 – 12 months</option>
+            <option value="1_to_3_years" {{ old('address_duration',$application->address_duration)==='1_to_3_years'?'selected':'' }}>1 – 3 years</option>
+            <option value="3_to_5_years" {{ old('address_duration',$application->address_duration)==='3_to_5_years'?'selected':'' }}>3 – 5 years</option>
+            <option value="more_than_5_years" {{ old('address_duration',$application->address_duration)==='more_than_5_years'?'selected':'' }}>More than 5 years</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Residence Type *</label>
+          <select name="residence_type" class="fc" required>
+            <option value="">— Select —</option>
+            <option value="own" {{ old('residence_type',$application->residence_type)==='own'?'selected':'' }}>Own</option>
+            <option value="rent" {{ old('residence_type',$application->residence_type)==='rent'?'selected':'' }}>Rent</option>
+            <option value="family" {{ old('residence_type',$application->residence_type)==='family'?'selected':'' }}>Family</option>
+            <option value="employer" {{ old('residence_type',$application->residence_type)==='employer'?'selected':'' }}>Employer Provided</option>
+          </select>
+        </div>
+        <div class="fg" style="grid-column:span 2">
+          <label class="fl">Nearest Landmark <span style="color:#4b5a72;font-weight:400;text-transform:none;font-size:12px">(name of school, church, shop, etc.)</span></label>
+          <input type="text" name="nearest_landmark" class="fc" value="{{ old('nearest_landmark',$application->nearest_landmark) }}" placeholder="e.g. Next to Maseru West Primary School">
+        </div>
+        <div class="fg" style="grid-column:span 2">
+          <label class="fl">Directions to Your Home <span style="color:#4b5a72;font-weight:400;text-transform:none;font-size:12px">(describe how to find you)</span></label>
+          <textarea name="home_directions" class="fc" rows="3" placeholder="e.g. From the main road, turn left at the Shell garage, third house on the right, green gate.">{{ old('home_directions',$application->home_directions) }}</textarea>
+        </div>
+      </div>
+      {{-- GPS Location Capture --}}
+      <div style="background:#f4f7ff;border:1px solid #dde3ef;border-radius:8px;padding:16px 18px;margin-top:4px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#0d1b3e;margin-bottom:3px"><i class="bi bi-geo-alt-fill" style="color:#2b4bad;margin-right:5px"></i> Capture My GPS Location</div>
+            <div style="font-size:12px;color:#4b5a72" id="gps-status">Click the button to capture your current location.</div>
+          </div>
+          <button type="button" class="btn btn-sm" style="background:#2b4bad;color:#fff;flex-shrink:0" onclick="captureGPS()">
+            <i class="bi bi-crosshair"></i> Capture Location
+          </button>
+        </div>
+        <input type="hidden" name="gps_latitude" id="gps-lat" value="{{ old('gps_latitude',$application->gps_latitude) }}">
+        <input type="hidden" name="gps_longitude" id="gps-lng" value="{{ old('gps_longitude',$application->gps_longitude) }}">
       </div>
 
       {{-- STEP 3: Employment --}}
@@ -68,7 +132,7 @@ $stepTitle = $titles[$step] ?? 'Step '.$step;
       @elseif($step === 4)
       @php $bank = $application->bankDetails; @endphp
       <div class="g2">
-        <div class="fg"><label class="fl">Bank Name *</label><select name="bank_name" class="fc" required><option value="">— Select Bank —</option>@foreach(['Lesotho PostBank','Standard Lesotho Bank','Nedbank Lesotho','First National Bank Lesotho','Capitec Bank','FNB'] as $b)<option {{ $bank?->bank_name===$b?'selected':'' }}>{{ $b }}</option>@endforeach<option {{ !in_array($bank?->bank_name,['Lesotho PostBank','Standard Lesotho Bank','Nedbank Lesotho','First National Bank Lesotho','Capitec Bank','FNB'])?'selected':'' }}>Other</option></select></div>
+        <div class="fg"><label class="fl">Bank Name *</label><select name="bank_name" class="fc" required><option value="">— Select Bank —</option>@foreach(['Lesotho PostBank','Standard Lesotho Bank','Nedbank Lesotho','First National Bank Lesotho'] as $b)<option {{ $bank?->bank_name===$b?'selected':'' }}>{{ $b }}</option>@endforeach<option {{ !in_array($bank?->bank_name,['Lesotho PostBank','Standard Lesotho Bank','Nedbank Lesotho','First National Bank Lesotho'])?'selected':'' }}>Other</option></select></div>
         <div class="fg"><label class="fl">Account Holder Name *</label><input type="text" name="account_holder_name" class="fc" value="{{ old('account_holder_name',$bank?->account_holder_name) }}" required></div>
         <div class="fg"><label class="fl">Account Number *</label><input type="text" name="account_number" class="fc" value="{{ old('account_number',$bank?->account_number) }}" required></div>
         <div class="fg"><label class="fl">Account Type *</label><select name="account_type" class="fc" required><option value="">—</option><option value="savings" {{ $bank?->account_type==='savings'?'selected':'' }}>Savings</option><option value="cheque" {{ $bank?->account_type==='cheque'?'selected':'' }}>Cheque / Current</option></select></div>
@@ -260,6 +324,24 @@ function calcPreview() {
   document.getElementById('previewBox').style.display='';
 }
 if(document.getElementById('prodSelect')?.value) loadProductTerms(document.getElementById('prodSelect').value);
+
+// Step 2: GPS capture
+function captureGPS() {
+  const status = document.getElementById('gps-status');
+  if (!navigator.geolocation) { status.textContent = 'GPS not supported on this device.'; return; }
+  status.textContent = 'Capturing your location...';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      document.getElementById('gps-lat').value = pos.coords.latitude.toFixed(6);
+      document.getElementById('gps-lng').value = pos.coords.longitude.toFixed(6);
+      status.innerHTML = '<span style="color:#1a5c2e;font-weight:600">✓ Location captured: ' + pos.coords.latitude.toFixed(4) + ', ' + pos.coords.longitude.toFixed(4) + '</span>';
+    },
+    err => {
+      status.textContent = 'Could not capture location. Please enter address manually.';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
 </script>
 @endpush
 @endsection

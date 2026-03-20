@@ -1,80 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Register — MyLoan Portal</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Create Account — MyLoan Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0f2318,#1a5c2e);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.wrap{background:#fff;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,.3);width:100%;max-width:480px;overflow:hidden}
-.top{background:linear-gradient(135deg,#0f2318,#1a5c2e);padding:26px 36px;text-align:center}
-.body{padding:28px 36px}
-.fc{width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13.5px;font-family:'Inter',sans-serif;outline:none;transition:all .2s}
-.fc:focus{border-color:#1a5c2e;box-shadow:0 0 0 3px rgba(26,92,46,.1)}
-.btn{width:100%;padding:13px;background:linear-gradient(135deg,#1a5c2e,#2d8a47);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
-.fg{margin-bottom:14px}
-.fl{display:block;font-size:12.5px;font-weight:600;margin-bottom:4px}
-.iv{font-size:12px;color:#ef4444;margin-top:2px;display:block}
+html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:antialiased}
+body{background:linear-gradient(160deg,#070e24 0%,#0d1b3e 40%,#162552 70%,#0d1b3e 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 20px}
+
+.auth-card {
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 24px 80px rgba(7,14,36,.5);
+  width: 100%; max-width: 520px; overflow: hidden;
+}
+.auth-top {
+  background: linear-gradient(135deg, #0d1b3e, #1e3370);
+  padding: 28px 36px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.auth-top img { height: 36px; object-fit: contain; display: block; }
+.auth-top-text { text-align: right; }
+.auth-top-text h1 { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: #fff; }
+.auth-top-text p { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 2px; }
+
+.auth-body { padding: 28px 36px 32px; }
+
+.fg { margin-bottom: 16px; }
+.fl { display: block; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #5a6b85; margin-bottom: 5px; }
+.field-wrap { position: relative; }
+.field-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9aaccf; font-size: 15px; }
+.fc {
+  width: 100%; padding: 10px 12px 10px 38px;
+  border: 1.5px solid #dde3ef; border-radius: 7px;
+  font-size: 13.5px; font-family: 'Outfit', sans-serif;
+  background: #fff; outline: none; color: #1c2433; transition: all .2s;
+}
+.fc:focus { border-color: #2b4bad; box-shadow: 0 0 0 3px rgba(43,75,173,.1); }
+.fc.no-icon { padding-left: 12px; }
+.iv { font-size: 12px; color: #dc2626; margin-top: 3px; display: block; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* Phone prefix */
+.phone-wrap { display: flex; }
+.phone-prefix {
+  background: #f0f3fa; border: 1.5px solid #dde3ef; border-right: none;
+  border-radius: 7px 0 0 7px; padding: 10px 12px;
+  font-size: 13.5px; font-weight: 600; color: #5a6b85; white-space: nowrap;
+  display: flex; align-items: center;
+}
+.phone-input { border-radius: 0 7px 7px 0 !important; }
+
+.btn-submit {
+  width: 100%; padding: 13px; border-radius: 8px; border: none;
+  background: linear-gradient(135deg, #0d1b3e, #1e3370);
+  color: #fff; font-size: 15px; font-weight: 700;
+  font-family: 'Outfit', sans-serif; cursor: pointer;
+  transition: all .3s; display: flex; align-items: center;
+  justify-content: center; gap: 8px; margin-top: 6px;
+  box-shadow: 0 4px 16px rgba(13,27,62,.25);
+}
+.btn-submit:hover { background: linear-gradient(135deg, #162552, #2b4bad); transform: translateY(-1px); }
+
+.auth-error { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); color: #991b1b; padding: 11px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 18px; }
+.auth-footer { text-align: center; margin-top: 18px; font-size: 13px; color: #5a6b85; }
+.auth-footer a { color: #2b4bad; font-weight: 600; text-decoration: none; }
+.auth-footer a:hover { text-decoration: underline; }
+.notice { font-size: 12px; color: #9aaccf; line-height: 1.6; margin-top: 14px; }
+
+@media(max-width:480px){ .g2{grid-template-columns:1fr} .auth-top{flex-direction:column;gap:12px;text-align:center} .auth-top-text{text-align:center} .auth-body{padding:24px 20px} }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <div style="font-size:22px;font-weight:900;color:#fff">Create Account</div>
-    <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:3px">MyLoan Borrower Portal</div>
-  </div>
-  <div class="body">
-    @if($errors->any())
-    <div style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px">
-      <ul style="margin:0;padding-left:16px">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+<div class="auth-card">
+  <div class="auth-top">
+    <img src="https://ik.imagekit.io/ygydr1m84/png.webp" alt="MyLoan" style="filter:brightness(0) invert(1)">
+    <div class="auth-top-text">
+      <h1>Create Account</h1>
+      <p>Join the MyLoan portal</p>
     </div>
+  </div>
+
+  <div class="auth-body">
+    @if($errors->any())
+    <div class="auth-error"><i class="bi bi-exclamation-triangle-fill" style="margin-right:7px"></i>{{ $errors->first() }}</div>
     @endif
+
     <form method="POST" action="{{ route('borrower.register.post') }}">
       @csrf
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="g2">
         <div class="fg">
           <label class="fl">Full Name *</label>
-          <input type="text" name="name" class="fc" value="{{ old('name') }}" required>
+          <div class="field-wrap">
+            <i class="bi bi-person-fill field-icon"></i>
+            <input type="text" name="name" class="fc" value="{{ old('name') }}" placeholder="Your full name" required>
+          </div>
           @error('name')<span class="iv">{{ $message }}</span>@enderror
         </div>
         <div class="fg">
           <label class="fl">National ID *</label>
-          <input type="text" name="national_id" class="fc" value="{{ old('national_id') }}" placeholder="9001015009087" required>
+          <div class="field-wrap">
+            <i class="bi bi-card-text field-icon"></i>
+            <input type="text" name="national_id" class="fc" value="{{ old('national_id') }}" placeholder="ID number" required>
+          </div>
           @error('national_id')<span class="iv">{{ $message }}</span>@enderror
         </div>
       </div>
+
       <div class="fg">
-        <label class="fl">Phone Number * <span style="font-size:11px;color:#94a3b8">(+266XXXXXXXX)</span></label>
-        <div style="position:relative">
-          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;font-weight:600">+266</span>
-          <input type="tel" name="phone" class="fc" value="{{ old('phone') }}" placeholder="53797734" style="padding-left:50px" required>
+        <label class="fl">Phone Number * <span style="color:#9aaccf;text-transform:none;letter-spacing:0">— used to log in</span></label>
+        <div class="phone-wrap">
+          <div class="phone-prefix"><i class="bi bi-phone" style="margin-right:5px"></i>+266</div>
+          <input type="tel" name="phone" class="fc phone-input no-icon" value="{{ old('phone') }}" placeholder="53797734" required>
         </div>
         @error('phone')<span class="iv">{{ $message }}</span>@enderror
       </div>
+
       <div class="fg">
-        <label class="fl">Email <span style="font-size:11px;color:#94a3b8">(optional)</span></label>
-        <input type="email" name="email" class="fc" value="{{ old('email') }}" placeholder="Leave blank if you don't have one">
-        @error('email')<span class="iv">{{ $message }}</span>@enderror
+        <label class="fl">Email <span style="color:#9aaccf;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <div class="field-wrap">
+          <i class="bi bi-envelope-fill field-icon"></i>
+          <input type="email" name="email" class="fc" value="{{ old('email') }}" placeholder="Leave blank if none">
+        </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+      <div class="g2">
         <div class="fg">
           <label class="fl">Password *</label>
-          <input type="password" name="password" class="fc" placeholder="Min 8 characters" required>
+          <div class="field-wrap">
+            <i class="bi bi-lock-fill field-icon"></i>
+            <input type="password" name="password" class="fc" placeholder="Min 8 chars" required>
+          </div>
           @error('password')<span class="iv">{{ $message }}</span>@enderror
         </div>
         <div class="fg">
           <label class="fl">Confirm Password *</label>
-          <input type="password" name="password_confirmation" class="fc" required>
+          <div class="field-wrap">
+            <i class="bi bi-lock-fill field-icon"></i>
+            <input type="password" name="password_confirmation" class="fc" placeholder="Repeat" required>
+          </div>
         </div>
       </div>
-      <div style="font-size:12px;color:#64748b;line-height:1.6;margin-bottom:16px">
-        By registering you agree to our <a href="#" style="color:#1a5c2e">Terms of Service</a> and <a href="#" style="color:#1a5c2e">Privacy Policy</a>.
-      </div>
-      <button type="submit" class="btn">Create Account</button>
+
+      <button type="submit" class="btn-submit">
+        <i class="bi bi-person-plus-fill"></i> Create My Account
+      </button>
+
+      <p class="notice">
+        <i class="bi bi-info-circle" style="margin-right:4px"></i>
+        By registering you agree to our <a href="{{ route('terms') ?? '#' }}" style="color:#2b4bad">Terms</a> and <a href="{{ route('privacy') ?? '#' }}" style="color:#2b4bad">Privacy Policy</a>.
+      </p>
     </form>
-    <div style="text-align:center;margin-top:18px;font-size:13px;color:#64748b">
-      Already have an account? <a href="{{ route('borrower.login') }}" style="color:#1a5c2e;font-weight:700">Sign In</a>
+
+    <div class="auth-footer">
+      Already have an account? <a href="{{ route('borrower.login') }}">Sign In</a>
     </div>
   </div>
 </div>

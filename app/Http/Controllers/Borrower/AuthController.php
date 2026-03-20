@@ -33,6 +33,7 @@ class AuthController extends Controller
         return view('borrower.auth.register');
     }
 
+   
     public function register(Request $request) {
         $request->validate([
             'name'       => 'required|string|max:150',
@@ -42,22 +43,38 @@ class AuthController extends Controller
             'password'   => 'required|string|min:8|confirmed',
         ]);
         $phone = $this->formatPhone($request->phone);
-        if (User::where('phone', $phone)->exists()) {
+        if (\App\Models\User::where('phone', $phone)->exists()) {
             return back()->withErrors(['phone' => 'Phone already registered.'])->withInput();
         }
-        $user = User::create([
+        $user = \App\Models\User::create([
             'name'              => $request->name,
             'phone'             => $phone,
             'email'             => $request->filled('email') ? $request->email : null,
             'national_id'       => $request->national_id,
-            'password'          => Hash::make($request->password),
+            'password'          => \Illuminate\Support\Facades\Hash::make($request->password),
             'role'              => 'borrower',
             'is_active'         => true,
-            'email_verified_at' => now(), // auto-verify; use email token if mail configured
+            'email_verified_at' => now(),
         ]);
-        Auth::guard('borrower')->login($user);
+
+        // Pre-fill draft application with registration data
+        $nameParts = explode(' ', trim($user->name), 2);
+        \App\Models\LoanApplication::create([
+            'application_number' => 'APP-' . str_pad(\App\Models\LoanApplication::withTrashed()->count() + 1, 6, '0', STR_PAD_LEFT),
+            'user_id'            => $user->id,
+            'status'             => 'draft',
+            'step'               => 1,
+            'first_name'         => $nameParts[0] ?? '',
+            'surname'            => $nameParts[1] ?? '',
+            'cell_number'        => $user->phone,
+            'national_id'        => $user->national_id,
+            'email'              => $user->email,
+        ]);
+
+        \Illuminate\Support\Facades\Auth::guard('borrower')->login($user);
         $request->session()->regenerate();
-        return redirect()->route('borrower.dashboard')->with('success', "Welcome, {$user->name}! Your account is ready.");
+        $user->update(['last_login_at' => now()]);
+        return redirect()->intended(route('borrower.dashboard'))->with('success', "Welcome, {$user->name}! Your account is ready.");
     }
 
     public function verifyEmail(Request $request, string $token) {

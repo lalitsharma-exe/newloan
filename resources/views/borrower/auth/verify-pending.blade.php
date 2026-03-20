@@ -1,2 +1,26 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Verify Email</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0f2318,#1a5c2e);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}.wrap{background:#fff;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,.3);width:100%;max-width:400px;padding:40px;text-align:center}</style></head>
-<body><div class="wrap"><div style="font-size:48px;margin-bottom:16px">📧</div><div style="font-size:22px;font-weight:800;margin-bottom:10px">Check Your Email</div><div style="font-size:13px;color:#64748b;line-height:1.7;margin-bottom:24px">We sent a verification link to your email. Click it to activate your account, then log in.</div><a href="{{ route('borrower.login') }}" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#1a5c2e,#2d8a47);color:#fff;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none">Back to Login</a></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Verify Email — MyLoan</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:linear-gradient(160deg,#070e24,#162552);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#fff;border-radius:14px;box-shadow:0 24px 60px rgba(7,14,36,.5);width:100%;max-width:420px;padding:48px 40px;text-align:center}
+.icon{width:72px;height:72px;background:rgba(43,75,173,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;color:#2b4bad}
+h1{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#0d1b3e;margin-bottom:10px}
+p{font-size:14px;color:#5a6b85;line-height:1.7;margin-bottom:28px}
+.btn{display:inline-block;padding:13px 32px;border-radius:8px;background:linear-gradient(135deg,#0d1b3e,#1e3370);color:#fff;font-size:14px;font-weight:700;text-decoration:none;transition:all .3s}
+.btn:hover{background:linear-gradient(135deg,#162552,#2b4bad);transform:translateY(-1px)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">✉️</div>
+  <h1>Check Your Email</h1>
+  <p>We've sent a verification link to your email address. Click the link to activate your account, then sign in.</p>
+  <a href="{{ route('borrower.login') }}" class="btn">Back to Sign In</a>
+</div>
+</body>
+</html>
