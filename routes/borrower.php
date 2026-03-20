@@ -267,3 +267,6 @@ Route::get('/products',     [\App\Http\Controllers\Common\PublicPortalController
 Route::get('/contact',      [\App\Http\Controllers\Common\PublicPortalController::class, 'contact'])->name('contact');
 Route::post('/contact',     [\App\Http\Controllers\Common\PublicPortalController::class, 'sendContact'])->name('contact.send');
 Route::get('/faq',          [\App\Http\Controllers\Common\PublicPortalController::class, 'faq'])->name('faq');
+
+Route::get('/privacy',      [\App\Http\Controllers\Common\PublicPortalController::class, 'privacy'])->name('privacy');
+Route::get('/terms',        [\App\Http\Controllers\Common\PublicPortalController::class, 'terms'])->name('terms');
