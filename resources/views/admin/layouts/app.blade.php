@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>@yield('title','Admin') — MyLoan</title>
+<title>@yield('title','Admin') — {{ config('app.name') }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-:root{--p:#1a5c2e;--pd:#134821;--pl:#2d8a47;--s:#4caf69;--ok:#10b981;--warn:#f59e0b;--err:#ef4444;--info:#06b6d4;--dark:#0f172a;--sb:260px;--th:64px;--bg:#f1f5f9;--card:#fff;--border:#e2e8f0;--muted:#64748b}
+:root{--p:#1e3370;--pd:#0d1b3e;--pl:#2b4bad;--s:#3d60d4;--ok:#10b981;--warn:#f59e0b;--err:#ef4444;--info:#06b6d4;--accent:#c9a84c;--dark:#0d1b3e;--sb:260px;--th:64px;--bg:#f0f3fa;--card:#fff;--border:#dde3ef;--muted:#64748b}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;display:flex}
 /* SIDEBAR */
-.sb{width:var(--sb);min-height:100vh;background:#0f2318;position:fixed;left:0;top:0;z-index:1000;display:flex;flex-direction:column}
+.sb{width:var(--sb);min-height:100vh;background:#0d1b3e;position:fixed;left:0;top:0;z-index:1000;display:flex;flex-direction:column}
 .sb-logo{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px}
 .sb-logo img{height:36px;width:auto;object-fit:contain}
 .sb-logo .sub{color:rgba(255,255,255,.4);font-size:11px;margin-top:1px}
@@ -20,18 +20,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-h
 .nav-lbl{color:rgba(255,255,255,.3);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;padding:14px 22px 4px}
 .nav-item a{display:flex;align-items:center;gap:11px;padding:10px 22px;color:rgba(255,255,255,.6);text-decoration:none;font-size:13.5px;font-weight:500;transition:all .2s;position:relative}
 .nav-item a:hover{color:#fff;background:rgba(255,255,255,.06)}
-.nav-item a.active{color:#fff;background:rgba(76,175,105,.2)}
-.nav-item a.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#4caf69;border-radius:0 3px 3px 0}
+.nav-item a.active{color:#fff;background:rgba(61,96,212,.25)}
+.nav-item a.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#7c9ff5;border-radius:0 3px 3px 0}
 .nav-item a i{font-size:16px;width:18px;flex-shrink:0}
 .sb-foot{padding:14px 22px;border-top:1px solid rgba(255,255,255,.08)}
 .upill{display:flex;align-items:center;gap:10px}
-.uav{width:34px;height:34px;background:linear-gradient(135deg,var(--p),var(--s));border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+.uav{width:34px;height:34px;background:linear-gradient(135deg,#1e3370,#3d60d4);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
 .uname{color:#fff;font-size:13px;font-weight:600}.urole{color:rgba(255,255,255,.4);font-size:11px}
 /* MAIN */
 .main{margin-left:var(--sb);flex:1;display:flex;flex-direction:column;min-height:100vh}
 /* TOPBAR */
 .topbar{height:var(--th);background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 26px;gap:14px;position:sticky;top:0;z-index:100}
-.topbar-title{font-size:17px;font-weight:700}.topbar-bc{font-size:12px;color:var(--muted)}.topbar-bc a{color:var(--p);text-decoration:none}
+.topbar-title{font-size:17px;font-weight:700}.topbar-bc{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;flex-wrap:wrap}.topbar-bc a{color:var(--p);text-decoration:none;font-weight:500}.topbar-bc a:hover{text-decoration:underline}.topbar-bc .bc-sep{color:#b0bdd0;margin:0 2px}
 .spacer{flex:1}
 .tbtn{width:36px;height:36px;border:none;background:var(--bg);border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted);position:relative;transition:background .2s}
 .tbtn:hover{background:var(--border);color:var(--dark)}
@@ -46,9 +46,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-h
 /* STAT */
 .sc{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:20px;display:flex;align-items:flex-start;gap:14px}
 .si{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.si.p{background:rgba(26,92,46,.1);color:var(--p)}.si.ok{background:rgba(16,185,129,.1);color:var(--ok)}
+.si.p{background:rgba(30,51,112,.1);color:var(--p)}.si.ok{background:rgba(16,185,129,.1);color:var(--ok)}
 .si.w{background:rgba(245,158,11,.1);color:var(--warn)}.si.e{background:rgba(239,68,68,.1);color:var(--err)}
-.si.i{background:rgba(6,182,212,.1);color:var(--info)}.si.s{background:rgba(76,175,105,.1);color:var(--s)}
+.si.i{background:rgba(6,182,212,.1);color:var(--info)}.si.s{background:rgba(61,96,212,.1);color:var(--s)}
 .sv{font-size:24px;font-weight:800;line-height:1.2}.sl{font-size:12px;color:var(--muted);margin-top:2px}
 /* TABLE */
 .dt{width:100%;border-collapse:collapse}
@@ -57,7 +57,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-h
 .dt tbody tr:hover{background:#f8fafc}.dt tbody tr:last-child td{border-bottom:none}
 /* BADGE */
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600}
-.bp{background:rgba(26,92,46,.1);color:var(--p)}.bok{background:rgba(16,185,129,.1);color:var(--ok)}
+.bp{background:rgba(30,51,112,.1);color:var(--p)}.bok{background:rgba(16,185,129,.1);color:var(--ok)}
 .bw{background:rgba(245,158,11,.15);color:var(--warn)}.be{background:rgba(239,68,68,.1);color:var(--err)}
 .bi{background:rgba(6,182,212,.1);color:var(--info)}.bs{background:rgba(100,116,139,.1);color:var(--muted)}
 /* BUTTON */
@@ -72,7 +72,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-h
 /* FORM */
 .fg{margin-bottom:18px}.fl{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px}
 .fc{width:100%;padding:9px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:13.5px;font-family:'Inter',sans-serif;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s}
-.fc:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(26,92,46,.1)}
+.fc:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(30,51,112,.12)}
 select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 .ft{font-size:12px;color:var(--muted);margin-top:3px}.iv{font-size:12px;color:var(--err);margin-top:3px;display:block}
 /* ALERT */
@@ -99,7 +99,7 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 .flex{display:flex}.aic{align-items:center}.jb{justify-content:space-between}
 .gap2{gap:8px}.gap3{gap:12px}.mb4{margin-bottom:16px}.mb6{margin-bottom:24px}.mt4{margin-top:16px}
 .tc{text-align:center}.tr{text-align:right}.muted{color:var(--muted);font-size:12.5px}
-.av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--s));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0}
+.av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1e3370,#3d60d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0}
 .av-sm{width:28px;height:28px;font-size:11px}.av-lg{width:52px;height:52px;font-size:18px}
 .empty{text-align:center;padding:50px 20px;color:var(--muted)}.empty i{font-size:44px;opacity:.35;display:block;margin-bottom:10px}
 .filter-bar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px;padding:16px;background:#fff;border-radius:13px;border:1px solid var(--border)}
@@ -123,26 +123,21 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 <body>
 <aside class="sb" id="sb">
   <div class="sb-logo">
-    {{-- MyLoan SVG logo inlined so no file dependency --}}
-    <svg width="110" height="36" viewBox="0 0 110 36" xmlns="http://www.w3.org/2000/svg">
-      <!-- dots spray -->
-      <circle cx="62" cy="4"  r="3.2" fill="#4caf69" opacity=".9"/>
-      <circle cx="72" cy="3"  r="2.6" fill="#4caf69" opacity=".8"/>
-      <circle cx="81" cy="5"  r="2.2" fill="#4caf69" opacity=".7"/>
-      <circle cx="89" cy="8"  r="1.9" fill="#4caf69" opacity=".6"/>
-      <circle cx="96" cy="13" r="1.6" fill="#4caf69" opacity=".5"/>
-      <circle cx="100" cy="19" r="1.4" fill="#4caf69" opacity=".4"/>
-      <circle cx="68" cy="8"  r="2.4" fill="#4caf69" opacity=".75"/>
-      <circle cx="77" cy="10" r="2.0" fill="#4caf69" opacity=".65"/>
-      <circle cx="85" cy="14" r="1.8" fill="#4caf69" opacity=".55"/>
-      <circle cx="92" cy="19" r="1.5" fill="#4caf69" opacity=".45"/>
-      <circle cx="74" cy="15" r="1.9" fill="#4caf69" opacity=".6"/>
-      <circle cx="82" cy="19" r="1.6" fill="#4caf69" opacity=".5"/>
-      <!-- MYLOAN text -->
-      <text x="2" y="28" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="22" fill="#0f2318" letter-spacing="1">MY</text>
-      <text x="34" y="28" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="22" fill="#4caf69" letter-spacing="1">LOAN</text>
-    </svg>
-    <div class="sub">Admin Portal</div>
+    {{-- Logo from APP_NAME env --}}
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:38px;height:38px;background:linear-gradient(135deg,#2b4bad,#7c9ff5);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="13" width="4" height="6" rx="1" fill="#fff" opacity=".9"/>
+          <rect x="9" y="8" width="4" height="11" rx="1" fill="#fff"/>
+          <rect x="15" y="4" width="4" height="15" rx="1" fill="#c9a84c"/>
+          <polyline points="3,13 9,8 15,4" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.2"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:.3px;line-height:1.1">{{ config('app.name') }}</div>
+        <div class="sub">Admin Portal</div>
+      </div>
+    </div>
   </div>
   <nav class="sb-nav">
     <div class="nav-lbl">Overview</div>
@@ -172,12 +167,12 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
   </nav>
   <div class="sb-foot">
     <a href="{{ route('admin.profile.index') }}" style="text-decoration:none;display:block" title="My Profile">
-    <div class="upill" style="cursor:pointer;transition:background .2s;border-radius:10px;padding:6px 4px" onmouseover="this.style.background='rgba(76,175,105,.12)'" onmouseout="this.style.background=''">
+    <div class="upill" style="cursor:pointer;transition:background .2s;border-radius:10px;padding:6px 4px" onmouseover="this.style.background='rgba(61,96,212,.15)'" onmouseout="this.style.background=''">
       @php $authUser = auth('admin')->user(); @endphp
       @if($authUser->profile_photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($authUser->profile_photo))
       <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($authUser->profile_photo) }}"
            alt="{{ $authUser->name }}"
-           style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(76,175,105,.4)">
+           style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(124,159,245,.4)">
       @else
       <div class="uav">{{ strtoupper(substr($authUser->name??'A',0,1)) }}</div>
       @endif
@@ -196,7 +191,18 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     <button class="tbtn" id="sbToggle"><i class="bi bi-list"></i></button>
     <div>
       <div class="topbar-title">@yield('page-title','Dashboard')</div>
-      @hasSection('bc')<div class="topbar-bc">{!! $__env->yieldContent('bc') !!}</div>@endif
+      @hasSection('bc')
+      <div class="topbar-bc" id="topbarBc">{!! $__env->yieldContent('bc') !!}</div>
+      <script>
+        // Prettify breadcrumbs: replace " / " text nodes with chevron separators
+        (function(){
+          var bc = document.getElementById('topbarBc');
+          if(!bc) return;
+          bc.innerHTML = bc.innerHTML.replace(/\s*\/\s*/g,
+            '<i class="bi bi-chevron-right" style="font-size:10px;color:#b0bdd0;margin:0 4px;vertical-align:middle"></i>');
+        })();
+      </script>
+      @endif
     </div>
     <div class="spacer"></div>
     <div class="flex aic gap2">
@@ -236,7 +242,7 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
         <i class="bi bi-box-arrow-right"></i>
       </div>
       <div style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px">Sign out?</div>
-      <div style="font-size:13px;color:#64748b;margin-bottom:24px">Are you sure you want to log out of MyLoan Admin?</div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:24px">Are you sure you want to log out of {{ config('app.name') }} Admin?</div>
       <div style="display:flex;gap:10px;justify-content:center">
         <button type="button" onclick="document.getElementById('logoutModal').classList.remove('open')" class="btn btn-o" style="flex:1">
           Cancel

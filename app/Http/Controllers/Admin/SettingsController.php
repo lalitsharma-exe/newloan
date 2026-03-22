@@ -22,6 +22,45 @@ class SettingsController extends Controller {
         return back()->with("success", "General settings saved.");
     }
 
+    public function updateCompany(Request $r) {
+        $r->validate([
+            'director_name'       => 'nullable|string|max:100',
+            'director_title'      => 'nullable|string|max:100',
+            'bank_name'           => 'nullable|string|max:100',
+            'bank_branch'         => 'nullable|string|max:100',
+            'bank_branch_code'    => 'nullable|string|max:50',
+            'bank_account_type'   => 'nullable|in:cheque,savings,business',
+            'bank_account_name'   => 'nullable|string|max:100',
+            'bank_account_number' => 'nullable|string|max:100',
+            'signature_upload'    => 'nullable|image|max:1024',
+        ]);
+
+        $fields = ['director_name', 'director_title', 'bank_name', 'bank_branch', 'bank_branch_code', 'bank_account_type', 'bank_account_name', 'bank_account_number'];
+        foreach ($fields as $field) {
+            \App\Models\SystemSetting::set($field, $r->input($field), 'company');
+        }
+
+        if ($r->hasFile('signature_upload')) {
+            $path = $r->file('signature_upload')->store('signatures', 'public');
+            \App\Models\SystemSetting::set('director_signature', $path, 'company');
+        } elseif ($r->filled('signature_data')) {
+            $data = $r->input('signature_data');
+            // Data URI e.g. data:image/png;base64,iVBOR...
+            if (preg_match('/^data:image\/(\w+);base64,/', $data, $type)) {
+                $data = substr($data, strpos($data, ',') + 1);
+                $type = strtolower($type[1]); // jpg, png, gif
+                $data = base64_decode($data);
+                if ($data !== false) {
+                    $filename = 'signatures/' . uniqid('sig_') . '.' . $type;
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $data);
+                    \App\Models\SystemSetting::set('director_signature', $filename, 'company');
+                }
+            }
+        }
+
+        return back()->with("success", "Company and banking details saved.");
+    }
+
     public function updatePaymentGateway(Request $r) {
         $r->validate(['gateway_mode' => 'required|in:sandbox,production']);
         // Save all gateway fields including CPay-specific ones
