@@ -85,6 +85,35 @@ class ApplicationController extends Controller
         return view('admin.applications.show', compact('application','officers'));
     }
 
+    public function updateAffordability(Request $request, LoanApplication $application)
+    {
+        $data = $request->validate([
+            'monthly_earnings'         => 'required|numeric|min:0',
+            'tax_deduction'            => 'nullable|numeric|min:0',
+            'existing_loans_deduction' => 'nullable|numeric|min:0',
+            'other_deductions'         => 'nullable|numeric|min:0',
+            'transport'                => 'nullable|numeric|min:0',
+            'groceries'                => 'nullable|numeric|min:0',
+            'utilities'                => 'nullable|numeric|min:0',
+            'rent'                     => 'nullable|numeric|min:0',
+            'education'                => 'nullable|numeric|min:0',
+            'communication'            => 'nullable|numeric|min:0',
+            'other_insurance'          => 'nullable|numeric|min:0',
+            'medical'                  => 'nullable|numeric|min:0',
+            'other_loan_repayments'    => 'nullable|numeric|min:0',
+            'family_support'           => 'nullable|numeric|min:0',
+            'entertainment'            => 'nullable|numeric|min:0',
+            'other_expenses'           => 'nullable|numeric|min:0',
+        ]);
+
+        $application->affordability()->updateOrCreate(
+            ['application_id' => $application->id],
+            $data
+        );
+
+        return redirect()->back()->with('success', 'Affordability data updated successfully.');
+    }
+
     public function approve(Request $request, LoanApplication $application)
     {
         $request->validate([
@@ -179,11 +208,46 @@ class ApplicationController extends Controller
         $application->notes()->create([
             'created_by'  => auth('admin')->id(),
             'type'        => $request->input('type', 'general'),
-            'content'     => $request->content,
+            'content'     => $request->input('content'),
             'is_internal' => $request->boolean('is_internal', true),
         ]);
         return redirect()->route('admin.applications.show', $application)
                          ->with('success', 'Note added.');
+    }
+
+    public function getMessages(LoanApplication $application)
+    {
+        $messages = $application->messages()->orderBy('created_at', 'asc')->get()->map(function($msg) {
+            $senderName = 'Admin';
+            if ($msg->sender_type === 'borrower') {
+                $senderName = $msg->application->first_name;
+            } else if ($msg->sender_type === 'admin') {
+                $admin = \App\Models\User::find($msg->sender_id);
+                $senderName = $admin ? $admin->name : 'Admin';
+            }
+            return [
+                'id' => $msg->id,
+                'content' => $msg->message,
+                'sender_type' => $msg->sender_type,
+                'sender_name' => $senderName,
+                'sender_initial' => substr($senderName, 0, 1),
+                'created_at' => $msg->created_at->format('d M H:i'),
+            ];
+        });
+        return response()->json($messages);
+    }
+
+    public function sendMessage(Request $request, LoanApplication $application)
+    {
+        $request->validate(['content' => 'required|string|max:2000']);
+        
+        $msg = $application->messages()->create([
+            'sender_type' => 'admin',
+            'sender_id' => auth('admin')->id(),
+            'message' => $request->content,
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
     public function deleteNote(Request $request, LoanApplication $application, $note)
@@ -269,5 +333,31 @@ class ApplicationController extends Controller
             'Content-Type'        => 'text/csv',
             'Content-Disposition' => 'attachment; filename="applications-'.now()->format('Y-m-d').'.csv"',
         ]);
+    }
+    public function uploadDocument(\Illuminate\Http\Request $request, \App\Models\LoanApplication $application)
+    {
+        $request->validate([
+            'file'  => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'type'  => 'required|string',
+            'notes' => 'nullable|string|max:255',
+        ]);
+
+        $path = $request->file('file')->store(
+            'documents/' . $application->user_id, 'public'
+        );
+
+        \App\Models\Document::create([
+            'user_id'        => $application->user_id,
+            'application_id' => $application->id,
+            'type'           => $request->type,
+            'filename'       => $request->file('file')->getClientOriginalName(),
+            'original_name'  => $request->file('file')->getClientOriginalName(),
+            'path'           => $path,
+            'status'         => 'pending',
+            'notes'          => $request->notes,
+            'uploaded_by'    => auth('admin')->id(), // track who uploaded
+        ]);
+
+        return back()->with('success', 'Document uploaded successfully.');
     }
 }

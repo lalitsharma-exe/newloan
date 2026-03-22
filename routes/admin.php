@@ -99,6 +99,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{application}/documents/{doc}/verify', [DocumentController::class, 'verify'])->name('documents.verify');
             Route::post('/{application}/documents/{doc}/reject',  [DocumentController::class, 'reject'])->name('documents.reject');
             Route::get('/{application}/documents/{doc}/download',  [DocumentController::class, 'download'])->name('documents.download');
+            Route::post('/{application}/documents/upload', [ApplicationController::class, 'uploadDocument'])->name('documents.upload');
+            Route::post('/{application}/affordability', [ApplicationController::class, 'updateAffordability'])->name('update-affordability');
+
+            // AJAX Chat
+            Route::get('/{application}/messages', [ApplicationController::class, 'getMessages'])->name('messages.get');
+            Route::post('/{application}/messages', [ApplicationController::class, 'sendMessage'])->name('messages.send');
 
             // Repayment schedule preview
             Route::get('/{application}/schedule-preview',    [ApplicationController::class, 'schedulePreview'])->name('schedule-preview');

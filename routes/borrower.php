@@ -121,8 +121,9 @@ Route::prefix('portal')->name('borrower.')->group(function () {
             Route::get('/',                 [ApplicationController::class, 'index'])->name('index');
             Route::get('/{application}',    [ApplicationController::class, 'show'])->name('show');
 
-            // Borrower can respond to info request
-            Route::post('/{application}/respond-info',      [ApplicationController::class, 'respondInfo'])->name('respond-info');
+            // Borrower can send a message
+            Route::get('/{application}/messages',     [ApplicationController::class, 'getMessages'])->name('messages.get');
+            Route::post('/{application}/messages',    [ApplicationController::class, 'sendMessage'])->name('messages.send');
 
             // Borrower can cancel a draft or submitted application
             Route::post('/{application}/cancel',            [ApplicationController::class, 'cancel'])->name('cancel');
@@ -133,6 +134,9 @@ Route::prefix('portal')->name('borrower.')->group(function () {
 
             // Download application summary PDF
             Route::get('/{application}/download',           [ApplicationController::class, 'download'])->name('download');
+
+            // Save signature later
+            Route::post('/{application}/signature',         [ApplicationController::class, 'saveSignature'])->name('signature');
         });
 
         /*
@@ -149,6 +153,7 @@ Route::prefix('portal')->name('borrower.')->group(function () {
             // Download
             Route::get('/{loan}/agreement', [LoanController::class, 'downloadAgreement'])->name('agreement');
             Route::get('/{loan}/statement', [LoanController::class, 'statement'])->name('statement');
+            Route::get('/{loan}/settlement', [LoanController::class, 'settlement'])->name('settlement');
         });
 
         /*

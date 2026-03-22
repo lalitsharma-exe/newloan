@@ -23,7 +23,7 @@ class DocumentController extends Controller
     }
 
     public function upload(Request $request) {
-        $request->validate(['file'=>'required|file|mimes:pdf,jpg,jpeg,png|max:5120','type'=>'required|string','application_id'=>'nullable|exists:loan_applications,id']);
+        $request->validate(['file'=>'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120','type'=>'required|string','application_id'=>'nullable|exists:loan_applications,id']);
         $path = $request->file('file')->store('documents/'.auth('borrower')->id(), 'public');
         Document::create(['user_id'=>auth('borrower')->id(),'application_id'=>$request->application_id,'type'=>$request->type,'filename'=>$request->file('file')->getClientOriginalName(),'original_name'=>$request->file('file')->getClientOriginalName(),'path'=>$path,'status'=>'pending']);
         return redirect()->route('borrower.documents.index')->with('success', 'Document uploaded successfully.');
@@ -31,7 +31,7 @@ class DocumentController extends Controller
 
     public function uploadForApplication(Request $request, LoanApplication $application) {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        $request->validate(['file'=>'required|file|mimes:pdf,jpg,jpeg,png|max:5120','type'=>'required|string']);
+        $request->validate(['file'=>'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120','type'=>'required|string']);
         $path = $request->file('file')->store('documents/'.auth('borrower')->id(), 'public');
         Document::create(['user_id'=>auth('borrower')->id(),'application_id'=>$application->id,'type'=>$request->type,'filename'=>$request->file('file')->getClientOriginalName(),'original_name'=>$request->file('file')->getClientOriginalName(),'path'=>$path,'status'=>'pending']);
         return back()->with('success', 'Document uploaded.');

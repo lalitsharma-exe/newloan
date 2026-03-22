@@ -3,6 +3,8 @@ use Illuminate\Support\Facades\Facade;
 return [
     "name"=>env("APP_NAME","LoanPlatform"),
     "env"=>env("APP_ENV","production"),
+    "logo"=>env("APP_LOGO", "storage/video/logo.webp"),
+    "background_video"=>env("APP_BACKGROUND_VIDEO", "storage/video/mixkit-top-view-of-financial-accounting-with-coins-and-glasses-33435-medium.mp4"),
     "debug"=>(bool)env("APP_DEBUG",false),
     "url"=>env("APP_URL","http://localhost"),
     "timezone"=>"UTC",

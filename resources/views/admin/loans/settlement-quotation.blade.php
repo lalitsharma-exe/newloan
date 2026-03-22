@@ -76,6 +76,12 @@ h2{font-size:16px;font-weight:700;color:#1e3a5f;margin-bottom:12px;padding-botto
             <strong>Payment Instructions:</strong> To settle this loan please pay
             <strong>M {{ number_format($outstanding, 2) }}</strong> by <strong>{{ $validUntil }}</strong>.
             Quote reference <strong>{{ $loan->loan_number }}</strong> on all payments.
+            <br><br>
+            <strong>Company Banking Info:</strong><br>
+            Bank Name: Standard Lesotho Bank<br>
+            Account Name: MyLoan Limited<br>
+            Account Number: XXXXXXXXX<br>
+            Branch Code: XXXX
         </div>
 
         <div style="margin-top:20px;padding-top:20px;border-top:1px dashed #e2e8f0">

@@ -13,8 +13,9 @@
   .divider { border: none; border-top: 1px solid #d1d5db; margin: 14px 0; }
   table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 11px; }
   th, td { border: 1px solid #d1d5db; padding: 6px 10px; text-align: left; }
-  th { background: #f1f5f9; font-weight: 700; width: 45%; }
-  .summary-table th { width: 50%; }
+  th { background: #f1f5f9; font-weight: 700; }
+  .summary-table th { width: 25%; }
+  .summary-table td { width: 25%; }
   .schedule-table th { text-align: center; background: #1a5c2e; color: #fff; }
   .schedule-table td { text-align: center; }
   .schedule-table tr:nth-child(even) td { background: #f8fafc; }
@@ -51,9 +52,7 @@
     </p>
   </div>
   <div style="margin-top:10px">
-    {{-- MyLoan logo text-based since no image asset --}}
-    <div style="font-size:24px;font-weight:900;color:#1a5c2e;letter-spacing:2px">MYLOAN</div>
-    <div style="font-size:9px;color:#6b7280;letter-spacing:3px;text-transform:uppercase;margin-top:-2px">Simple, Fast and Secure</div>
+    <img src="https://ik.imagekit.io/ygydr1m84/png.webp" style="height:60px;margin-bottom:8px" alt="MyLoan Logo">
   </div>
   <div style="margin-top:14px;font-size:17px;font-weight:800;color:#0f172a;letter-spacing:.5px">LOAN AGREEMENT</div>
   <div style="font-size:11px;color:#64748b;margin-top:3px">Agreement Reference: <strong>{{ $loan->loan_number }}</strong></div>
@@ -97,26 +96,46 @@
   $monthly     = $loan->monthly_installment;
 @endphp
 <table class="summary-table">
-  <tr><th>Loan ID</th><td><strong>{{ $loan->loan_number }}</strong></td></tr>
-  <tr><th>Borrower Name</th><td>{{ $loan->user->name }}</td></tr>
-  <tr><th>ID Number</th><td>{{ $loan->user->national_id ?? $loan->application?->national_id ?? '—' }}</td></tr>
-  <tr><th>Phone Number</th><td>{{ $loan->user->phone ?? '—' }}</td></tr>
-  <tr><th>Employer</th><td>{{ $loan->application?->employment?->employer_name ?? '—' }}</td></tr>
-  <tr><th>Employment Number</th><td>{{ $loan->application?->employment?->employment_number ?? '—' }}</td></tr>
-  <tr><th>Principal (Loan Amount)</th><td><strong>M {{ number_format($principal, 2) }}</strong></td></tr>
-  <tr><th>Loan Term</th><td>{{ $term }} months</td></tr>
-  <tr><th>Initiation Fee (Once-Off · {{ $initRate }}% of principal)</th><td>M {{ number_format($initFee, 2) }}</td></tr>
-  <tr><th>Interest Rate</th><td>{{ $rate }}% per month (flat rate)</td></tr>
-  <tr><th>Monthly Admin Fee</th><td>M {{ number_format($adminMonth, 2) }} per month</td></tr>
-  <tr><th>Total Interest</th><td>M {{ number_format($totalInt, 2) }}</td></tr>
-  <tr><th>Total Fees (Initiation + Admin)</th><td>M {{ number_format($totalFees, 2) }}</td></tr>
-  <tr><th>Total Repayment</th><td><strong>M {{ number_format($totalRepay, 2) }}</strong></td></tr>
-  <tr><th>Monthly Installment</th><td><strong>M {{ number_format($monthly, 2) }}</strong></td></tr>
-  <tr><th>Disbursement Method</th><td>{{ ucfirst(str_replace('_',' ', $loan->disbursement_method ?? $loan->payout_method ?? '—')) }}</td></tr>
-  <tr><th>Disbursement Reference</th><td>{{ $loan->disbursement_reference ?? '—' }}</td></tr>
-  <tr><th>Disbursement Date</th><td>{{ $loan->disbursement_date?->format('d F Y') ?? '—' }}</td></tr>
-  <tr><th>First Payment Date</th><td>{{ $loan->first_payment_date?->format('d F Y') ?? '—' }}</td></tr>
-  <tr><th>Maturity Date</th><td>{{ $loan->maturity_date?->format('d F Y') ?? '—' }}</td></tr>
+  <tr>
+    <th>Loan ID</th><td><strong>{{ $loan->loan_number }}</strong></td>
+    <th>Borrower Name</th><td>{{ $loan->user->name }}</td>
+  </tr>
+  <tr>
+    <th>ID Number</th><td>{{ $loan->user->national_id ?? $loan->application?->national_id ?? '—' }}</td>
+    <th>Phone Number</th><td>{{ $loan->user->phone ?? '—' }}</td>
+  </tr>
+  <tr>
+    <th>Employer</th><td>{{ $loan->application?->employment?->employer_name ?? '—' }}</td>
+    <th>Employment Number</th><td>{{ $loan->application?->employment?->employment_number ?? '—' }}</td>
+  </tr>
+  <tr>
+    <th>Principal Amount</th><td><strong>M {{ number_format($principal, 2) }}</strong></td>
+    <th>Loan Term</th><td>{{ $term }} months</td>
+  </tr>
+  <tr>
+    <th>Initiation Fee ({{ $initRate }}%)</th><td>M {{ number_format($initFee, 2) }}</td>
+    <th>Interest Rate</th><td>{{ $rate }}% per month</td>
+  </tr>
+  <tr>
+    <th>Monthly Admin Fee</th><td>M {{ number_format($adminMonth, 2) }}</td>
+    <th>Total Interest</th><td>M {{ number_format($totalInt, 2) }}</td>
+  </tr>
+  <tr>
+    <th>Total Fees (Init+Admin)</th><td>M {{ number_format($totalFees, 2) }}</td>
+    <th>Total Repayment</th><td><strong>M {{ number_format($totalRepay, 2) }}</strong></td>
+  </tr>
+  <tr>
+    <th>Monthly Installment</th><td><strong>M {{ number_format($monthly, 2) }}</strong></td>
+    <th>Disb. Method</th><td>{{ ucfirst(str_replace('_',' ', $loan->disbursement_method ?? $loan->payout_method ?? '—')) }}</td>
+  </tr>
+  <tr>
+    <th>Disb. Reference</th><td>{{ $loan->disbursement_reference ?? '—' }}</td>
+    <th>Disb. Date</th><td>{{ $loan->disbursement_date?->format('d F Y') ?? '—' }}</td>
+  </tr>
+  <tr>
+    <th>First Payment Date</th><td>{{ $loan->first_payment_date?->format('d F Y') ?? '—' }}</td>
+    <th>Maturity Date</th><td>{{ $loan->maturity_date?->format('d F Y') ?? '—' }}</td>
+  </tr>
 </table>
 <p style="font-size:10.5px;margin-top:6px;color:#64748b">The borrower confirms that the above loan summary accurately reflects the loan granted.</p>
 
@@ -256,7 +275,22 @@
   <div class="sig-box">
     <div style="font-weight:700;margin-bottom:12px">BORROWER</div>
     <div style="margin-bottom:24px;font-size:12px">Name: {{ $loan->user->name }}</div>
-    <div style="height:60px;border-bottom:1px dashed #9ca3af;margin-bottom:6px"></div>
+    
+    @php
+        $sigData = '';
+        if ($loan->application && $loan->application->signature_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($loan->application->signature_path)) {
+            $sigData = 'data:image/png;base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($loan->application->signature_path));
+        }
+    @endphp
+
+    @if($sigData)
+        <div style="height:60px;margin-bottom:6px">
+            <img src="{{ $sigData }}" style="max-height:60px;max-width:200px" alt="Signature">
+        </div>
+    @else
+        <div style="height:60px;border-bottom:1px dashed #9ca3af;margin-bottom:6px"></div>
+    @endif
+
     <div style="font-size:10px;color:#64748b">Borrower Signature</div>
     <div style="margin-top:14px;font-size:12px">Phone: {{ $loan->user->phone ?? '—' }}</div>
     <div style="margin-top:8px;font-size:12px">Date: ___________________________</div>
