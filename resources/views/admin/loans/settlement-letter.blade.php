@@ -70,6 +70,17 @@ body{background:#f3f4f6;padding:30px}
             </p>
         </div>
 
+        @php
+            $sigVal = \App\Models\SystemSetting::get('director_signature');
+            $sigDataUrl = null;
+            if ($sigVal && \Illuminate\Support\Facades\Storage::disk('public')->exists($sigVal)) {
+                $sigDataUrl = 'data:image/png;base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($sigVal));
+            }
+            $directorName = \App\Models\SystemSetting::get('director_name', 'Tjale Maila');
+            $directorTitle = \App\Models\SystemSetting::get('director_title', 'Managing Director');
+            $companyName = \App\Models\SystemSetting::get('app_name', 'MyLoan Limited');
+        @endphp
+
         <div class="summary">
             <div style="font-weight:700;color:#1e3a5f;margin-bottom:10px;font-size:13px">LOAN SUMMARY</div>
             <div class="summary-row"><span>Loan Reference</span><span>{{ $loan->loan_number }}</span></div>
@@ -87,9 +98,17 @@ body{background:#f3f4f6;padding:30px}
 
         <div class="signature-area">
             <div class="sig-block">
-                <div class="line"></div>
-                <div>Authorised Signatory</div>
-                <div>MyLoan Limited</div>
+                @if($sigDataUrl)
+                    <div style="margin-top:10px;height:40px;margin-bottom:10px">
+                        <img src="{{ $sigDataUrl }}" style="max-height:40px;max-width:200px" alt="Signature">
+                    </div>
+                @else
+                    <div class="line"></div>
+                    <div>Authorised Signatory</div>
+                @endif
+                <div style="font-weight:600;color:#1e3a5f;margin-top:6px;font-size:13px">{{ $directorName }}</div>
+                <div>{{ $directorTitle }}</div>
+                <div style="margin-top:2px">{{ $companyName }}</div>
             </div>
             <div class="sig-block" style="text-align:right">
                 <div style="margin-top:32px;margin-bottom:6px;font-size:13px;color:#374151">Official Stamp</div>

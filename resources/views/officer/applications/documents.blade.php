@@ -29,7 +29,7 @@
 {{-- Document checklist --}}
 @php
 $requiredTypes = [
-  'id_document'    => ['ID Document',     'person-badge',    'Required — National ID or Passport'],
+  'id_document'    => ['ID Document',     'person-badge',    'Required — National ID'],
   'payslip'        => ['Recent Payslip',  'receipt',         'Latest month'],
   'bank_statement' => ['Bank Statement',  'bank',            'Last 1–3 months'],
   'photo'          => ['Half-Body Photo', 'camera',          'Clear, recent photo'],

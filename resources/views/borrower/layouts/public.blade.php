@@ -34,7 +34,11 @@ body {
   font-weight: 400; color: var(--ink);
   background: var(--white);
   line-height: 1.6; -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
+main { flex: 1; display: flex; flex-direction: column;  background: var(--charcoal);}
 h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; line-height: 1.15; letter-spacing: -.02em; }
 p { font-size: 16px; line-height: 1.75; color: var(--slate); }
 a { color: inherit; }
@@ -248,7 +252,9 @@ footer {
 </nav>
 
 <!-- PAGE CONTENT -->
+<main>
 @yield('content')
+</main>
 
 <!-- FOOTER -->
 <footer>
@@ -291,11 +297,11 @@ footer {
       </div>
       <!-- M-Pesa -->
       <div class="pay-logo" title="M-Pesa">
-        <span style="color:rgba(255,255,255,.6);font-size:12px;font-weight:800;letter-spacing:-.5px">M-PESA</span>
+        <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-03-22%20at%205.48.11%20PM%20(1).jpeg" alt="M-Pesa" style="filter:none;opacity:1">
       </div>
       <!-- CPay -->
       <div class="pay-logo" title="CPay">
-        <span style="color:rgba(255,255,255,.6);font-size:12px;font-weight:800">CPAY</span>
+        <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-03-22%20at%205.48.11%20PM.jpeg" alt="CPay" style="filter:none;opacity:1">
       </div>
       <!-- Stop Order -->
       <div class="pay-logo" title="Stop Order">

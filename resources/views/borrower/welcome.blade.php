@@ -7,9 +7,13 @@
 /* ─── FULL-SCREEN HERO ─────────────────────────────────── */
 .hero {
   position: relative;
-  height: 100vh; min-height: 640px;
+  min-height: 100vh;
+  flex: 1; /* Allow it to grow if there is extra space */
   display: flex; flex-direction: column;
   overflow: hidden;
+  padding: 0 !important;
+  margin: 0 !important;
+  background-color: var(--navy);
 }
 
 /* Navy fallback only — video should dominate */
@@ -168,7 +172,7 @@ input[type=range] { width: 100%; height: 3px; border-radius: 99px; background: r
 @endpush
 
 @section('content')
-<div data-transparent-header="1">
+<div data-transparent-header="1" style="flex: 1; display: flex; flex-direction: column;">
 
 <section class="hero">
   <div class="hero-orb hero-orb-1"></div>
@@ -195,7 +199,7 @@ input[type=range] { width: 100%; height: 3px; border-radius: 99px; background: r
       </p>
       <div class="hero-cta">
         <a href="{{ route('borrower.register') }}" class="btn-hero">
-          <i class="bi bi-play-fill"></i> Apply Now — Free
+          <i class="bi bi-play-fill"></i> Apply Now
         </a>
       </div>
       <div class="hero-trust">

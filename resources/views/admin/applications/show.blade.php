@@ -301,7 +301,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
               <label class="fl">Document Type *</label>
               <select name="type" class="fc" required>
                 <option value="">— Select Type —</option>
-                @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Passport Photo','employment_letter'=>'Employment Letter','other'=>'Other'] as $v=>$l)
+                @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Selfie Picture','employment_letter'=>'Employment Letter','other'=>'Other'] as $v=>$l)
                 <option value="{{ $v }}">{{ $l }}</option>
                 @endforeach
               </select>

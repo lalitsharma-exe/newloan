@@ -37,7 +37,7 @@
       M{{ number_format($nextInst->outstanding_amount,0) }}
     </div>
     <div style="font-size:13px;color:#64748b;margin-bottom:20px">
-      Due Date: {{ $nextInst->due_date->format('d Mar') }}
+      Due Date: {{ $nextInst->due_date->format('d M Y') }}
     </div>
     <a href="{{ route('borrower.payments.make') }}"
        style="display:block;width:100%;text-align:center;background:#ef4444;color:#fff;padding:11px;border-radius:10px;font-size:14px;font-weight:800;letter-spacing:.06em;text-decoration:none;transition:background .2s">

@@ -7,7 +7,7 @@
   <div class="card-body">
     <form method="POST" action="{{ route('borrower.documents.upload.post') }}" enctype="multipart/form-data">@csrf
       <div class="fg"><label class="fl">Document Type *</label>
-        <select name="type" class="fc" required><option value="">— Select Type —</option><option value="national_id">National ID</option><option value="payslip">Payslip</option><option value="bank_statement">Bank Statement</option><option value="photo">Passport Photo</option><option value="other">Other</option></select>
+        <select name="type" class="fc" required><option value="">— Select Type —</option><option value="national_id">National ID</option><option value="payslip">Payslip</option><option value="bank_statement">Bank Statement</option><option value="photo">Selfie Picture</option><option value="other">Other</option></select>
       </div>
       @if($applications->count())
       <div class="fg"><label class="fl">Link to Application <span style="font-size:11px;color:var(--muted)">(optional)</span></label>

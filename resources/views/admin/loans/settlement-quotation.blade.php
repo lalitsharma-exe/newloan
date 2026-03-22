@@ -58,6 +58,15 @@ h2{font-size:16px;font-weight:700;color:#1e3a5f;margin-bottom:12px;padding-botto
         </div>
 
         <h2>Settlement Breakdown</h2>
+        @php
+            $sigVal = \App\Models\SystemSetting::get('director_signature');
+            $sigDataUrl = null;
+            if ($sigVal && \Illuminate\Support\Facades\Storage::disk('public')->exists($sigVal)) {
+                $sigDataUrl = 'data:image/png;base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($sigVal));
+            }
+            $directorName = \App\Models\SystemSetting::get('director_name', 'Tjale Maila');
+            $directorTitle = \App\Models\SystemSetting::get('director_title', 'Managing Director');
+        @endphp
         <table class="breakdown">
             <thead><tr><th>Description</th><th style="text-align:right">Amount</th></tr></thead>
             <tbody>
@@ -78,15 +87,24 @@ h2{font-size:16px;font-weight:700;color:#1e3a5f;margin-bottom:12px;padding-botto
             Quote reference <strong>{{ $loan->loan_number }}</strong> on all payments.
             <br><br>
             <strong>Company Banking Info:</strong><br>
-            Bank Name: Standard Lesotho Bank<br>
-            Account Name: MyLoan Limited<br>
-            Account Number: XXXXXXXXX<br>
-            Branch Code: XXXX
+            Bank Name: {{ \App\Models\SystemSetting::get('bank_name', 'Standard Lesotho Bank') }}<br>
+            Account Name: {{ \App\Models\SystemSetting::get('bank_account_name', 'MyLoan Limited') }}<br>
+            Account Number: {{ \App\Models\SystemSetting::get('bank_account_number', 'XXXXXXXXX') }}<br>
+            Branch Code: {{ \App\Models\SystemSetting::get('bank_branch_code', 'XXXX') }}
         </div>
 
-        <div style="margin-top:20px;padding-top:20px;border-top:1px dashed #e2e8f0">
-            <div style="font-size:12px;color:#6b7280">Authorised by:</div>
-            <div style="margin-top:32px;border-top:1px solid #374151;width:200px;padding-top:6px;font-size:12px;color:#374151">Authorised Signatory</div>
+        <div style="margin-top:20px;padding-top:20px;border-top:1px dashed #e2e8f0;display:flex;justify-content:space-between">
+            <div style="font-size:12px;color:#6b7280">Authorised by:
+                @if($sigDataUrl)
+                    <div style="margin-top:10px;height:40px">
+                        <img src="{{ $sigDataUrl }}" style="max-height:40px;max-width:200px" alt="Signature">
+                    </div>
+                @else
+                    <div style="margin-top:32px;border-top:1px solid #374151;width:200px;padding-top:6px;font-size:12px;color:#374151">Authorised Signatory</div>
+                @endif
+                <div style="margin-top:6px;font-weight:600;color:#1e3a5f">{{ $directorName }}</div>
+                <div style="font-size:11px">{{ $directorTitle }}</div>
+            </div>
         </div>
     </div>
     <div class="footer">

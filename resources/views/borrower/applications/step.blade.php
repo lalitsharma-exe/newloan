@@ -194,6 +194,7 @@ $totalSteps = 10;
 
       {{-- STEP 7: Loan Details --}}
       @elseif($step === 7)
+      <script>window.netSalary = {{ $application->affordability?->net_salary ?? 0 }};</script>
       <div class="g2">
         <div class="fg" style="grid-column:span 2">
           <label class="fl">Loan Product *</label>
@@ -257,7 +258,7 @@ $totalSteps = 10;
       {{-- STEP 8: Documents --}}
       @elseif($step === 8)
       <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Upload required documents. Accepted: PDF, JPG, PNG (max 5MB each).</div>
-      @foreach([['national_id','National ID / Passport'],['payslip','Latest Payslip'],['bank_statement','3 Months Bank Statement']] as [$dtype,$dlabel])
+      @foreach([['national_id','National ID'],['payslip','Latest Payslip'],['bank_statement','3 Months Bank Statement'],['photo','Selfie Picture']] as [$dtype,$dlabel])
       @php $existing = $application->documents->where('type',$dtype)->first(); @endphp
       <div style="background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid {{ $existing?'#bbf7d0':'var(--border)' }}">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -347,7 +348,7 @@ $totalSteps = 10;
       {{-- Documents --}}
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Documents</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
-        @foreach(['national_id'=>'ID / Passport','payslip'=>'Payslip','bank_statement'=>'Bank Statement'] as $dtype=>$dlabel)
+        @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Selfie Picture'] as $dtype=>$dlabel)
         @php $doc = $application->documents->where('type',$dtype)->first(); @endphp
         <div style="background:{{ $doc?'#f0fdf4':'#fef2f2' }};border:1px solid {{ $doc?'#bbf7d0':'#fecaca' }};border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;color:{{ $doc?'#16a34a':'#dc2626' }}">
           <i class="bi bi-{{ $doc?'check-circle-fill':'x-circle-fill' }}"></i> {{ $dlabel }}
@@ -360,7 +361,7 @@ $totalSteps = 10;
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
             <select name="type" class="fc" required style="padding:9px 11px;font-size:13px" form="uploadForm_step10">
               <option value="">— Document Type —</option>
-              @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Passport Photo','other'=>'Other'] as $v=>$l)
+              @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Selfie Picture','other'=>'Other'] as $v=>$l)
               <option value="{{ $v }}">{{ $l }}</option>
               @endforeach
             </select>
@@ -448,7 +449,14 @@ function calcAff() {
   if(document.getElementById('netSalDisplay'))document.getElementById('netSalDisplay').textContent= 'M'+net.toFixed(2);
   if(document.getElementById('dispSalDisplay'))document.getElementById('dispSalDisplay').textContent= 'M'+disp.toFixed(2);
   const msg = document.getElementById('affordMsg');
-  if(msg) msg.textContent = disp >= 0 ? '✓ Good — you have surplus income' : '⚠ Expenses exceed income';
+  if(msg) {
+    const maxExp = net * 0.70;
+    if (expenses > maxExp) {
+      msg.innerHTML = '<span style="color:#ef4444;font-weight:bold">⚠ Total expenses cannot exceed 70% of your net salary.</span>';
+    } else {
+      msg.textContent = disp >= 0 ? '✓ Good — you have surplus income' : '⚠ Expenses exceed income';
+    }
+  }
 }
 calcAff();
 
@@ -476,6 +484,26 @@ function calcPreview() {
   document.getElementById('prev-monthly').textContent='M'+monthly.toFixed(2);
   document.getElementById('prev-total').textContent='M'+total.toFixed(2);
   document.getElementById('prev-init').textContent='M'+initFee.toFixed(2);
+  
+  if (window.netSalary) {
+      const maxRepayment = window.netSalary * 0.30;
+      let limitMsg = document.getElementById('repaymentLimitMsg');
+      if (!limitMsg) {
+          limitMsg = document.createElement('div');
+          limitMsg.id = 'repaymentLimitMsg';
+          limitMsg.style.marginTop = '10px';
+          limitMsg.style.fontSize = '13px';
+          limitMsg.style.fontWeight = '600';
+          limitMsg.style.textAlign = 'center';
+          document.getElementById('previewBox').appendChild(limitMsg);
+      }
+      if (monthly > maxRepayment) {
+          limitMsg.innerHTML = '<span style="color:#ef4444">⚠ Monthly repayment (M' + monthly.toFixed(2) + ') exceeds 30% of your net salary (M' + maxRepayment.toFixed(2) + '). Please lower loan amount or increase term.</span>';
+      } else {
+          limitMsg.innerHTML = '<span style="color:#16a34a">✓ Good - Repayment is within 30% limit.</span>';
+      }
+  }
+
   document.getElementById('previewBox').style.display='';
 }
 if(document.getElementById('prodSelect')?.value) loadProductTerms(document.getElementById('prodSelect').value);

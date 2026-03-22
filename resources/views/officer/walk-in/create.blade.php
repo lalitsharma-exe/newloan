@@ -41,7 +41,7 @@
             @error('name')<span class="iv">{{ $message }}</span>@enderror
           </div>
           <div class="fg">
-            <label class="fl">National ID / Passport *</label>
+            <label class="fl">National ID *</label>
             <input type="text" name="national_id" class="fc @error('national_id') err @enderror" value="{{ old('national_id') }}" placeholder="e.g. 900115-0001-00" required>
             @error('national_id')<span class="iv">{{ $message }}</span>@enderror
           </div>

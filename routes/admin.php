@@ -279,6 +279,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             // Grouped setting saves
             Route::post('/general',          [SettingsController::class, 'updateGeneral'])->name('general');
+            Route::post('/company',          [SettingsController::class, 'updateCompany'])->name('company');
             Route::post('/payment-gateway',  [SettingsController::class, 'updatePaymentGateway'])->name('payment-gateway');
             Route::post('/credit-bureau',    [SettingsController::class, 'updateCreditBureau'])->name('credit-bureau');
             Route::post('/notifications',    [SettingsController::class, 'updateNotifications'])->name('notifications');

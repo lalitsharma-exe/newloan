@@ -57,7 +57,30 @@ class ApplicationController extends Controller
         if ($step === 3)  $this->saveEmployment($request, $application);
         if ($step === 4)  $this->saveBankDetails($request, $application);
         if ($step === 5)  $this->saveNextOfKin($request, $application);
-        if ($step === 6)  $this->saveAffordability($request, $application);
+        if ($step === 6) {
+            $this->saveAffordability($request, $application);
+            $aff = $application->affordability()->first();
+            if ($aff && $aff->total_living_expenses > ($aff->net_salary * 0.70)) {
+                return back()->withInput()->with('error', 'Total monthly living expenses cannot exceed 70% of your net salary.');
+            }
+        }
+        if ($step === 7) {
+            $aff = $application->affordability()->first();
+            if ($aff) {
+                $product = \App\Models\LoanProduct::find($request->loan_product_id);
+                if ($product) {
+                    $p = (float)$request->requested_amount;
+                    $t = (int)$request->requested_term;
+                    if ($t > 0) {
+                        $total = $p + ($p * ($product->interest_rate / 100) * $t) + ($p * ($product->initiation_fee_rate / 100)) + ($product->admin_fee_fixed * $t);
+                        $monthly = $total / $t;
+                        if ($monthly > ($aff->net_salary * 0.30)) {
+                            return back()->withInput()->with('error', 'The estimated monthly repayment (M' . number_format($monthly, 2) . ') exceeds 30% of your net salary. Please decrease the loan amount or increase the loan term.');
+                        }
+                    }
+                }
+            }
+        }
         if ($step === 8) {
             $docs = $application->documents()->pluck('type')->toArray();
             $missing = array_diff(['national_id','payslip','bank_statement'], $docs);

@@ -24,4 +24,15 @@
     </tbody></table>
   </div>
 </div>
+<style>
+@media print {
+  .topbar, .sidebar, .btn, header, nav { display: none !important; }
+  body, html, .main { margin: 0 !important; padding: 0 !important; width: 100%; background: #fff !important; }
+  .card { border: none !important; box-shadow: none !important; margin: 0; padding: 0; }
+  .dt { border: 1px solid #ddd; }
+}
+@page {
+  margin: 30px;
+}
+</style>
 @endsection

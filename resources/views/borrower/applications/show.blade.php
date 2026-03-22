@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function() {
   <i class="bi bi-check-circle-fill"></i>
   <div>
     <strong>Congratulations! Your loan has been approved.</strong><br>
-    <a href="{{ route('borrower.applications.accept-terms',$application) }}" class="btn btn-ok btn-sm" style="margin-top:8px">Accept Terms &amp; Proceed</a>
+    <span style="font-size:13px;opacity:0.9">Your funds are being prepared for disbursement.</span>
   </div>
 </div>
 @endif
@@ -212,7 +212,7 @@ document.addEventListener("DOMContentLoaded", function() {
           <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;display:block">Document Type</label>
           <select name="type" class="fc" required>
             <option value="">— Select —</option>
-            @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Passport Photo','other'=>'Other'] as $v=>$l)
+            @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Selfie Picture','other'=>'Other'] as $v=>$l)
             <option value="{{ $v }}">{{ $l }}</option>
             @endforeach
           </select>

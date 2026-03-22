@@ -115,7 +115,12 @@
 <style>
 @media print {
   .topbar,.main > div:first-child,.btn,aside,form { display:none!important; }
-  .card { border:none!important; box-shadow:none!important; }
+  .card { border:none!important; box-shadow:none!important; margin: 0; padding: 0; }
+  body, html, .main { margin: 0 !important; padding: 0 !important; width: 100%; background: #fff !important; }
+  div[style*="max-width:800px"] { max-width: none !important; margin: 0 !important; }
+}
+@page {
+  margin: 30px;
 }
 </style>
 @endsection

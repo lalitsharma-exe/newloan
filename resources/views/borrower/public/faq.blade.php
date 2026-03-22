@@ -63,7 +63,7 @@
             ['What is the maximum loan I can get?', 'Government employees can borrow up to M20,000. Private sector employees and pensioners can borrow up to M4,000. Minimum loan amount is M100 for all products.'],
           ]],
           'documents' => ['Required Documents', [
-            ['What documents do I need to apply?', 'You will need: a valid National ID, your most recent payslip (or pension payslip), and 3 months of bank statements. Private sector applicants may also need an employment confirmation letter.'],
+            ['Do you have an office?', 'Yes, we are located in the main city center. You can view our map link on the contact page, or use the portal to do everything online.'],
             ['Can I upload documents online?', 'Yes. Our portal allows you to upload documents securely as part of the application process. Accepted formats are PDF, JPG, and PNG up to 5MB per file.'],
             ['What if my document is rejected?', 'If a document is rejected, you will receive a notification explaining the reason. Common reasons include blurry images, expired documents, or wrong document type. You can re-upload corrected documents through your portal account.'],
           ]],
