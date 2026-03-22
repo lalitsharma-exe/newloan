@@ -168,6 +168,12 @@ Route::prefix('portal')->name('borrower.')->group(function () {
             Route::get('/make',                     [PaymentController::class, 'showMakePayment'])->name('make');
             Route::post('/initiate',                [PaymentController::class, 'initiate'])->name('initiate');
 
+            // CPay OTP confirmation (Step 2)
+            Route::post('/confirm-otp',             [PaymentController::class, 'confirmOtp'])->name('confirm-otp');
+
+            // CPay OTP/USSD waiting page status poll (AJAX)
+            Route::get('/status',                   [PaymentController::class, 'checkStatus'])->name('status');
+
             // Payment gateway callback handlers
             Route::get('/callback/success',         [PaymentController::class, 'callbackSuccess'])->name('callback.success');
             Route::get('/callback/cancel',          [PaymentController::class, 'callbackCancel'])->name('callback.cancel');

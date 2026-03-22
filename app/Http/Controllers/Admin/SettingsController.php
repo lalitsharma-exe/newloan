@@ -22,29 +22,16 @@ class SettingsController extends Controller {
         return back()->with("success", "General settings saved.");
     }
 
-    public function updateCompany(Request $r) {
-        $data = $r->except('_token', 'signature_data', 'signature_upload');
-        
-        // Handle signature upload (file or base64)
-        if ($r->hasFile('signature_upload')) {
-            $path = $r->file('signature_upload')->store('signatures', 'public');
-            $data['director_signature'] = $path;
-        } elseif ($r->filled('signature_data')) {
-            $base64 = preg_replace('#^data:image/\w+;base64,#i', '', $r->signature_data);
-            $img = base64_decode($base64);
-            $filename = 'signatures/director_' . time() . '.png';
-            \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $img);
-            $data['director_signature'] = $filename;
-        }
-
-        $this->svc->updateGroup("company", $data);
-        return back()->with("success", "Company settings saved.");
-    }
-
     public function updatePaymentGateway(Request $r) {
         $r->validate(['gateway_mode' => 'required|in:sandbox,production']);
-        $this->svc->updateGroup("payment_gateway", $r->all());
-        return back()->with("success", "Payment gateway saved.");
+        // Save all gateway fields including CPay-specific ones
+        $fields = $r->only(['gateway_mode','gateway_name','gateway_key','gateway_secret','gateway_live_url','cpay_client_code']);
+        foreach ($fields as $key => $value) {
+            if ($value !== null && $value !== '') {
+                \App\Models\SystemSetting::set($key, $value, 'payment_gateway');
+            }
+        }
+        return back()->with('success', 'CPay payment gateway settings saved.');
     }
 
     public function updateCreditBureau(Request $r) {

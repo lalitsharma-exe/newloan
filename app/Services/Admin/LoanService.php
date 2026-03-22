@@ -409,16 +409,16 @@ class LoanService
             [
                 'label'    => 'KYC Verified',
                 'pass'     => (bool) $kycDoc,
-                'required' => true,
-                'detail'   => $kycDoc ? 'National ID document verified' : 'National ID document missing or not verified',
+                'required' => false,   // warning only — admin can still disburse
+                'detail'   => $kycDoc ? 'National ID document verified' : 'National ID document missing or not verified (warning)',
             ],
             [
                 'label'    => 'Affordability Passed',
                 'pass'     => $affordabilityPassed,
-                'required' => true,
+                'required' => false,   // warning only — admin can still disburse
                 'detail'   => $affordabilityPassed
-                    ? 'Disposable income: M'.number_format($affordability->disposable_income, 2)
-                    : 'Affordability assessment not completed',
+                    ? 'Disposable income: M'.number_format((float)$affordability->disposable_income, 2)
+                    : 'Affordability assessment not completed (warning)',
             ],
             [
                 'label'    => 'Loan Approved',
