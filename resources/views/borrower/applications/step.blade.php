@@ -240,11 +240,16 @@ $totalSteps = 10;
           <label class="fl">Collection Method *</label>
           <select name="collection_method" class="fc" required>
             <option value="salary_deduction" {{ old('collection_method',$application->collection_method)==='salary_deduction'?'selected':'' }}>Salary Deduction</option>
-            <option value="debit_order" {{ old('collection_method',$application->collection_method)==='debit_order'?'selected':'' }}>Debit Order</option>
-            <option value="stop_order" {{ old('collection_method',$application->collection_method)==='stop_order'?'selected':'' }}>Stop Order</option>
+            <option value="debit_order" {{ old('collection_method',$application->collection_method)==='debit_order'?'selected':'' }}>Debit Order (CPay)</option>
+            <option value="stop_order" {{ old('collection_method',$application->collection_method)==='stop_order'?'selected':'' }}>Stop Order (EcoCash)</option>
             <option value="mobile_money" {{ old('collection_method',$application->collection_method)==='mobile_money'?'selected':'' }}>Mobile Money</option>
           </select>
         </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Expected Payday (1-31) *</label>
+        <input type="number" name="salary_payday" class="fc" min="1" max="31" value="{{ old('salary_payday', $application->salary_payday ?? 25) }}" required>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:6px">Determines your monthly instalment due date.</div>
       </div>
       <div id="previewBox" style="background:#f0f4ff;border:1px solid var(--border);border-radius:12px;padding:16px;display:none;margin-top:4px">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:12px">Repayment Preview</div>

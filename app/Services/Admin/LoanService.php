@@ -461,7 +461,8 @@ class LoanService
         $interestPerMonth   = round($principal * $monthlyRate, 2);
         $initiationPerMonth = round($totalInitiation / $term, 2);
 
-        $payDate = \Carbon\Carbon::parse($loan->disbursement_date)->addMonth()->startOfMonth();
+        $payday = $loan->salary_payday ?? 25;
+        $payDate = \Carbon\Carbon::parse($loan->disbursement_date)->addMonth()->setDay($payday);
 
         for ($i = 1; $i <= $term; $i++) {
             $isLast = ($i === $term);

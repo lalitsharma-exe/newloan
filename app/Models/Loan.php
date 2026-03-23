@@ -28,6 +28,7 @@ class Loan extends Model
         'last_payment_date',
         'payout_method',
         'collection_method',
+        'salary_payday',
         'disbursement_method',
         'disbursement_phone',
         'disbursement_provider',

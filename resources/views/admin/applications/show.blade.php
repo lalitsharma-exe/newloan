@@ -268,20 +268,62 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
     @endif
 
     @if($isPending)
+    @php $riskResult = app(\App\Services\RiskScoringService::class)->calculate($application); @endphp
     <div class="card">
-      <div class="card-hdr"><span class="card-title">Risk Assessment</span></div>
-      <div class="card-body">
-        <form method="POST" action="{{ route('admin.applications.set-risk-score',$application) }}" style="display:flex;gap:10px;align-items:flex-end">@csrf
-          <div class="fg" style="margin-bottom:0;flex:1"><label class="fl">Risk Score (0–1000)</label><input type="number" name="risk_score" class="fc" min="0" max="1000" value="{{ $application->risk_score }}" placeholder="e.g. 720"></div>
-          <button type="submit" class="btn btn-p">Update</button>
+      <div class="card-hdr">
+        <span class="card-title"><i class="bi bi-shield-check" style="color:#f59e0b;margin-right:5px"></i> Risk Assessment</span>
+        <form method="POST" action="{{ route('admin.applications.auto-risk-score',$application) }}" style="display:inline">@csrf
+          <button type="submit" class="btn btn-sm btn-p" style="gap:5px"><i class="bi bi-cpu"></i> Auto-Calculate</button>
         </form>
-        @if($application->risk_score)
-        @php $rs=$application->risk_score;$rp=min(100,$rs/10);$rc=$rs>=700?'#10b981':($rs>=500?'#f59e0b':'#ef4444');$rl=$rs>=700?'Low Risk':($rs>=500?'Moderate Risk':'High Risk'); @endphp
-        <div style="margin-top:14px">
-          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--muted)">Score: <strong style="color:{{ $rc }}">{{ $rs }}</strong></span><span style="color:{{ $rc }};font-weight:600">{{ $rl }}</span></div>
-          <div style="height:8px;background:var(--bg);border-radius:99px;overflow:hidden"><div style="height:100%;width:{{ $rp }}%;background:{{ $rc }};border-radius:99px;transition:width .5s"></div></div>
+      </div>
+      <div class="card-body">
+
+        {{-- Score gauge --}}
+        @php $rs=$application->risk_score ?? $riskResult['score']; $rp=min(100,$rs/10); $rc=$rs>=700?'#10b981':($rs>=500?'#f59e0b':'#ef4444'); $rl=$rs>=700?'Low Risk':($rs>=500?'Moderate Risk':'High Risk'); @endphp
+        <div style="text-align:center;margin-bottom:18px">
+          <div style="font-size:48px;font-weight:800;color:{{ $rc }};line-height:1">{{ $rs }}</div>
+          <div style="font-size:12px;font-weight:700;color:{{ $rc }};margin-top:3px">{{ $rl }}</div>
+          <div style="height:8px;background:var(--bg);border-radius:99px;overflow:hidden;margin-top:10px">
+            <div style="height:100%;width:{{ $rp }}%;background:linear-gradient(90deg,#ef4444,#f59e0b 50%,#10b981);border-radius:99px;transition:width .5s"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px">
+            <span>0 – High Risk</span><span>500 – Moderate</span><span>1000 – Low Risk</span>
+          </div>
         </div>
-        @endif
+
+        {{-- Breakdown table --}}
+        <div style="font-size:12px;font-weight:700;color:var(--dark);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="bi bi-list-check" style="color:var(--p)"></i> Score Breakdown</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          @foreach($riskResult['breakdown'] as $item)
+          <div style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:10px 14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+              <div style="display:flex;align-items:center;gap:7px">
+                <div style="width:28px;height:28px;border-radius:7px;background:{{ $item['color'] }}15;display:flex;align-items:center;justify-content:center;color:{{ $item['color'] }};font-size:13px;flex-shrink:0"><i class="bi bi-{{ $item['icon'] }}"></i></div>
+                <div>
+                  <div style="font-size:12.5px;font-weight:700;color:var(--dark)">{{ $item['factor'] }}</div>
+                  <div style="font-size:11px;color:var(--muted)">{{ $item['detail'] }}</div>
+                </div>
+              </div>
+              <div style="text-align:right;flex-shrink:0">
+                <span style="font-size:14px;font-weight:800;color:{{ $item['color'] }}">{{ $item['score'] }}</span>
+                <span style="font-size:11px;color:var(--muted)">/ {{ $item['max'] }}</span>
+              </div>
+            </div>
+            <div style="height:5px;background:#e5e7eb;border-radius:99px;overflow:hidden">
+              <div style="height:100%;width:{{ $item['max'] > 0 ? round($item['score']/$item['max']*100) : 0 }}%;background:{{ $item['color'] }};border-radius:99px;transition:width .4s"></div>
+            </div>
+          </div>
+          @endforeach
+        </div>
+
+        {{-- Manual override --}}
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Manual Override</div>
+          <form method="POST" action="{{ route('admin.applications.set-risk-score',$application) }}" style="display:flex;gap:10px;align-items:flex-end">@csrf
+            <div class="fg" style="margin-bottom:0;flex:1"><input type="number" name="risk_score" class="fc" min="0" max="1000" value="{{ $application->risk_score }}" placeholder="e.g. 720" style="font-size:13px"></div>
+            <button type="submit" class="btn btn-o btn-sm">Set Manually</button>
+          </form>
+        </div>
       </div>
     </div>
     @endif

@@ -59,7 +59,7 @@
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px">
         <div class="sc"><div class="si p"><i class="bi bi-file-text"></i></div><div><div class="sv">{{ $user->loanApplications->count() }}</div><div class="sl">Applications</div></div></div>
         <div class="sc"><div class="si ok"><i class="bi bi-bank"></i></div><div><div class="sv">{{ $user->loans->count() }}</div><div class="sl">Loans</div></div></div>
-        <div class="sc"><div class="si i"><i class="bi bi-cash"></i></div><div><div class="sv">L {{ number_format($user->loans->sum('outstanding_balance'),0) }}</div><div class="sl">Outstanding</div></div></div>
+        <div class="sc"><div class="si i"><i class="bi bi-cash"></i></div><div><div class="sv">M {{ number_format($user->loans->sum('outstanding_balance'),0) }}</div><div class="sl">Outstanding</div></div></div>
       </div>
       <div class="card">
         <div class="card-hdr"><span class="card-title">Account Details</span></div>
@@ -96,7 +96,7 @@
             @forelse($user->loanApplications()->with('loanProduct')->latest()->get() as $app)
             <tr>
               <td style="font-weight:700;color:var(--p)">{{ $app->application_number }}</td>
-              <td>L {{ number_format($app->requested_amount,0) }}</td>
+              <td>M {{ number_format($app->requested_amount,0) }}</td>
               <td style="font-size:12px">{{ $app->loanProduct->name ?? '—' }}</td>
               <td>
                 @php $sc = match($app->status){ 'approved','disbursed'=>'bok','declined'=>'be','on_hold','info_requested'=>'bw',default=>'bs' }; @endphp
@@ -125,9 +125,9 @@
             @forelse($user->loans()->with('loanProduct')->latest()->get() as $loan)
             <tr>
               <td style="font-weight:700;color:var(--p)">{{ $loan->loan_number }}</td>
-              <td>L {{ number_format($loan->principal_amount,0) }}</td>
-              <td style="font-weight:600;color:{{ $loan->status==='overdue'?'var(--err)':'var(--dark)' }}">L {{ number_format($loan->outstanding_balance,0) }}</td>
-              <td>L {{ number_format($loan->monthly_installment,0) }}</td>
+              <td>M {{ number_format($loan->principal_amount,0) }}</td>
+              <td style="font-weight:600;color:{{ $loan->status==='overdue'?'var(--err)':'var(--dark)' }}">M {{ number_format($loan->outstanding_balance,0) }}</td>
+              <td>M {{ number_format($loan->monthly_installment,0) }}</td>
               <td><span class="badge {{ $loan->status==='active'?'bok':($loan->status==='overdue'?'be':'bs') }}">{{ ucfirst($loan->status) }}</span></td>
               <td style="font-size:12px;color:var(--muted)">{{ $loan->disbursement_date?->format('d M Y') }}</td>
               <td><a href="{{ route('admin.loans.show',$loan) }}" class="btn btn-xs btn-o">View</a></td>
@@ -153,7 +153,7 @@
             @forelse($payments as $pay)
             <tr>
               <td style="font-weight:700;color:var(--p);font-size:12px">{{ $pay->payment_reference }}</td>
-              <td>L {{ number_format($pay->amount,2) }}</td>
+              <td>M {{ number_format($pay->amount,2) }}</td>
               <td style="font-size:12px">{{ ucfirst(str_replace('_',' ',$pay->method)) }}</td>
               <td><span class="badge {{ $pay->status==='verified'?'bok':($pay->status==='pending'?'bw':'be') }}">{{ ucfirst($pay->status) }}</span></td>
               <td style="font-size:12px;color:var(--muted)">{{ $pay->created_at->format('d M Y H:i') }}</td>

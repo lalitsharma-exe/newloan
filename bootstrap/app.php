@@ -24,6 +24,28 @@ return Application::configure(basePath: dirname(__DIR__))
             'borrower.active'   => \App\Http\Middleware\BorrowerActive::class,
             'borrower.verified' => \App\Http\Middleware\BorrowerVerified::class,
         ]);
+
+        $middleware->redirectGuestsTo(function ($request) {
+            $path = $request->path();
+            if (str_starts_with($path, 'admin')) {
+                return route('admin.login');
+            }
+            if (str_starts_with($path, 'officer')) {
+                return route('officer.login');
+            }
+            return route('borrower.login');
+        });
     })
-    ->withExceptions(function (Exceptions $exceptions): void {})
+    ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->renderable(function (\Illuminate\Auth\AuthenticationException $e, $request) {
+            $path = $request->path();
+            if (str_starts_with($path, 'admin')) {
+                return redirect()->guest(route('admin.login'));
+            }
+            if (str_starts_with($path, 'officer')) {
+                return redirect()->guest(route('officer.login'));
+            }
+            return redirect()->guest(route('borrower.login'));
+        });
+    })
     ->create();

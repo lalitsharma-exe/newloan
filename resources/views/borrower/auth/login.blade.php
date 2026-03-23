@@ -35,7 +35,7 @@ html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:ant
 .auth-brand::after {
   content: ''; position: absolute;
   width: 400px; height: 400px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(201,168,76,.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(140,198,63,.1) 0%, transparent 70%);
   bottom: -80px; left: -80px;
 }
 .brand-logo { position: relative; z-index: 1; }
@@ -48,7 +48,7 @@ html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:ant
   color: #fff; line-height: 1.15; letter-spacing: -.02em;
   margin-bottom: 16px;
 }
-.brand-body h2 em { font-style: italic; color: #e0c06a; }
+.brand-body h2 em { font-style: italic; color: #8cc63f; }
 .brand-body p { font-size: 15px; color: rgba(255,255,255,.55); line-height: 1.7; max-width: 340px; margin-bottom: 36px; }
 
 .brand-pills { display: flex; flex-direction: column; gap: 12px; }
@@ -160,10 +160,10 @@ html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:ant
   .fc::placeholder { color: rgba(255,255,255,.3); }
   .fc:focus { border-color: rgba(255,255,255,.4); box-shadow: 0 0 0 3px rgba(255,255,255,.1); }
   .field-icon { color: rgba(255,255,255,.35); }
-  .forgot-link { color: #e0c06a; }
+  .forgot-link { color: #8cc63f; }
   .check-row label { color: rgba(255,255,255,.55); }
   .auth-switch { color: rgba(255,255,255,.55); }
-  .auth-switch a { color: #e0c06a; }
+  .auth-switch a { color: #8cc63f; }
   .auth-divider { display: none; }
   .auth-error { background: rgba(239,68,68,.2); }
 }
@@ -264,6 +264,19 @@ html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:ant
 
       <div class="auth-switch">
         Don't have an account? <a href="{{ route('borrower.register') }}">Create one — it's free</a>
+      </div>
+
+      <!-- Portal Switcher -->
+      <div style="display:flex;gap:8px;margin-top:22px">
+        <a href="{{ route('borrower.login') }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600;transition:all .2s;border:1.5px solid #2b4bad;color:#2b4bad;background:rgba(43,75,173,.06)">
+          <i class="bi bi-person-fill"></i> Borrower
+        </a>
+        <a href="{{ route('officer.login') }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600;transition:all .2s;border:1.5px solid #dde3ef;color:#5a6b85;background:#fff">
+          <i class="bi bi-person-badge-fill"></i> Officer
+        </a>
+        <a href="{{ route('admin.login') }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600;transition:all .2s;border:1.5px solid #dde3ef;color:#5a6b85;background:#fff">
+          <i class="bi bi-shield-lock-fill"></i> Admin
+        </a>
       </div>
 
       <div style="text-align:center;margin-top:18px">

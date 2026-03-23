@@ -128,7 +128,7 @@
           </td>
           <td style="font-size:12.5px;color:var(--muted)">{{ $app->loanProduct->name ?? '—' }}</td>
           <td>
-            <div style="font-weight:700;font-size:13.5px">L{{ number_format($app->requested_amount ?? 0, 0) }}</div>
+            <div style="font-weight:700;font-size:13.5px">M{{ number_format($app->requested_amount ?? 0, 0) }}</div>
             <div style="font-size:11px;color:var(--muted)">{{ $app->requested_term }}mo</div>
           </td>
           <td>

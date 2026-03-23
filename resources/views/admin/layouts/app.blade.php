@@ -98,6 +98,12 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 /* MISC */
 .flex{display:flex}.aic{align-items:center}.jb{justify-content:space-between}
 .gap2{gap:8px}.gap3{gap:12px}.mb4{margin-bottom:16px}.mb6{margin-bottom:24px}.mt4{margin-top:16px}
+/* PAGINATION */
+.pagination{display:flex;list-style:none;gap:6px;margin:0;padding:0;align-items:center}
+.page-item .page-link{display:flex;align-items:center;justify-content:center;height:32px;min-width:32px;padding:0 10px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--dark);font-size:12.5px;font-weight:600;text-decoration:none;transition:all .2s}
+.page-item .page-link:hover{background:var(--bg);border-color:#b0bdd0}
+.page-item.active .page-link{background:var(--p);color:#fff;border-color:var(--p)}
+.page-item.disabled .page-link{opacity:.4;cursor:not-allowed;pointer-events:none;background:var(--bg)}
 .tc{text-align:center}.tr{text-align:right}.muted{color:var(--muted);font-size:12.5px}
 .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1e3370,#3d60d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0}
 .av-sm{width:28px;height:28px;font-size:11px}.av-lg{width:52px;height:52px;font-size:18px}
@@ -194,11 +200,11 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
       @hasSection('bc')
       <div class="topbar-bc" id="topbarBc">{!! $__env->yieldContent('bc') !!}</div>
       <script>
-        // Prettify breadcrumbs: replace " / " text nodes with chevron separators
+        // Prettify breadcrumbs: replace " / " text nodes with chevron separators, only matching slashes with spaces to protect URLs
         (function(){
           var bc = document.getElementById('topbarBc');
           if(!bc) return;
-          bc.innerHTML = bc.innerHTML.replace(/\s*\/\s*/g,
+          bc.innerHTML = bc.innerHTML.replace(/\s+\/\s+/g,
             '<i class="bi bi-chevron-right" style="font-size:10px;color:#b0bdd0;margin:0 4px;vertical-align:middle"></i>');
         })();
       </script>

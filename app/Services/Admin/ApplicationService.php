@@ -256,6 +256,7 @@ class ApplicationService
             'status'              => 'approved',        // stays 'approved' until disbursed
             'payout_method'       => $app->payout_method,
             'collection_method'   => $app->collection_method,
+            'salary_payday'       => $app->salary_payday,
         ]);
 
         // Installments are created at disbursement time, not approval

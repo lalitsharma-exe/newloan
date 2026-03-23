@@ -22,7 +22,7 @@ class LoanApplication extends Model {
  
     // Loan request
     'requested_amount', 'requested_term', 'loan_purpose',
-    'payout_method', 'collection_method',
+    'payout_method', 'collection_method', 'salary_payday',
  
     // Approved terms
     'approved_amount', 'approved_term', 'approved_interest_rate',

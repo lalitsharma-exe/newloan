@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\{LoanApplication, LoanProduct, User};
 use App\Services\Admin\ApplicationService;
+use App\Services\RiskScoringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -196,6 +197,15 @@ class ApplicationController extends Controller
         $application->update(['risk_score' => $request->risk_score]);
         return redirect()->route('admin.applications.show', $application)
                          ->with('success', 'Risk score updated.');
+    }
+
+    public function autoRiskScore(LoanApplication $application, RiskScoringService $riskService)
+    {
+        $result = $riskService->calculate($application);
+        $application->update(['risk_score' => $result['score']]);
+        return redirect()->route('admin.applications.show', $application)
+                         ->with('success', 'Risk score auto-calculated: ' . $result['score'] . ' (' . $result['label'] . ')')
+                         ->with('risk_breakdown', $result['breakdown']);
     }
 
     public function addNote(Request $request, LoanApplication $application)

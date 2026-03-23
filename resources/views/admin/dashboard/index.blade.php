@@ -27,7 +27,8 @@ $yearData = collect(range(1,12))->map(function($m) use ($now){
     $int = $dis > 0 ? round($dis*0.15*6,2) : 0;
     $agr = Loan::whereMonth('disbursement_date',$m)->whereYear('disbursement_date',$now->year)->count();
     $cp  = $exp > 0 ? round($col/$exp*100,1) : 0;
-    return ['disbursed'=>$dis,'collected'=>$col,'expected'=>$exp,'arrears'=>$arr,'initiation'=>$ini,'admin'=>$adm,'interest'=>$int,'agreements'=>$agr,'collPct'=>$cp];
+    $turnover = $dis + $ini + $adm + $int;
+    return ['disbursed'=>$dis,'collected'=>$col,'expected'=>$exp,'arrears'=>$arr,'initiation'=>$ini,'admin'=>$adm,'interest'=>$int,'agreements'=>$agr,'collPct'=>$cp,'turnover'=>$turnover];
 });
 $ytdT  = $yearData->sum('disbursed');
 $ytdC  = $yearData->sum('collected');
@@ -35,6 +36,7 @@ $ytdI  = $yearData->sum('initiation');
 $ytdAd = $yearData->sum('admin');
 $ytdIn = $yearData->sum('interest');
 $ytdAg = $yearData->sum('agreements');
+$ytdTurnover = $yearData->sum('turnover');
 $arrBuckets = [
     '1-30 days'  => Loan::where('status','overdue')->whereHas('installments', fn($q)=>$q->where('status','overdue')->whereBetween('due_date',[$now->copy()->subDays(30),$now->copy()->subDay()]))->count(),
     '31-60 days' => Loan::where('status','overdue')->whereHas('installments', fn($q)=>$q->where('status','overdue')->whereBetween('due_date',[$now->copy()->subDays(60),$now->copy()->subDays(31)]))->count(),
@@ -107,7 +109,7 @@ $months12 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','
       </thead>
       <tbody>
         @foreach([
-          ['Turnover',   'disbursed',  '#4f46e5', false, $ytdT],
+          ['Turnover',   'turnover',   '#4f46e5', false, $ytdTurnover],
           ['Capital',    'disbursed',  '#0ea5e9', false, $ytdT],
           ['Initiation', 'initiation', '#8b5cf6', false, $ytdI],
           ['Admin',      'admin',      '#64748b', false, $ytdAd],
@@ -253,7 +255,7 @@ $months12 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','
   function mkBar(id,data,color,label){
     new Chart(document.getElementById(id),{type:'bar',data:{labels:months,datasets:[{label,data,backgroundColor:color+'cc',borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}}},scales:{y:{beginAtZero:true,grid:{color:gc},ticks:{callback:fmt,font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
   }
-  mkBar('cTurnover',  yd.map(d=>d.disbursed),  '#4f46e5','Turnover');
+  mkBar('cTurnover',  yd.map(d=>d.turnover),   '#4f46e5','Turnover');
   mkBar('cCapital',   yd.map(d=>d.disbursed),  '#0ea5e9','Capital');
   mkBar('cInitiation',yd.map(d=>d.initiation), '#8b5cf6','Initiation');
   mkBar('cAdmin',     yd.map(d=>d.admin),       '#64748b','Admin Fees');

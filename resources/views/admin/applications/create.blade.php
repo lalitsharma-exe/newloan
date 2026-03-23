@@ -56,7 +56,7 @@
       </div>
       <div class="fg">
         <label class="fl">Assigned Officer</label>
-        <select name="assigned_officer_id" class="fc">
+        <select name="assigned_officer_id" id="selOfficer" class="fc">
           <option value="">— Unassigned —</option>
           @foreach($officers as $o)
           <option value="{{ $o->id }}" {{ old('assigned_officer_id')==$o->id?'selected':'' }}>{{ $o->name }}</option>
@@ -266,7 +266,8 @@
         <select name="collection_method" class="fc" required>
           <option value="">— Select —</option>
           <option value="salary_deduction" {{ old('collection_method')==='salary_deduction'?'selected':'' }}>Salary Deduction</option>
-          <option value="debit_order"      {{ old('collection_method')==='debit_order'     ?'selected':'' }}>Debit Order</option>
+          <option value="debit_order"      {{ old('collection_method')==='debit_order'     ?'selected':'' }}>Debit Order (CPay)</option>
+          <option value="stop_order"       {{ old('collection_method')==='stop_order'      ?'selected':'' }}>Stop Order (EcoCash)</option>
           <option value="card_payment"     {{ old('collection_method')==='card_payment'    ?'selected':'' }}>Card Payment</option>
           <option value="mobile_money"     {{ old('collection_method')==='mobile_money'    ?'selected':'' }}>Mobile Money</option>
           <option value="cash"             {{ old('collection_method')==='cash'            ?'selected':'' }}>Cash</option>
@@ -613,5 +614,36 @@ function buildReview() {
     `;
   }
 }
+
+// Initialize searchable dropdowns for Borrower and Officer
+var borrowerSel, officerSel;
+document.addEventListener("DOMContentLoaded", function() {
+  if(typeof TomSelect !== 'undefined') {
+    borrowerSel = new TomSelect('#borrowerSelect', {
+      create: false,
+      sortField: { field: "text", direction: "asc" }
+    });
+    officerSel = new TomSelect('#selOfficer', {
+      create: false,
+      sortField: { field: "text", direction: "asc" }
+    });
+    // On borrower change, trigger the original fetchBorrowerInfo function
+    borrowerSel.on('change', function(val) {
+      if (typeof fetchBorrowerInfo === 'function') {
+        fetchBorrowerInfo(val);
+      }
+    });
+  }
+});
 </script>
+
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<style>
+.ts-control { border-radius: 8px; border: 1px solid var(--border); padding: 10px 14px; font-size: 13.5px; font-weight: 500; font-family: inherit; }
+.ts-control.focus { border-color: var(--p); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+.ts-dropdown { border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); font-size: 13px; z-index: 9999; }
+.ts-dropdown .option.active { background-color: var(--p); color: #fff; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
 @endsection

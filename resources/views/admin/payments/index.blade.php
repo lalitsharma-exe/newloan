@@ -7,8 +7,8 @@
 {{-- Stats --}}
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
   @foreach([
-    ['Collected Today','L '.number_format($stats['total_today'],0),'cash-stack','#10b981','rgba(16,185,129,.1)'],
-    ['This Month','L '.number_format($stats['total_month'],0),'calendar-month','#4f46e5','rgba(79,70,229,.1)'],
+    ['Collected Today','M '.number_format($stats['total_today'],0),'cash-stack','#10b981','rgba(16,185,129,.1)'],
+    ['This Month','M '.number_format($stats['total_month'],0),'calendar-month','#4f46e5','rgba(79,70,229,.1)'],
     ['Pending Verify',$stats['pending_count'],'hourglass-split','#f59e0b','rgba(245,158,11,.1)'],
     ['Transactions/Month',$stats['total_count_month'],'receipt','#0891b2','rgba(8,145,178,.1)'],
   ] as [$label,$val,$icon,$color,$bg])
@@ -88,7 +88,7 @@
             </div>
           </td>
           <td>@if($p->loan_id)<a href="{{ route('admin.loans.show',$p->loan_id) }}" style="color:var(--p);font-size:12.5px;font-weight:600;text-decoration:none;font-family:monospace">{{ $p->loan->loan_number??'—' }}</a>@else<span class="muted">—</span>@endif</td>
-          <td><strong style="font-size:13.5px">L{{ number_format($p->amount,2) }}</strong></td>
+          <td><strong style="font-size:13.5px">M{{ number_format($p->amount,2) }}</strong></td>
           <td style="font-size:12.5px;color:var(--muted)">{{ ucfirst(str_replace('_',' ',$p->method)) }}</td>
           <td><span style="background:{{ $bc }};color:{{ $tc }};font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:20px">{{ ucfirst($p->status) }}</span></td>
           <td style="font-size:12px;color:var(--muted);white-space:nowrap">{{ $p->created_at->format('d M Y') }}<br><span style="font-size:11px">{{ $p->created_at->format('H:i') }}</span></td>

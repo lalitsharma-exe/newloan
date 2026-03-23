@@ -85,6 +85,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             // Term overrides & scoring
             Route::post('/{application}/override-terms',      [ApplicationController::class, 'overrideTerms'])->name('override-terms');
             Route::post('/{application}/set-risk-score',      [ApplicationController::class, 'setRiskScore'])->name('set-risk-score');
+            Route::post('/{application}/auto-risk-score',     [ApplicationController::class, 'autoRiskScore'])->name('auto-risk-score');
 
             // Officer assignment
             Route::post('/{application}/assign-officer',      [OfficerAssignmentController::class, 'assign'])->name('assign-officer');

@@ -45,7 +45,7 @@
       @foreach($summary['by_method'] as $method => $data)
       <div style="background:#f8fafc;border-radius:12px;padding:14px;border:1px solid var(--border)">
         <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">{{ ucfirst(str_replace('_',' ',$method)) }}</div>
-        <div style="font-size:20px;font-weight:800;color:var(--p);margin-top:4px">L{{ number_format($data['total'],2) }}</div>
+        <div style="font-size:20px;font-weight:800;color:var(--p);margin-top:4px">M{{ number_format($data['total'],2) }}</div>
         <div style="font-size:12px;color:var(--muted);margin-top:2px">{{ $data['count'] }} payments</div>
       </div>
       @endforeach
@@ -68,7 +68,7 @@
         <tr>
           <td><span style="font-family:monospace;font-size:12.5px;color:var(--p);font-weight:700">{{ $p->payment_reference }}</span></td>
           <td style="font-size:13px">{{ $p->loan->user->name ?? '—' }}</td>
-          <td><strong>L{{ number_format($p->amount,2) }}</strong></td>
+          <td><strong>M{{ number_format($p->amount,2) }}</strong></td>
           <td><span style="font-size:12px;color:var(--muted)">{{ ucfirst(str_replace('_',' ',$p->method)) }}</span></td>
           <td><span style="background:{{ $bc }};color:{{ $tc }};font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:20px">{{ ucfirst($p->status) }}</span></td>
           <td style="font-size:12px;color:var(--muted)">{{ $p->created_at->format('H:i:s') }}</td>

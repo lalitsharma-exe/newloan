@@ -15,8 +15,8 @@
   --navy3:   #1e3370;
   --blue:    #2b4bad;
   --blue2:   #3d60d4;
-  --accent:  #c9a84c;
-  --accent2: #e0c06a;
+  --accent:  #8cc63f;
+  --accent2: #7ab033;
   --ivory:   #faf8f3;
   --ivory2:  #f0ece0;
   --charcoal:#111827;
@@ -63,7 +63,7 @@ section { padding: 90px 0; }
 .btn-navy   { background: var(--navy); color: var(--white); }
 .btn-navy:hover { background: var(--navy2); transform: translateY(-1px); box-shadow: 0 6px 24px rgba(13,27,62,.35); }
 .btn-accent { background: var(--accent); color: var(--white); }
-.btn-accent:hover { background: #a88030; transform: translateY(-1px); }
+.btn-accent:hover { background: var(--accent2); transform: translateY(-1px); }
 .btn-outline-white { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.35); }
 .btn-outline-white:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.6); }
 .btn-lg { padding: 16px 36px; font-size: 15px; }
@@ -140,7 +140,7 @@ section { padding: 90px 0; }
   letter-spacing: .04em; text-decoration: none; transition: all .25s;
   display: flex; align-items: center; gap: 6px;
 }
-.header-apply:hover { background: #a88030; transform: scale(1.02); box-shadow: 0 4px 14px rgba(201,168,76,.4); }
+.header-apply:hover { background: var(--accent2); transform: scale(1.02); box-shadow: 0 4px 14px rgba(140,198,63,.4); }
 
 .nav-mobile-btn { display: none; background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 6px; margin-left: 6px; }
 
@@ -228,6 +228,12 @@ footer {
 
     <div class="header-sp"></div>
 
+    <!-- <a href="https://www.facebook.com/share/18TBN7SB8y/?mibextid=wwXIfr" target="_blank" class="header-signin" style="padding: 8px 12px; border: none; margin-right: 2px;" title="Follow us on Facebook">
+      <i class="bi bi-facebook" style="color:#4267B2; font-size: 16px; margin: 0;"></i>
+    </a>
+    <a href="{{ route('admin.login') }}" class="header-signin" style="padding: 8px 12px; border: none; margin-right: 2px;" title="Admin Portal">
+      <i class="bi bi-shield-lock-fill" style="font-size: 15px; margin: 0; color: rgba(255,255,255,.5);"></i>
+    </a> -->
     <a href="{{ route('borrower.login') }}" class="header-signin">
       <i class="bi bi-person-fill"></i> Sign In
     </a>
@@ -270,7 +276,7 @@ footer {
     <div class="footer-center">
       <img src="{{ config('app.logo') }}" alt="MyLoan" class="footer-logo">
       <div class="footer-copy">MyLoan © {{ date('Y') }} · All rights reserved</div>
-      <a href="#" class="footer-fb">
+      <a href="https://www.facebook.com/share/18TBN7SB8y/?mibextid=wwXIfr" target="_blank" class="footer-fb">
         <i class="bi bi-facebook" style="color:#4267B2;font-size:15px"></i> Facebook
       </a>
     </div>
@@ -295,21 +301,21 @@ footer {
           <path d="M19 5.5a10 10 0 0 1 0 13A10 10 0 0 1 19 5.5Z" fill="#FF5F00" opacity=".7"/>
         </svg>
       </div>
+      <!-- CDAS -->
+      <div class="pay-logo" title="CDAS">
+        <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-03-22%20at%205.48.11%20PM%20(1).jpeg" alt="CDAS" style="filter:none;opacity:1">
+      </div>
       <!-- M-Pesa -->
       <div class="pay-logo" title="M-Pesa">
-        <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-03-22%20at%205.48.11%20PM%20(1).jpeg" alt="M-Pesa" style="filter:none;opacity:1">
+        <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-03-22%20at%205.48.11%20PM.jpeg" alt="M-Pesa" style="filter:none;opacity:1">
       </div>
       <!-- CPay -->
       <div class="pay-logo" title="CPay">
-        <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-03-22%20at%205.48.11%20PM.jpeg" alt="CPay" style="filter:none;opacity:1">
+        <span style="font-size:11px;font-weight:bold;color:#1e3370">CPay</span>
       </div>
-      <!-- Stop Order -->
-      <div class="pay-logo" title="Stop Order">
-        <span style="font-size:10px">Stop Order</span>
-      </div>
-      <!-- Debit Order -->
-      <div class="pay-logo" title="Debit Order">
-        <span style="font-size:10px">Debit Order</span>
+      <!-- EcoCash -->
+      <div class="pay-logo" title="EcoCash">
+        <span style="font-size:11px;font-weight:bold;color:#0071bc">EcoCash</span>
       </div>
     </div>
   </div>
@@ -337,6 +343,46 @@ const ro = new IntersectionObserver(entries => {
 }, { threshold: 0.08 });
 document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
 </script>
+
+<!-- FLOATING WHATSAPP BUTTON -->
+<a href="https://wa.me/26663445244" target="_blank" rel="noopener" class="whatsapp-float" title="Chat with us on WhatsApp">
+  <svg viewBox="0 0 32 32" width="28" height="28" fill="#fff">
+    <path d="M16.004 2.672c-7.36 0-13.332 5.972-13.332 13.332 0 2.348.616 4.644 1.788 6.664L2.672 29.328l6.82-1.788a13.28 13.28 0 006.512 1.704c7.36 0 13.332-5.972 13.332-13.332S23.364 2.672 16.004 2.672zm0 24.396a10.98 10.98 0 01-5.608-1.536l-.4-.24-4.152 1.088 1.108-4.056-.264-.416a10.95 10.95 0 01-1.684-5.836c0-6.076 4.944-11.02 11.02-11.02 6.076 0 11.02 4.944 11.02 11.02-.02 6.076-4.964 11.02-11.04 11.02v-.024zm6.04-8.252c-.332-.168-1.96-.968-2.264-1.08-.304-.112-.524-.168-.744.168-.22.332-.86 1.08-1.052 1.3-.192.22-.388.248-.72.084-.332-.168-1.404-.516-2.672-1.648-.988-.88-1.656-1.964-1.848-2.296-.196-.332-.02-.512.148-.676.148-.148.332-.388.496-.58.168-.196.22-.332.332-.556.112-.22.056-.416-.028-.58-.084-.168-.744-1.792-1.02-2.456-.268-.644-.54-.556-.744-.568-.192-.008-.416-.008-.636-.008a1.22 1.22 0 00-.884.416c-.304.332-1.16 1.132-1.16 2.76s1.188 3.2 1.356 3.42c.168.22 2.34 3.576 5.672 5.016.792.344 1.412.548 1.896.7.796.252 1.52.216 2.092.132.64-.096 1.96-.8 2.236-1.576.276-.776.276-1.44.192-1.576-.084-.14-.304-.22-.636-.388z"/>
+  </svg>
+</a>
+<style>
+.whatsapp-float {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(37,211,102,.4), 0 2px 6px rgba(0,0,0,.15);
+  z-index: 9999;
+  text-decoration: none;
+  transition: transform .25s ease, box-shadow .25s ease;
+  animation: wa-pulse 2s infinite;
+}
+.whatsapp-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(37,211,102,.5), 0 4px 12px rgba(0,0,0,.2);
+  animation: none;
+}
+@keyframes wa-pulse {
+  0%   { box-shadow: 0 4px 16px rgba(37,211,102,.4), 0 0 0 0 rgba(37,211,102,.4); }
+  70%  { box-shadow: 0 4px 16px rgba(37,211,102,.4), 0 0 0 14px rgba(37,211,102,0); }
+  100% { box-shadow: 0 4px 16px rgba(37,211,102,.4), 0 0 0 0 rgba(37,211,102,0); }
+}
+@media (max-width: 768px) {
+  .whatsapp-float { bottom: 20px; right: 16px; width: 50px; height: 50px; }
+  .whatsapp-float svg { width: 24px; height: 24px; }
+}
+</style>
 
 @stack('scripts')
 </body>

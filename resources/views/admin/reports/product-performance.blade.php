@@ -104,9 +104,9 @@ value="{{ $filters['date_to'] ?? now()->format('Y-m-d') }}">
 
 <td>{{ $loan->loanProduct->name ?? '—' }}</td>
 
-<td>L {{ number_format($loan->principal_amount,0) }}</td>
+<td>M {{ number_format($loan->principal_amount,0) }}</td>
 
-<td>L {{ number_format($loan->outstanding_balance,0) }}</td>
+<td>M {{ number_format($loan->outstanding_balance,0) }}</td>
 
 <td>
 
@@ -167,7 +167,7 @@ value="{{ $filters['date_to'] ?? now()->format('Y-m-d') }}">
 
 <td>{{ $p->loan->user->name ?? '—' }}</td>
 
-<td>L {{ number_format($p->amount,2) }}</td>
+<td>M {{ number_format($p->amount,2) }}</td>
 
 <td>{{ ucfirst(str_replace('_',' ',$p->method)) }}</td>
 
