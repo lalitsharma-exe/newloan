@@ -52,4 +52,20 @@ class DocumentController extends Controller
         );
         return Storage::disk('public')->download($doc->path, $doc->original_name);
     }
+
+    public function view(LoanApplication $application, Document $doc) {
+        if (!Storage::disk('public')->exists($doc->path)) {
+            return back()->with('error', 'File not found on server.');
+        }
+        AuditLog::record('document.view',
+            "Viewed '{$doc->original_name}' inline from application {$application->application_number}",
+            $doc
+        );
+        $file = Storage::disk('public')->get($doc->path);
+        $type = Storage::disk('public')->mimeType($doc->path);
+        $response = response($file, 200)->header('Content-Type', $type);
+        // Ensure inline disposition so browsers try to display it instead of downloading
+        $response->header('Content-Disposition', 'inline; filename="' . $doc->original_name . '"');
+        return $response;
+    }
 }

@@ -19,8 +19,8 @@
   --blue:    #2b4bad;
   --blue2:   #3d60d4;
   --light:   #7c9ff5;
-  --accent:  #c9a84c;
-  --accent2: #e0c06a;
+  --accent:  #8cc63f;
+  --accent2: #7ab237;
   --ok:      #10b981;
   --warn:    #f59e0b;
   --err:     #ef4444;

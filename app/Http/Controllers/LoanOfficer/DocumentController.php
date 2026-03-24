@@ -87,4 +87,19 @@ class DocumentController extends Controller
         }
         return Storage::disk('public')->download($doc->path, $doc->original_name);
     }
+
+    public function view($applicationOrDoc, Document $doc = null)
+    {
+        if ($doc === null) {
+            $doc = Document::findOrFail($applicationOrDoc);
+        }
+        if (!Storage::disk('public')->exists($doc->path)) {
+            return back()->with('error', 'File not found.');
+        }
+        $file = Storage::disk('public')->get($doc->path);
+        $type = Storage::disk('public')->mimeType($doc->path);
+        return response($file, 200)
+                ->header('Content-Type', $type)
+                ->header('Content-Disposition', 'inline; filename="' . $doc->original_name . '"');
+    }
 }

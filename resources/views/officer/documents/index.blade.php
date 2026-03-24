@@ -63,7 +63,8 @@
           <td>
             <div style="display:flex;gap:5px;flex-wrap:wrap">
               <a href="{{ route('officer.documents.show', $doc) }}" class="btn btn-xs btn-i"><i class="bi bi-eye"></i> Review</a>
-              <a href="{{ route('officer.documents.download', $doc) }}" class="btn btn-xs btn-o"><i class="bi bi-download"></i></a>
+              <a href="{{ route('officer.documents.view', $doc) }}" target="_blank" class="btn btn-xs btn-o" title="View"><i class="bi bi-eye"></i></a>
+              <a href="{{ route('officer.documents.download', $doc) }}" class="btn btn-xs btn-o" title="Download"><i class="bi bi-download"></i></a>
               <form method="POST" action="{{ route('officer.documents.verify', $doc) }}">@csrf
                 <button class="btn btn-xs btn-ok"><i class="bi bi-check-lg"></i> Verify</button>
               </form>

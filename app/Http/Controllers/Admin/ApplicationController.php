@@ -254,7 +254,7 @@ class ApplicationController extends Controller
         $msg = $application->messages()->create([
             'sender_type' => 'admin',
             'sender_id' => auth('admin')->id(),
-            'message' => $request->content,
+            'message' => $request->input('content'),
         ]);
 
         return response()->json(['success' => true]);
@@ -369,5 +369,58 @@ class ApplicationController extends Controller
         ]);
 
         return back()->with('success', 'Document uploaded successfully.');
+    }
+
+    public function experianTemplate(\App\Models\LoanApplication $application)
+    {
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=Experian_Enquiry_{$application->national_id}.csv",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+        
+        $callback = function() use ($application) {
+            $file = fopen('php://output', 'w');
+            
+            fputcsv($file, [
+                'Enquiry Date',
+                'ID Number',
+                'First Name',
+                'Surname',
+                'Date of Birth',
+                'Gender',
+                'Mobile Number',
+                'Address Line 1',
+                'Address Line 2',
+                'Address Line 3',
+                'Address Line 4',
+                'Employer Name',
+                'Gross Salary',
+                'Net Salary'
+            ]);
+            
+            fputcsv($file, [
+                now()->format('Y-m-d'),
+                $application->national_id,
+                $application->first_name,
+                $application->surname,
+                $application->date_of_birth?->format('Y-m-d'),
+                $application->gender,
+                $application->cell_number,
+                $application->residential_address,
+                $application->village,
+                $application->town,
+                $application->district,
+                $application->employment?->employer_name,
+                $application->affordability?->monthly_earnings,
+                $application->affordability?->net_salary
+            ]);
+            
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
     }
 }

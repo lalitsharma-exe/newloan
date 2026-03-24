@@ -32,7 +32,10 @@ h2{font-size:16px;font-weight:700;color:#1e3a5f;margin-bottom:12px;padding-botto
 <div class="doc">
     <div class="header">
         <div>
-            <h1>MyLoan Limited</h1>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+              <img src="{{ config('app.logo') }}" alt="MyLoan" style="height:38px;width:auto;filter:brightness(0) invert(1)">
+              <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1">MyLoan Limited</div>
+            </div>
             <p>Settlement Quotation</p>
         </div>
         <div class="header-right">

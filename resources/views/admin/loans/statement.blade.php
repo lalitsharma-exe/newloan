@@ -216,6 +216,7 @@
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
+    overflow: visible !important;
   }
 
   /* Keep navy header colors when printing */
@@ -258,14 +259,7 @@
     {{-- Header --}}
     <div class="stmt-header">
       <div class="stmt-logo">
-        @if(Storage::exists(\App\Models\SystemSetting::get('logo_path','') ?? ''))
-          <img src="{{ Storage::url(\App\Models\SystemSetting::get('logo_path')) }}" alt="MyLoan">
-        @else
-          <div>
-            <div class="stmt-logo-text">MyLoan</div>
-            <div class="stmt-logo-sub">Licensed · CBL</div>
-          </div>
-        @endif
+        <img src="{{ config('app.logo') }}" alt="MyLoan">
         <div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,.4);line-height:1.6">
           L&amp;M Complex, Ha Thamae, Maseru<br>
           (+266) 58 478 799 · info@myloan.co.ls

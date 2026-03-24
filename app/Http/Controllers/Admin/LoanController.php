@@ -232,7 +232,9 @@ class LoanController extends Controller
     {
         $loan->load(['user','loanProduct','installments']);
         $outstanding = $loan->installments()->whereNotIn('status',['paid','waived'])->sum('outstanding_amount');
-        return view('admin.loans.settlement-quotation', compact('loan','outstanding'));
+        $validDate = now()->day > 24 ? now()->addMonth()->day(24) : now()->day(24);
+        $validUntil = $validDate->format('d M Y');
+        return view('admin.loans.settlement-quotation', compact('loan','outstanding','validUntil'));
     }
 
     public function settlementLetter(Loan $loan) { $loan->load(['user','loanProduct']); return view('admin.loans.settlement-letter', compact('loan')); }

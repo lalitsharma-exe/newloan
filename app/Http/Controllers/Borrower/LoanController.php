@@ -36,7 +36,8 @@ class LoanController extends Controller
         abort_if($loan->user_id !== auth('borrower')->id(), 403);
         $loan->load(['user','loanProduct','installments']);
         $outstanding = (float) $loan->outstanding_balance;
-        $validUntil  = now()->addDays(7)->format('d M Y');
+        $validDate = now()->day > 24 ? now()->addMonth()->day(24) : now()->day(24);
+        $validUntil = $validDate->format('d M Y');
         return view('admin.loans.settlement-quotation', compact('loan','outstanding','validUntil'));
     }
 }

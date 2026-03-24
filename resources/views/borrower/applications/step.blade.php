@@ -240,8 +240,8 @@ $totalSteps = 10;
           <label class="fl">Collection Method *</label>
           <select name="collection_method" class="fc" required>
             <option value="salary_deduction" {{ old('collection_method',$application->collection_method)==='salary_deduction'?'selected':'' }}>Salary Deduction</option>
-            <option value="debit_order" {{ old('collection_method',$application->collection_method)==='debit_order'?'selected':'' }}>Debit Order (CPay)</option>
-            <option value="stop_order" {{ old('collection_method',$application->collection_method)==='stop_order'?'selected':'' }}>Stop Order (EcoCash)</option>
+            <option value="debit_order" {{ old('collection_method',$application->collection_method)==='debit_order'?'selected':'' }}>Debit Order</option>
+            <option value="stop_order" {{ old('collection_method',$application->collection_method)==='stop_order'?'selected':'' }}>Stop Order</option>
             <option value="mobile_money" {{ old('collection_method',$application->collection_method)==='mobile_money'?'selected':'' }}>Mobile Money</option>
           </select>
         </div>
@@ -272,9 +272,11 @@ $totalSteps = 10;
           @else<span class="badge be">Required</span>@endif
         </div>
         @if(!$existing || $existing->status==='rejected')
-          <div style="display:flex;gap:8px">
-            <input type="file" id="file_{{ $dtype }}" class="fc" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required style="flex:1">
-            <button type="button" class="btn btn-p btn-sm" onclick="uploadDoc('{{ $dtype }}', this)">Upload</button>
+          <div style="display:flex;gap:6px">
+            <input type="file" id="file_{{ $dtype }}" class="fc" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required style="flex:1;padding:6px;font-size:12px">
+            <input type="file" id="cam_{{ $dtype }}" accept="image/*" capture="environment" style="display:none" onchange="const df=new DataTransfer();df.items.add(this.files[0]);document.getElementById('file_{{ $dtype }}').files=df.files;uploadDoc('{{ $dtype }}', document.getElementById('btn_{{ $dtype }}'))">
+            <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('cam_{{ $dtype }}').click()" title="Take Photo" style="padding:4px 10px"><i class="bi bi-camera" style="font-size:16px"></i></button>
+            <button type="button" id="btn_{{ $dtype }}" class="btn btn-p btn-sm" onclick="uploadDoc('{{ $dtype }}', this)">Upload</button>
           </div>
 
         @else
@@ -286,8 +288,9 @@ $totalSteps = 10;
       {{-- STEP 9: Card Tokenization --}}
       @elseif($step === 9)
       <div class="alert a-i"><i class="bi bi-shield-lock-fill"></i><div><strong>Secure Card Setup</strong><br>Your card details are sent directly to our payment processor. We store only a secure token — no raw card data is kept on our servers.</div></div>
+      <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Bank Card</div>
       <div style="background:linear-gradient(135deg,var(--navy),var(--navy3));border-radius:14px;padding:28px;color:#fff;margin-bottom:20px">
-        <div style="font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Card Preview</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Bank Card Preview</div>
         <div style="font-size:20px;font-weight:700;letter-spacing:.15em;margin-bottom:20px" id="cardPreview">•••• •••• •••• ••••</div>
         <div style="display:flex;justify-content:space-between">
           <div><div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:3px">CARDHOLDER</div><div style="font-size:13px;font-weight:600" id="cardNamePreview">YOUR NAME</div></div>
@@ -307,7 +310,7 @@ $totalSteps = 10;
         <div class="fg">
           <label class="fl">Expiry Date *</label>
           <input type="text" name="card_expiry" class="fc" placeholder="MM/YY" maxlength="5" required
-            oninput="this.value=this.value.replace(/[^\d/]/g,'');document.getElementById('cardExpiryPreview').textContent=this.value||'MM/YY'">
+            oninput="formatExpiry(this, event);document.getElementById('cardExpiryPreview').textContent=this.value||'MM/YY'">
         </div>
         <div class="fg">
           <label class="fl">CVV *</label>
@@ -321,7 +324,7 @@ $totalSteps = 10;
 
       {{-- STEP 10: Review & Submit --}}
       @elseif($step === 10)
-      <div class="alert a-ok"><i class="bi bi-check-circle-fill"></i> Review everything below before submitting.</div>
+      <div class="alert a-ok"><i class="bi bi-check-circle-fill"></i> Review everything below and put your signature before submitting.</div>
 
       {{-- Personal --}}
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Personal Information</div>
@@ -370,8 +373,12 @@ $totalSteps = 10;
               <option value="{{ $v }}">{{ $l }}</option>
               @endforeach
             </select>
-            <input type="file" name="file" class="fc" accept=".pdf,.jpg,.jpeg,.png" required style="padding:7px 11px;font-size:13px" form="uploadForm_step10">
-            <button type="submit" class="btn btn-p btn-sm" style="height:40px" form="uploadForm_step10">Upload</button>
+            <input type="file" id="file_step10" name="file" class="fc" accept=".pdf,.jpg,.jpeg,.png" required style="padding:7px 11px;font-size:13px" form="uploadForm_step10">
+            <div style="display:flex;gap:6px">
+              <input type="file" id="cam_step10" accept="image/*" capture="environment" style="display:none" onchange="if(this.files.length){const df=new DataTransfer();df.items.add(this.files[0]);document.getElementById('file_step10').files=df.files;document.getElementById('uploadForm_step10').submit();}">
+              <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('cam_step10').click()" title="Take Photo" style="height:40px;padding:0 12px"><i class="bi bi-camera" style="font-size:16px"></i></button>
+              <button type="submit" class="btn btn-p btn-sm" style="height:40px;flex:1" form="uploadForm_step10">Upload</button>
+            </div>
           </div>
       </div>
 
@@ -517,6 +524,15 @@ if(document.getElementById('prodSelect')?.value) loadProductTerms(document.getEl
 function formatCard(input) {
   let v = input.value.replace(/\D/g,'').substring(0,16);
   input.value = v.match(/.{1,4}/g)?.join(' ')||v;
+}
+
+function formatExpiry(input, e) {
+  if (e && e.inputType === 'deleteContentBackward') return;
+  let v = input.value.replace(/\D/g, '').substring(0, 4);
+  if (v.length >= 2) {
+    v = v.substring(0, 2) + '/' + v.substring(2);
+  }
+  input.value = v;
 }
 
 // Step 2: GPS

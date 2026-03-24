@@ -99,6 +99,7 @@ Route::prefix('officer')->name('officer.')->group(function () {
             Route::post('/{application}/documents/{doc}/reject', [DocumentController::class, 'reject'])->name('documents.reject');
             Route::post('/{application}/documents/request',     [DocumentController::class, 'request'])->name('documents.request');
             Route::get('/{application}/documents/{doc}/download',[DocumentController::class, 'download'])->name('documents.download');
+            Route::get('/{application}/documents/{doc}/view',[DocumentController::class, 'view'])->name('documents.view');
             Route::post('/{application}/documents/upload', [ApplicationController::class, 'uploadDocument'])->name('documents.upload');
 
             // Repayment preview
@@ -160,6 +161,7 @@ Route::prefix('officer')->name('officer.')->group(function () {
             Route::get('/{doc}',                [DocumentController::class, 'show'])->name('show');
             Route::post('/{doc}/verify',        [DocumentController::class, 'verify'])->name('verify');
             Route::post('/{doc}/reject',        [DocumentController::class, 'reject'])->name('reject');
+            Route::get('/{doc}/view',           [DocumentController::class, 'view'])->name('view');
             Route::get('/{doc}/download',       [DocumentController::class, 'download'])->name('download');
         });
 

@@ -2,6 +2,19 @@
 @section('title','Loan Statement')
 @section('content')
 
+<style>
+@media print {
+  body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+  .btn, .topnav { display: none !important; }
+  .main { padding: 0 !important; background: #fff !important; }
+  #statementDoc { box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; }
+  table { width: 100% !important; overflow: visible !important; }
+  th, td { padding: 6px !important; font-size: 10px !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
+@page { size: A4 portrait; margin: 10mm; }
+</style>
+
 <div style="max-width:800px;margin:0 auto">
   {{-- Print / Download bar --}}
   <div style="display:flex;gap:10px;margin-bottom:20px;justify-content:flex-end">
@@ -13,6 +26,7 @@
     <div style="background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;padding:30px 36px;border-radius:16px 16px 0 0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
+          <img src="{{ config('app.logo') }}" alt="MyLoan" style="height:32px;width:auto;filter:brightness(0) invert(1);margin-bottom:12px">
           <div style="font-size:22px;font-weight:800;letter-spacing:-.5px">Loan Statement</div>
           <div style="opacity:.8;font-size:13px;margin-top:5px">{{ now()->format('d M Y') }}</div>
         </div>

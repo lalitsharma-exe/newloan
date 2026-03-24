@@ -1,7 +1,9 @@
 @extends('admin.layouts.app')
 @section('title','Application #'.$application->application_number)
 @section('page-title','Application Review')
-@section('bc','<a href="'.route('admin.applications.index').'">Applications</a> / #'.$application->application_number)
+@section('bc')
+<a href="{{ route('admin.applications.index') }}">Applications</a> / #{{ $application->application_number }}
+@endsection
 @section('content')
 
 @php
@@ -49,6 +51,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
     @if($application->loan)
       <a href="{{ route('admin.loans.show',$application->loan) }}" class="btn btn-p btn-sm"><i class="bi bi-bank"></i> View Loan</a>
     @endif
+    <a href="{{ route('admin.applications.experian-template',$application) }}" class="btn btn-o btn-sm" title="Download Experian MFT CSV"><i class="bi bi-filetype-csv"></i> Experian MFT</a>
   </div>
 </div>
 
@@ -96,6 +99,17 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
       </div>
     </div>
 
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-hdr"><span class="card-title">Address & Location</span></div>
+      <div class="card-body">
+        <div class="info-grid">
+          @foreach(['Residential Address'=>$application->residential_address, 'Village'=>$application->village, 'Town'=>$application->town, 'District'=>$application->district, 'Residence Type'=>ucfirst($application->residence_type??''), 'Duration'=>$application->address_duration, 'Nearest Landmark'=>$application->nearest_landmark, 'Home Directions'=>$application->home_directions, 'GPS Coordinates'=>($application->gps_latitude && $application->gps_longitude) ? "{$application->gps_latitude}, {$application->gps_longitude}" : null] as $l=>$v)
+          <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
+          @endforeach
+        </div>
+      </div>
+    </div>
+
     @if($application->employment)
     <div class="card" style="margin-bottom:16px">
       <div class="card-hdr"><span class="card-title">Employment Details</span></div>
@@ -114,7 +128,21 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
       <div class="card-hdr"><span class="card-title">Bank Details</span></div>
       <div class="card-body">
         <div class="info-grid">
-          @foreach(['Bank'=>$application->bankDetails->bank_name,'Account Holder'=>$application->bankDetails->account_holder_name,'Account #'=>'••••'.substr($application->bankDetails->account_number??'',-4),'Account Type'=>ucfirst($application->bankDetails->account_type??'')] as $l=>$v)
+          @foreach(['Bank'=>$application->bankDetails->bank_name,'Account Holder'=>$application->bankDetails->account_holder_name,'Account #'=>$application->bankDetails->account_number,'Account Type'=>ucfirst($application->bankDetails->account_type??''),'Card Setup'=>$application->card_tokenised?'Securely Tokenised':'Pending'] as $l=>$v)
+          <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
+          @endforeach
+        </div>
+      </div>
+    </div>
+    @endif
+
+    @if($application->nextOfKin->count() > 0)
+    <div class="card" style="margin-top:16px">
+      <div class="card-hdr"><span class="card-title">Next of Kin / Emergency Contact</span></div>
+      <div class="card-body">
+        <div class="info-grid">
+          @php $nok = $application->nextOfKin->first(); @endphp
+          @foreach(['First Name'=>$nok->first_name,'Last Name'=>$nok->last_name,'Relationship'=>$nok->relationship,'Contact Number'=>$nok->contact_number] as $l=>$v)
           <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
           @endforeach
         </div>
@@ -388,7 +416,8 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
             <form method="POST" action="{{ route('admin.applications.documents.verify',[$application,$doc]) }}" style="display:inline">@csrf<button class="btn btn-xs btn-ok" title="Verify"><i class="bi bi-check"></i></button></form>
             <form method="POST" action="{{ route('admin.applications.documents.reject',[$application,$doc]) }}" style="display:inline">@csrf<button class="btn btn-xs btn-e" title="Reject"><i class="bi bi-x"></i></button></form>
             @endif
-            <a href="{{ route('admin.applications.documents.download',[$application,$doc]) }}" class="btn btn-xs btn-o"><i class="bi bi-download"></i></a>
+            <a href="{{ route('admin.applications.documents.view',[$application,$doc]) }}" target="_blank" class="btn btn-xs btn-o" title="View"><i class="bi bi-eye"></i></a>
+            <a href="{{ route('admin.applications.documents.download',[$application,$doc]) }}" class="btn btn-xs btn-o" title="Download"><i class="bi bi-download"></i></a>
           </div>
         </div>
         @empty
@@ -396,6 +425,18 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
         @endforelse
       </div>
     </div>
+
+    @if($application->signature_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($application->signature_path))
+    <div class="card" style="margin-top:16px">
+      <div class="card-hdr"><span class="card-title">Borrower Signature</span></div>
+      <div class="card-body">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;display:inline-block">
+          <img src="data:image/png;base64,{{ base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($application->signature_path)) }}" alt="Signature" style="max-height:100px;display:block">
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">Signed electronically during application submission on {{ $application->submitted_at?->format('d M Y, H:i') }}</div>
+      </div>
+    </div>
+    @endif
   </div>
 
 

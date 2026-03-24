@@ -217,7 +217,7 @@
 <p>The loan may be disbursed through Mobile Money or Bank Transfer. Once the loan has been disbursed, this agreement becomes fully binding and the repayment schedule becomes effective.</p></div>
 
 <div class="clause"><h3>3.5. REPAYMENT OBLIGATIONS</h3>
-<p>The borrower agrees to pay all instalments on or before the due date; ensure sufficient funds are available for repayment; and not intentionally avoid or delay repayment. Repayments may be made through: Card deduction, Stop order (EcoCash), Debit order (CPay), Mobile money payment, or Bank transfer/deposit.</p></div>
+<p>The borrower agrees to pay all instalments on or before the due date; ensure sufficient funds are available for repayment; and not intentionally avoid or delay repayment. Repayments may be made through: Card deduction, Stop order , Debit order, Mobile money payment, or Bank transfer/deposit.</p></div>
 
 <div class="clause"><h3>3.6. EARLY SETTLEMENT</h3>
 <p>The borrower may settle the loan at any time before the final due date. However, no discount shall apply for early settlement, and the borrower remains liable for all interest and fees agreed in this contract unless otherwise determined by the Lender.</p></div>

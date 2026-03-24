@@ -100,6 +100,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{application}/documents/{doc}/verify', [DocumentController::class, 'verify'])->name('documents.verify');
             Route::post('/{application}/documents/{doc}/reject',  [DocumentController::class, 'reject'])->name('documents.reject');
             Route::get('/{application}/documents/{doc}/download',  [DocumentController::class, 'download'])->name('documents.download');
+            Route::get('/{application}/documents/{doc}/view',  [DocumentController::class, 'view'])->name('documents.view');
             Route::post('/{application}/documents/upload', [ApplicationController::class, 'uploadDocument'])->name('documents.upload');
             Route::post('/{application}/affordability', [ApplicationController::class, 'updateAffordability'])->name('update-affordability');
 
@@ -109,6 +110,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             // Repayment schedule preview
             Route::get('/{application}/schedule-preview',    [ApplicationController::class, 'schedulePreview'])->name('schedule-preview');
+
+            // Experian Template
+            Route::get('/{application}/experian-template', [ApplicationController::class, 'experianTemplate'])->name('experian-template');
         });
 
         /*

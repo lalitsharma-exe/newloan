@@ -238,7 +238,8 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
               <td><span class="badge {{ $doc->status==='verified'?'bok':($doc->status==='rejected'?'be':'bw') }}">{{ ucfirst($doc->status) }}</span></td>
               <td>
                 <div style="display:flex;gap:5px">
-                  <a href="{{ route('officer.applications.documents.download',[$application,$doc]) }}" class="btn btn-xs btn-o"><i class="bi bi-download"></i></a>
+                  <a href="{{ route('officer.applications.documents.view',[$application,$doc]) }}" target="_blank" class="btn btn-xs btn-o" title="View"><i class="bi bi-eye"></i></a>
+                  <a href="{{ route('officer.applications.documents.download',[$application,$doc]) }}" class="btn btn-xs btn-o" title="Download"><i class="bi bi-download"></i></a>
                   @if($doc->status==='pending')
                   <form method="POST" action="{{ route('officer.applications.documents.verify',[$application,$doc]) }}">@csrf<button class="btn btn-xs btn-ok"><i class="bi bi-check-lg"></i> Verify</button></form>
                   <button onclick="openModal('rej{{ $doc->id }}')" class="btn btn-xs btn-e"><i class="bi bi-x-lg"></i></button>
