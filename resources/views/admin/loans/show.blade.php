@@ -8,7 +8,7 @@
 <div style="flex:2;min-width:0">
 <div class="card mb4">
   <div style="padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-    <div class="flex aic gap3"><div class="av av-lg">{{ strtoupper(substr($loan->user->name??'U',0,1)) }}</div><div><div style="font-size:17px;font-weight:800">{{$loan->user->name}}</div><div class="muted">{{$loan->loan_number}} · {{$loan->loanProduct->name??'—'}}</div></div></div>
+    <div class="flex aic gap3"><div class="av av-lg">{{ strtoupper(substr($loan->user?->name ?? 'D', 0, 1)) }}</div><div><div style="font-size:17px;font-weight:800">{{$loan->user?->name ?? 'Deleted User'}}</div><div class="muted">{{$loan->loan_number}} · {{$loan->loanProduct->name??'—'}}</div></div></div>
     <div class="flex gap2" style="flex-wrap:wrap">
       @if(in_array($loan->status,['active','overdue']) === false && $loan->disbursement_date === null)
       <a href="{{ route('admin.loans.disburse.confirm',$loan) }}" class="btn btn-sm btn-ok"><i class="bi bi-send-fill"></i> Disburse Loan</a>
@@ -119,7 +119,7 @@
       <div class="alert a-e"><i class="bi bi-exclamation-triangle-fill"></i> Writing off a loan marks it as unrecoverable. The outstanding balance will be recorded as a loss. This cannot be undone.</div>
       <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px">
         <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Loan #</span><strong>{{ $loan->loan_number }}</strong></div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Borrower</span><strong>{{ $loan->user->name }}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Borrower</span><strong>{{ $loan->user?->name ?? 'Deleted User' }}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:var(--muted)">Outstanding Balance</span><strong style="color:var(--err)">M{{ number_format($loan->outstanding_balance,2) }}</strong></div>
       </div>
       <div class="fg"><label class="fl">Reason for Write-Off *</label><textarea name="reason" class="fc" rows="3" required placeholder="e.g. Borrower deceased, untraceable, legal write-off…"></textarea></div>

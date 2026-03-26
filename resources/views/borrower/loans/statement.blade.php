@@ -9,10 +9,10 @@
   .main { padding: 0 !important; background: #fff !important; }
   #statementDoc { box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; }
   table { width: 100% !important; overflow: visible !important; }
-  th, td { padding: 6px !important; font-size: 10px !important; }
+  th, td { padding: 4px !important; font-size: 9.5px !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
-@page { size: A4 portrait; margin: 10mm; }
+@page { size: A4 landscape; margin: 10mm; }
 </style>
 
 <div style="max-width:800px;margin:0 auto">
@@ -42,9 +42,9 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px">
         <div>
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Borrower</div>
-          <div style="font-size:15px;font-weight:700;color:var(--dark)">{{ $loan->user->name }}</div>
-          <div style="font-size:13px;color:var(--muted)">{{ $loan->user->email }}</div>
-          <div style="font-size:13px;color:var(--muted)">{{ $loan->user->phone ?? '—' }}</div>
+          <div style="font-size:15px;font-weight:700;color:var(--dark)">{{ $loan->user?->name ?? 'Deleted User' }}</div>
+          <div style="font-size:13px;color:var(--muted)">{{ $loan->user?->email ?? '—' }}</div>
+          <div style="font-size:13px;color:var(--muted)">{{ $loan->user?->phone ?? '—' }}</div>
         </div>
         <div>
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Loan Summary</div>
@@ -129,9 +129,6 @@
   body, html, .main { margin: 0 !important; padding: 0 !important; width: 100%; background: #fff !important; }
   .card { border: none !important; box-shadow: none !important; margin: 0; padding: 0; }
   div[style*="max-width"] { max-width: none !important; margin: 0 !important; }
-}
-@page {
-  margin: 30px;
 }
 </style>
 @endsection

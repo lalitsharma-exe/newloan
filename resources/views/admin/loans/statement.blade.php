@@ -226,10 +226,10 @@
   }
 
   /* Ensure table fits on A4 */
-  .stmt-table { font-size: 10.5px !important; }
-  .stmt-table th, .stmt-table td { padding: 6px 7px !important; }
-  .stmt-body { padding: 18px 24px !important; }
-  .stmt-header { padding: 20px 24px !important; }
+  .stmt-table { font-size: 10px !important; }
+  .stmt-table th, .stmt-table td { padding: 5px 6px !important; }
+  .stmt-body { padding: 18px 20px !important; }
+  .stmt-header { padding: 20px 20px !important; }
 
   /* Page breaks */
   .stmt-sec { page-break-after: avoid; }
@@ -238,8 +238,8 @@
 }
 
 @page {
-  size: A4 portrait;
-  margin: 12mm 10mm 12mm 10mm;
+  size: A4 landscape;
+  margin: 10mm;
 }
 </style>
 @endpush
@@ -318,10 +318,10 @@
         {{-- Borrower --}}
         <div>
           <div class="stmt-info-block-title"><i class="bi bi-person-fill"></i> Borrower</div>
-          <div class="stmt-info-row"><span class="lbl">Full Name</span><span class="val">{{ $loan->user->name }}</span></div>
-          <div class="stmt-info-row"><span class="lbl">Phone</span><span class="val">{{ $loan->user->phone ?? '—' }}</span></div>
-          <div class="stmt-info-row"><span class="lbl">Email</span><span class="val" style="font-size:11.5px">{{ $loan->user->email ?? '—' }}</span></div>
-          <div class="stmt-info-row"><span class="lbl">ID Number</span><span class="val">{{ $loan->user->national_id ?? '—' }}</span></div>
+          <div class="stmt-info-row"><span class="lbl">Full Name</span><span class="val">{{ $loan->user?->name ?? 'Deleted User' }}</span></div>
+          <div class="stmt-info-row"><span class="lbl">Phone</span><span class="val">{{ $loan->user?->phone ?? '—' }}</span></div>
+          <div class="stmt-info-row"><span class="lbl">Email</span><span class="val" style="font-size:11.5px">{{ $loan->user?->email ?? '—' }}</span></div>
+          <div class="stmt-info-row"><span class="lbl">ID Number</span><span class="val">{{ $loan->user?->national_id ?? '—' }}</span></div>
           @if($loan->application?->residential_address)
           <div class="stmt-info-row"><span class="lbl">Address</span><span class="val" style="font-size:11.5px;text-align:right;max-width:140px">{{ $loan->application->residential_address }}{{ $loan->application->district ? ', '.$loan->application->district : '' }}</span></div>
           @endif
