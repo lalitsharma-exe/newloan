@@ -152,7 +152,7 @@ class ApplicationController extends Controller
         $assessment->recalculate();
         $assessment->save();
 
-        return back()->with('success', 'Affordability assessment saved. Net salary: M' . number_format($assessment->net_salary, 2) . ', Disposable income: M' . number_format($assessment->disposable_income, 2));
+        return back()->with('success', 'Affordability assessment saved. Net salary: M' . number_format((float)($assessment->net_salary ?? 0), 2) . ', Disposable income: M' . number_format((float)($assessment->disposable_income ?? 0), 2));
     }
 
     public function schedulePreview(Request $request, LoanApplication $application)
@@ -228,6 +228,10 @@ class ApplicationController extends Controller
             'path'           => $path,
             'status'         => 'pending',
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Document uploaded.']);
+        }
 
         return back()->with('success', 'Document uploaded.');
     }

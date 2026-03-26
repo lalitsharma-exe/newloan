@@ -6,58 +6,57 @@
 @section('content')
 @php
 $client = $application->user;
-$steps = [
-  1 => ['icon'=>'person-fill',       'label'=>'Personal'],
-  2 => ['icon'=>'geo-alt-fill',      'label'=>'Address'],
-  3 => ['icon'=>'briefcase-fill',    'label'=>'Employment'],
-  4 => ['icon'=>'bank2',             'label'=>'Bank Details'],
-  5 => ['icon'=>'people-fill',       'label'=>'Next of Kin'],
-  6 => ['icon'=>'calculator-fill',   'label'=>'Affordability'],
-  7 => ['icon'=>'cash-stack',        'label'=>'Loan Details'],
-  8 => ['icon'=>'cloud-upload-fill', 'label'=>'Documents'],
-  9 => ['icon'=>'credit-card-2-front', 'label'=>'Card Setup'],
-  10 => ['icon'=>'check-circle-fill', 'label'=>'Review'],
+$titles = [
+  1=>'Personal Information',
+  2=>'Address Details',
+  3=>'Employment Details',
+  4=>'Bank Details',
+  5=>'Next of Kin',
+  6=>'Affordability',
+  7=>'Loan Details',
+  8=>'Upload Documents',
+  9=>'Card Setup',
+  10=>'Review & Submit'
 ];
+$stepTitle = $titles[(int)$step] ?? 'Step '.$step;
+$totalSteps = 10;
 @endphp
 
 {{-- Client Banner --}}
-<div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 22px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+<div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
   <div style="display:flex;align-items:center;gap:12px">
-    <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--s));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px">{{ strtoupper(substr($client->name,0,1)) }}</div>
+    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--s));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px">{{ strtoupper(substr($client->name,0,1)) }}</div>
     <div>
-      <div style="font-weight:700;font-size:15px">{{ $client->name }}</div>
-      <div style="font-size:12px;color:var(--muted)">{{ $client->phone }} &nbsp;·&nbsp; ID: {{ $client->national_id }} &nbsp;·&nbsp; App: {{ $application->application_number }}</div>
+      <div style="font-weight:700;font-size:14px;color:var(--navy)">{{ $client->name }}</div>
+      <div style="font-size:11px;color:var(--muted)">App: {{ $application->application_number }} &nbsp;·&nbsp; ID: {{ $client->national_id }}</div>
     </div>
   </div>
-  <span class="badge bs">Walk-in Application</span>
+  <div style="display:flex;gap:4px">
+    <span class="badge bs" style="background:rgba(30,51,112,.08);color:var(--p);font-size:10px">Walk-in Application</span>
+  </div>
 </div>
 
-{{-- Step progress bar --}}
-<div style="background:#fff;border:1px solid var(--border);border-radius:14px;margin-bottom:24px;overflow-x:auto;">
-  <div style="display:flex;min-width:700px">
-    @foreach($steps as $n => $s)
-    <div style="flex:1;padding:11px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;border-right:{{ $n < 10 ? '1px solid var(--border)':'' }};background:{{ $n==$step?'rgba(30,51,112,.06)':($n<$step?'rgba(16,185,129,.04)':'') }};cursor:{{ $n<=$application->step?'pointer':'default' }}" {{ $n<=$application->step?'onclick="location.href=\''.route('officer.walk-in.step.show',[$application,$n]).'\'"':'' }}>
-      <div style="width:26px;height:26px;border-radius:50%;background:{{ $n==$step?'var(--p)':($n<$step?'var(--ok)':'var(--border)') }};display:flex;align-items:center;justify-content:center;color:{{ $n<=$step?'#fff':'var(--muted)' }};font-size:11px;font-weight:700">
-        @if($n < $step)<i class="bi bi-check-lg" style="font-size:11px"></i>@else{{ $n }}@endif
-      </div>
-      <div style="font-size:10px;font-weight:600;color:{{ $n==$step?'var(--p)':($n<$step?'var(--ok)':'var(--muted)') }};display:none;@media(min-width:900px){display:block}">{{ $s['label'] }}</div>
-    </div>
+{{-- Progress --}}
+<div style="margin-bottom:24px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--navy)">{{ $stepTitle }}</div>
+    <div style="font-size:12px;color:var(--muted);font-weight:500">Step {{ $step }} of {{ $totalSteps }}</div>
+  </div>
+  <div style="background:#e2e8f0;border-radius:99px;height:5px">
+    <div style="background:linear-gradient(90deg,var(--p),var(--p2));height:100%;width:{{ round($step/$totalSteps*100) }}%;border-radius:99px;transition:width .3s"></div>
+  </div>
+  <div style="display:flex;gap:0;margin-top:8px;overflow-x:auto;scrollbar-width:none">
+    @foreach($titles as $n=>$t)
+    <div style="flex:1;text-align:center;font-size:9.5px;color:{{ $n<=$step?'var(--p)':'var(--muted)' }};font-weight:{{ $n===$step?'700':'400' }};min-width:52px;padding:0 2px;cursor:{{ $n<=$application->step?'pointer':'default' }}" {{ $n<=$application->step?'onclick="location.href=\''.route('officer.walk-in.step.show',[$application,$n]).'\'"':'' }}>{{ substr($t,0,5) }}.</div>
     @endforeach
   </div>
-  <div style="height:3px;background:linear-gradient(to right,var(--p) {{ ($step-1)*100/9 }}%,var(--border) {{ ($step-1)*100/9 }}%)"></div>
 </div>
 
-@if(session('success'))
-<div class="alert a-ok" style="margin-bottom:18px"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
-@endif
-@if($errors->any())
-<div class="alert a-e" style="margin-bottom:18px"><i class="bi bi-exclamation-circle-fill"></i>
-  <div>@foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach</div>
-</div>
-@endif
+<div class="card">
+<form id="stepForm" method="POST" action="{{ route('officer.walk-in.step.save', [$application, $step]) }}" enctype="multipart/form-data">
+    @csrf
+    <div class="card-body">
 
-<form method="POST" action="{{ route('officer.walk-in.step.save', [$application, $step]) }}" enctype="multipart/form-data" id="stepForm">
-@csrf
 
 {{-- ═══════════ STEP 1: PERSONAL ═══════════ --}}
 @if($step == 1)
@@ -407,37 +406,38 @@ $steps = [
         @error('requested_term')<span class="iv">{{ $message }}</span>@enderror
       </div>
       <div class="fg">
-        <label class="fl">First Payment Date</label>
-        <input type="date" name="first_payment_date" class="fc"
-          value="{{ old('first_payment_date', preg_match('/\[first_payment_date:([^\]]+)\]/', $application->admin_notes ?? '', $m) ? $m[1] : now()->addMonth()->format('Y-m-d')) }}">
-          <span class="ft">Stored as metadata — applied at loan disbursement</span>
+        <label class="fl">Loan Purpose *</label>
+        <select name="loan_purpose" class="fc" required>
+          <option value="">— Select Purpose —</option>
+          @foreach(['Home Improvement','Education','Medical / Health','Business Investment','Vehicle Purchase','Debt Consolidation','School Fees','Wedding / Family Event','Funeral Costs','Groceries / Food','Clothing','Travel','Other'] as $p)
+          <option value="{{ $p }}" {{ old('loan_purpose',$application->loan_purpose)===$p?'selected':'' }}>{{ $p }}</option>
+          @endforeach
+        </select>
+        @error('loan_purpose')<span class="iv">{{ $message }}</span>@enderror
+      </div>
+      <div class="fg">
+        <label class="fl">Expected Payday (1-31) *</label>
+        <input type="number" name="salary_payday" class="fc" min="1" max="31" value="{{ old('salary_payday', $application->salary_payday ?? 25) }}" required>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:6px">Determines the monthly instalment due date.</div>
       </div>
       <div class="fg">
         <label class="fl">Payout Method *</label>
         <select name="payout_method" class="fc" required>
-          <option value="">— Select —</option>
-          <option value="bank_transfer" {{ $application->payout_method==='bank_transfer'?'selected':'' }}>Bank Transfer</option>
-          <option value="mobile_money" {{ $application->payout_method==='mobile_money'?'selected':'' }}>Mobile Money</option>
-          <option value="cash" {{ $application->payout_method==='cash'?'selected':'' }}>Cash</option>
+          <option value="bank_transfer" {{ old('payout_method',$application->payout_method)==='bank_transfer'?'selected':'' }}>Bank Transfer</option>
+          <option value="mobile_money" {{ old('payout_method',$application->payout_method)==='mobile_money'?'selected':'' }}>Mobile Money</option>
+          <option value="cash" {{ old('payout_method',$application->payout_method)==='cash'?'selected':'' }}>Cash</option>
         </select>
-        @error('payout_method')<span class="iv">{{ $message }}</span>@enderror
       </div>
       <div class="fg">
         <label class="fl">Collection Method *</label>
         <select name="collection_method" class="fc" required>
-          <option value="">— Select —</option>
-          <option value="salary_deduction" {{ $application->collection_method==='salary_deduction'?'selected':'' }}>Salary deduction</option>
-          <option value="card_payment" {{ $application->collection_method==='card_payment'?'selected':'' }}>Card payment</option>
-          <option value="debit_order" {{ $application->collection_method==='debit_order'?'selected':'' }}>Debit Order</option>
-          <option value="mobile_money" {{ $application->collection_method==='mobile_money'?'selected':'' }}>Mobile Money</option>
-          <option value="cash" {{ $application->collection_method==='cash'?'selected':'' }}>Cash</option>
+          <option value="">— Select Method —</option>
+          <option value="salary_deduction" {{ old('collection_method',$application->collection_method)==='salary_deduction'?'selected':'' }}>Salary deduction</option>
+          <option value="card_payment" {{ old('collection_method',$application->collection_method)==='card_payment'?'selected':'' }}>Card payment</option>
+          <option value="debit_order" {{ old('collection_method',$application->collection_method)==='debit_order'?'selected':'' }}>Debit Order</option>
+          <option value="mobile_money" {{ old('collection_method',$application->collection_method)==='mobile_money'?'selected':'' }}>Mobile Money</option>
+          <option value="cash" {{ old('collection_method',$application->collection_method)==='cash'?'selected':'' }}>Cash</option>
         </select>
-        @error('collection_method')<span class="iv">{{ $message }}</span>@enderror
-      </div>
-      <div class="fg" style="grid-column:span 2">
-        <label class="fl">Reason for Loan *</label>
-        <textarea name="loan_purpose" class="fc" rows="2" placeholder="e.g. School Fees, Medical, Home Improvement..." required>{{ $application->loan_purpose }}</textarea>
-        @error('loan_purpose')<span class="iv">{{ $message }}</span>@enderror
       </div>
     </div>
 
@@ -470,48 +470,53 @@ $steps = [
 @elseif($step == 8)
 <div class="card">
   <div class="card-hdr">
-    <span class="card-title"><i class="bi bi-cloud-upload-fill" style="color:var(--p)"></i> Document Uploads</span>
-    <span class="badge bs">Max 5MB per file · PDF, JPG, PNG</span>
+    <span class="card-title"><i class="bi bi-cloud-upload" style="color:var(--p)"></i> Document Uploads</span>
+    <span class="badge bs">Max 5MB · PDF, JPG, PNG</span>
   </div>
   <div class="card-body">
-    <div class="alert a-i" style="margin-bottom:20px">
-      <i class="bi bi-info-circle-fill"></i>
-      <div>Upload clear, readable copies. Each document will be marked as <strong>Pending Verification</strong> until reviewed.</div>
-    </div>
-
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Upload clear documents for the client. These will be marked for verification.</div>
+    
     @php
     $docTypes = [
-      'national_id'    => ['National ID Card', 'bi-person-badge', 'Front and back scan'],
-      'payslip'        => ['Recent Payslip', 'bi-receipt', 'Certified copy'],
-      'bank_statement' => ['Bank Statement', 'bi-bank', 'Last 3 months'],
-      'photo'          => ['User Portrait', 'bi-camera', 'Clear selfie or photo'],
+      ['national_id', 'National ID Card', 'bi-person-badge', 'Front and back scan'],
+      ['payslip', 'Recent Payslip', 'bi-receipt', 'Latest 3 months if available'],
+      ['bank_statement', 'Bank Statement', 'bi-bank', 'Last 3 months'],
+      ['photo', 'User Portrait', 'bi-camera', 'Clear selfie or photo']
     ];
-    $existing = $application->documents->keyBy('type');
+    $uploaded = $application->documents->keyBy('type');
     @endphp
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      @foreach($docTypes as $type => [$label, $icon, $note])
-      @php $doc = $existing->get($type); @endphp
-      <div style="border:1.5px solid {{ $doc?'rgba(16,185,129,.4)':'var(--border)' }};border-radius:13px;padding:16px;background:{{ $doc?'rgba(16,185,129,.03)':'#fafafa' }}">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <div style="width:38px;height:38px;border-radius:10px;background:{{ $doc?'rgba(16,185,129,.1)':'rgba(26,92,46,.08)' }};display:flex;align-items:center;justify-content:center;font-size:17px;color:{{ $doc?'var(--ok)':'var(--p)' }}">
+      @foreach($docTypes as [$dtype, $dlabel, $icon, $note])
+      @php $existing = $uploaded->get($dtype); @endphp
+      <div style="background:#f8fafc;border-radius:15px;padding:20px;border:1.5px solid {{ $existing?'rgba(16,185,129,.3)':'var(--border)' }};position:relative">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="width:42px;height:42px;border-radius:12px;background:{{ $existing?'rgba(16,185,129,.1)':'rgba(43,108,176,.1)' }};display:flex;align-items:center;justify-content:center;font-size:18px;color:{{ $existing?'var(--ok)':'var(--p)' }}">
             <i class="bi {{ $icon }}"></i>
           </div>
-          <div style="flex:1">
-            <div style="font-weight:700;font-size:13px">{{ $label }}</div>
-            <div style="font-size:11px;color:var(--muted)">{{ $note }}</div>
-          </div>
-          @if($doc)
-          <span class="badge {{ $doc->status==='verified'?'bok':($doc->status==='rejected'?'be':'bw') }}" style="margin-left:auto">{{ ucfirst($doc->status) }}</span>
+          @if($existing)
+            <span class="badge {{ $existing->status==='verified'?'bok':'bw' }}">{{ ucfirst($existing->status) }}</span>
+          @else
+            <span class="badge be">Required</span>
           @endif
         </div>
-        @if($doc)
-        <div style="background:#fff;border:1px solid var(--border);border-radius:9px;padding:10px 12px;font-size:12px;margin-bottom:10px;display:flex;align-items:center;gap:8px">
-          <i class="bi bi-file-earmark-check" style="color:var(--ok)"></i>
-          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $doc->original_name }}</span>
-        </div>
+        
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">{{ $dlabel }}</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:15px">{{ $note }}</div>
+
+        @if(!$existing || $existing->status === 'rejected')
+          <div style="display:flex;gap:8px">
+            <input type="file" id="file_{{ $dtype }}" class="fc" accept=".pdf,.jpg,.jpeg,.png" style="flex:1;padding:7px;font-size:12px">
+            <input type="file" id="cam_{{ $dtype }}" accept="image/*" capture="environment" style="display:none" onchange="const df=new DataTransfer();df.items.add(this.files[0]);document.getElementById('file_{{ $dtype }}').files=df.files;uploadDoc('{{ $dtype }}', document.getElementById('btn_{{ $dtype }}'))">
+            <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('cam_{{ $dtype }}').click()" title="Take Photo" style="padding:0 12px;height:38px"><i class="bi bi-camera" style="font-size:16px"></i></button>
+            <button type="button" id="btn_{{ $dtype }}" class="btn btn-p btn-sm" onclick="uploadDoc('{{ $dtype }}', this)" style="height:38px;padding:0 15px">Upload</button>
+          </div>
+        @else
+          <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;font-size:12.5px">
+             <i class="bi bi-file-earmark-check-fill" style="color:var(--ok);font-size:16px"></i>
+             <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $existing->original_name }}</div>
+          </div>
         @endif
-        <input type="file" name="documents[{{ $type }}]" class="fc" accept=".pdf,.jpg,.jpeg,.png" style="padding:7px">
       </div>
       @endforeach
     </div>
@@ -525,22 +530,42 @@ $steps = [
     <span class="card-title"><i class="bi bi-credit-card-2-front" style="color:var(--p)"></i> Card Setup</span>
   </div>
   <div class="card-body">
-      <div class="alert a-i" style="margin-bottom:20px">
-        <i class="bi bi-info-circle-fill"></i>
-        Please provide the client's debit/credit card details for future loan repayments (Skip if not using Card collection method).
+      <div class="alert a-i" style="margin-bottom:24px">
+        <i class="bi bi-shield-lock-fill"></i>
+        <div><strong>Secure Encryption</strong><br>Details are encrypted and used only for automated repayments if selected.</div>
       </div>
+
+      <div style="background:linear-gradient(135deg, var(--navy), var(--navy2));border-radius:18px;padding:30px;color:#fff;margin-bottom:30px;box-shadow:0 10px 25px -5px rgba(15,23,42,.3);position:relative;overflow:hidden">
+        <div style="position:absolute;top:-20px;right:-20px;width:150px;height:150px;background:rgba(255,255,255,.03);border-radius:50%"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px">
+          <i class="bi bi-cpu" style="font-size:32px;color:rgba(255,255,255,.6)"></i>
+          <i class="bi bi-wifi" style="font-size:24px;transform:rotate(90deg);color:rgba(255,255,255,.4)"></i>
+        </div>
+        <div style="font-size:22px;font-weight:700;letter-spacing:.15em;margin-bottom:30px;font-family:monospace" id="cardPreview">•••• •••• •••• ••••</div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <div style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Card Holder</div>
+            <div style="font-size:15px;font-weight:600;text-transform:uppercase" id="cardNamePreview">CLIENT NAME</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Expires</div>
+            <div style="font-size:15px;font-weight:600" id="cardExpiryPreview">MM/YY</div>
+          </div>
+        </div>
+      </div>
+
       <div class="g2">
         <div class="fg" style="grid-column:span 2">
           <label class="fl">Cardholder Name</label>
-          <input type="text" name="card_name" class="fc" placeholder="As it appears on the card">
+          <input type="text" name="card_name" class="fc" placeholder="As it appears on the card" oninput="document.getElementById('cardNamePreview').textContent = this.value || 'CLIENT NAME'">
         </div>
         <div class="fg" style="grid-column:span 2">
           <label class="fl">Card Number</label>
-          <input type="text" name="card_number" class="fc" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)">
+          <input type="text" name="card_number" class="fc" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this); document.getElementById('cardPreview').textContent = this.value || '•••• •••• •••• ••••'">
         </div>
         <div class="fg">
           <label class="fl">Expiry Date</label>
-          <input type="text" name="card_expiry" class="fc" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this, event)">
+          <input type="text" name="card_expiry" class="fc" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this, event); document.getElementById('cardExpiryPreview').textContent = this.value || 'MM/YY'">
         </div>
         <div class="fg">
           <label class="fl">CVV</label>
@@ -552,158 +577,137 @@ $steps = [
 
 {{-- ═══════════ STEP 10: REVIEW & SUBMIT ═══════════ --}}
 @elseif($step == 10)
-<div class="alert a-ok" style="margin-bottom:20px">
+<div class="alert a-ok" style="margin-bottom:20px;border:1px solid rgba(16,185,129,.2)">
   <i class="bi bi-check-circle-fill"></i>
-  <div><strong>Ready to submit!</strong> Review all details below, then provide the signature to complete the application.</div>
+  <div><strong>Ready to submit!</strong> Please review all details below. Once confirmed, collect the client's signature.</div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
-  {{-- Personal --}}
-  <div class="card">
-    <div class="card-hdr"><span class="card-title"><i class="bi bi-person" style="color:var(--p)"></i> Personal Details</span></div>
-    <div class="card-body" style="padding:14px 18px">
-      @foreach(['Name'=>$application->applicant_name,'ID Number'=>$application->national_id,'DOB'=>$application->date_of_birth?->format('d M Y'),'Gender'=>ucfirst($application->gender??'—'),'Marital'=>ucfirst($application->marital_status??'—'),'Cell'=>$application->cell_number,'Email'=>$application->email??'—'] as $l=>$v)
-      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
-        <span style="color:var(--muted)">{{ $l }}</span><strong>{{ $v }}</strong>
-      </div>
-      @endforeach
-    </div>
-  </div>
-
-  {{-- Address --}}
-  <div class="card">
-    <div class="card-hdr"><span class="card-title"><i class="bi bi-geo-alt" style="color:var(--p)"></i> Address</span></div>
-    <div class="card-body" style="padding:14px 18px">
-      @foreach(['Address'=>$application->residential_address,'Village'=>$application->village,'Town'=>$application->town,'District'=>$application->district,'Type'=>ucfirst($application->residence_type??'—')] as $l=>$v)
-      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
-        <span style="color:var(--muted)">{{ $l }}</span><strong>{{ $v }}</strong>
-      </div>
-      @endforeach
-    </div>
-  </div>
-
-  {{-- Employment --}}
-  <div class="card">
-    <div class="card-hdr"><span class="card-title"><i class="bi bi-briefcase" style="color:var(--p)"></i> Employment</span></div>
-    <div class="card-body" style="padding:14px 18px">
-      @if($application->employment)
-      @foreach(['Employer'=>$application->employment->employer_name,'Type'=>ucfirst($application->employment->employer_type??'—'),'Title'=>$application->employment->job_title,'Staff ID'=>$application->employment->employment_number??'—'] as $l=>$v)
-      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
-        <span style="color:var(--muted)">{{ $l }}</span><strong>{{ $v }}</strong>
-      </div>
-      @endforeach
-      @else<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Not provided</div>@endif
-    </div>
-  </div>
-
-  {{-- Banking --}}
-  <div class="card">
-    <div class="card-hdr"><span class="card-title"><i class="bi bi-bank" style="color:var(--p)"></i> Banking</span></div>
-    <div class="card-body" style="padding:14px 18px">
-      @if($application->bankDetails)
-      @foreach(['Bank'=>$application->bankDetails->bank_name,'Account'=>$application->bankDetails->account_number,'Type'=>ucfirst($application->bankDetails->account_type??'—')] as $l=>$v)
-      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
-        <span style="color:var(--muted)">{{ $l }}</span><strong>{{ $v }}</strong>
-      </div>
-      @endforeach
-      @else<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Not provided</div>@endif
-    </div>
-  </div>
-
-  {{-- Loan --}}
-  <div class="card">
-    <div class="card-hdr"><span class="card-title"><i class="bi bi-cash-stack" style="color:var(--p)"></i> Loan Request</span></div>
-    <div class="card-body" style="padding:14px 18px">
-      @foreach(['Product'=>$application->loanProduct?->name??'—','Amount'=>'M '.number_format($application->requested_amount??0,2),'Term'=>($application->requested_term??'—').' months','Collection'=>ucfirst(str_replace('_',' ',$application->collection_method??'—')),'Payout'=>ucfirst(str_replace('_',' ',$application->payout_method??'—'))] as $l=>$v)
-      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
-        <span style="color:var(--muted)">{{ $l }}</span>
-        <strong style="{{ $l==='Amount'?'color:var(--p);font-size:15px':'' }}">{{ $v }}</strong>
-      </div>
-      @endforeach
-    </div>
-  </div>
-
-  {{-- Affordability --}}
-  <div class="card">
-    <div class="card-hdr"><span class="card-title"><i class="bi bi-calculator" style="color:var(--p)"></i> Affordability</span></div>
-    <div class="card-body" style="padding:14px 18px">
-      @if($application->affordability)
-      @php $af = $application->affordability; @endphp
-      @foreach(['Monthly Income'=>'M '.number_format($af->monthly_earnings??0,2),'Net Pay'=>'M '.number_format($af->net_salary??0,2),'Total Expenses'=>'M '.number_format($af->total_living_expenses??0,2),'Disposable Income'=>'M '.number_format($af->disposable_income??0,2)] as $l=>$v)
-      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
-        <span style="color:var(--muted)">{{ $l }}</span>
-        <strong style="{{ $l==='Disposable Income'?'color:var(--p)':'' }}">{{ $v }}</strong>
-      </div>
-      @endforeach
-      @else<div style="color:var(--warn);text-align:center;padding:20px;font-size:13px"><i class="bi bi-exclamation-triangle"></i> Affordability not completed</div>@endif
-    </div>
-  </div>
-</div>
-
-{{-- Documents summary --}}
 <div class="card" style="margin-bottom:18px">
-  <div class="card-hdr"><span class="card-title"><i class="bi bi-files" style="color:var(--p)"></i> Document Verification</span></div>
-  <div style="display:flex;gap:10px;padding:16px;flex-wrap:wrap">
-    @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Portrait Photo'] as $type=>$label)
-    @php $d = $application->documents->where('type',$type)->first(); @endphp
-    <div style="background:{{ $d?'#f0fdf4':'#fef2f2' }};border:1px solid {{ $d?'#bbf7d0':'#fecaca' }};border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;color:{{ $d?'#16a34a':'#dc2626' }}">
-      <i class="bi bi-{{ $d?'check-circle-fill':'x-circle-fill' }}"></i> {{ $label }}
+  <div class="card-hdr" style="background:#f8fafc"><span class="card-title"><i class="bi bi-journal-text" style="color:var(--p)"></i> Application Summary</span></div>
+  <div class="card-body" style="padding:24px">
+    
+    {{-- Personal Section --}}
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Personal Information</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:10px;margin-bottom:24px">
+      @foreach([
+        'Full Name'     => $application->applicant_name,
+        'National ID'   => $application->national_id,
+        'Phone Number'  => $application->cell_number,
+        'Email Address' => $application->email ?? '—',
+        'Gender'        => ucfirst($application->gender ?? '—'),
+        'Marital Status'=> ucfirst($application->marital_status ?? '—')
+      ] as $l => $v)
+      <div style="background:#f8fafc;border-radius:10px;padding:12px 15px;border:1px solid #edf2f7">
+        <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">{{ $l }}</div>
+        <div style="font-weight:700;margin-top:3px;font-size:13.5px;color:var(--navy)">{{ $v }}</div>
+      </div>
+      @endforeach
     </div>
-    @endforeach
+
+    {{-- Employment & Bank Section --}}
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Employment & Financials</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:10px;margin-bottom:24px">
+      @foreach([
+        'Employer'      => $application->employment->employer_name ?? '—',
+        'Job Title'     => $application->employment->job_title ?? '—',
+        'Bank Name'     => $application->bankDetails->bank_name ?? '—',
+        'Account Type'  => $application->bankDetails->account_type ?? '—',
+        'Monthly Earn'  => 'M '.number_format($application->affordability->monthly_earnings ?? 0, 2),
+        'Disposable'    => 'M '.number_format($application->affordability->disposable_income ?? 0, 2)
+      ] as $l => $v)
+      <div style="background:#f8fafc;border-radius:10px;padding:12px 15px;border:1px solid #edf2f7">
+        <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">{{ $l }}</div>
+        <div style="font-weight:700;margin-top:3px;font-size:13.5px;color:var(--navy)">{{ $v }}</div>
+      </div>
+      @endforeach
+    </div>
+
+    {{-- Loan Details Section --}}
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Loan Selection</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:10px;margin-bottom:24px">
+      @foreach([
+        'Loan Product'  => $application->loanProduct->name ?? '—',
+        'Amount'        => 'M '.number_format($application->requested_amount ?? 0, 2),
+        'Term'          => ($application->requested_term ?? '—').' months',
+        'Purpose'       => $application->loan_purpose ?? '—',
+        'Repay Method'  => ucfirst(str_replace('_',' ',$application->collection_method ?? '—')),
+        'Payout Method' => ucfirst(str_replace('_',' ',$application->payout_method ?? '—'))
+      ] as $l => $v)
+      <div style="background:rgba(43,108,176,0.03);border-radius:10px;padding:12px 15px;border:1px solid rgba(43,108,176,0.1)">
+        <div style="font-size:10px;color:var(--p);font-weight:600;text-transform:uppercase">{{ $l }}</div>
+        <div style="font-weight:700;margin-top:3px;font-size:13.5px;color:var(--navy)">{{ $v }}</div>
+      </div>
+      @endforeach
+    </div>
+
+    {{-- Documents Section --}}
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Documents Status</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px">
+      @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Selfie Picture'] as $dtype=>$dlabel)
+      @php $doc = $application->documents->where('type',$dtype)->first(); @endphp
+      <div style="background:{{ $doc?'rgba(16,185,129,.08)':'rgba(239,68,68,.08)' }};border:1px solid {{ $doc?'rgba(16,185,129,.2)':'rgba(239,68,68,.2)' }};border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;color:{{ $doc?'#16a34a':'#dc2626' }}">
+        <i class="bi bi-{{ $doc?'check-circle-fill':'x-circle-fill' }}"></i> {{ $dlabel }}
+      </div>
+      @endforeach
+    </div>
+
+    {{-- Signature Section --}}
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Client Digital Signature *</div>
+    <div style="background:#fff;border:1.5px dashed var(--border);border-radius:15px;padding:20px;text-align:center">
+        <canvas id="signature-pad" style="width:100%;max-width:500px;height:180px;border-radius:10px;background:#fcfdfd;touch-action:none;cursor:crosshair"></canvas>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;max-width:500px;margin:12px auto 0">
+          <span style="font-size:12px;color:var(--muted)"><i class="bi bi-info-circle"></i> Use mouse or touch to sign</span>
+          <button type="button" class="btn btn-o btn-sm" onclick="sigPad.clear()" style="padding:5px 15px;font-size:12px"><i class="bi bi-eraser"></i> Clear</button>
+        </div>
+    </div>
+    <input type="hidden" name="signature_data" id="signature_data">
+
   </div>
 </div>
 
-{{-- Officer note --}}
-<div class="card">
-  <div class="card-hdr"><span class="card-title"><i class="bi bi-chat-text" style="color:var(--p)"></i> Officer Notes (optional)</span></div>
-  <div class="card-body">
-    <textarea name="officer_notes" class="fc" rows="3" placeholder="Any notes for the admin reviewer...">{{ old('officer_notes') }}</textarea>
-  </div>
-</div>
-
-{{-- Signature --}}
-<div class="card" style="margin-top:18px">
-  <div class="card-hdr"><span class="card-title"><i class="bi bi-pen" style="color:var(--p)"></i> Client Signature</span></div>
-  <div class="card-body" style="text-align:center">
-    <canvas id="signature-pad" style="width:100%;max-width:400px;height:150px;border:1px dashed #cbd5e1;border-radius:6px;background:#f8fafc;touch-action:none"></canvas>
-    <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;max-width:400px;margin:8px auto 0">
-      <span style="font-size:11px;color:var(--muted)">Client should sign above</span>
-      <button type="button" class="btn btn-o btn-sm" onclick="sigPad.clear()" style="padding:4px 10px;font-size:11px">Clear</button>
+<div class="card" style="border:1px solid #fbd38d;background:#fffaf0">
+  <div class="card-body" style="padding:15px">
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <i class="bi bi-exclamation-triangle-fill" style="color:#dd6b20;font-size:18px"></i>
+      <div style="font-size:13px;color:#744210;line-height:1.5">
+        <strong>Officer Declaration:</strong> I confirm that I have interviewed the client ({{ $application->applicant_name }}), verified their original documents, and performed a preliminary affordability check as per the company's lending policy.
+      </div>
     </div>
   </div>
 </div>
+
 @endif
 
-{{-- Navigation --}}
-<div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px">
-  <div>
-    @if($step > 1)
-    <a href="{{ route('officer.walk-in.step.show', [$application, $step-1]) }}" class="btn btn-o"><i class="bi bi-arrow-left"></i> Back</a>
-    @endif
-  </div>
-  <div style="display:flex;gap:10px">
-    @if($step < 10)
-    <button type="submit" class="btn btn-p">Save & Continue <i class="bi bi-arrow-right"></i></button>
-    @else
-    <button type="button" onclick="prepareSubmit()" class="btn btn-ok"><i class="bi bi-send-fill"></i> Submit Application</button>
-    @endif
-  </div>
-</div>
+<div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;background:#fcfcfc">
+  @if($step > 1)
+  <a href="{{ route('officer.walk-in.step.show', [$application, $step-1]) }}" class="btn btn-o"><i class="bi bi-chevron-left"></i> Back</a>
+  @else<div></div>@endif
 
+  @if($step < 10)
+    <button type="submit" class="btn btn-p">Save & Continue <i class="bi bi-chevron-right"></i></button>
+  @else
+    <button type="button" class="btn btn-ok" onclick="prepareSubmit()"><i class="bi bi-send-fill"></i> Submit for Review</button>
+  @endif
+</div>
 </form>
 
-{{-- Submit confirmation modal --}}
 @if($step == 10)
-<div class="mo" id="submitModal"><div class="mb" style="max-width:460px">
-  <div class="mh"><span class="mt">Confirm Submission</span><button class="mc" onclick="closeModal('submitModal')">×</button></div>
-  <div class="mbody">
-    <div class="alert a-ok" style="margin-bottom:16px"><i class="bi bi-check-circle-fill"></i> Application will be submitted to admin for review.</div>
-    <p style="font-size:13.5px;color:var(--muted)">Client <strong>{{ $application->applicant_name }}</strong> will receive login credentials via SMS/email and can track their application status.</p>
+<!-- Final Confirmation Modal -->
+<div class="mo" id="submitModal"><div class="mc" style="max-width:440px">
+  <div class="mh">
+    <div class="mt">Confirm Submission</div>
+    <button class="cb" onclick="closeModal('submitModal')">&times;</button>
+  </div>
+  <div class="mb" style="text-align:center;padding:25px">
+    <div style="width:60px;height:60px;background:rgba(16,185,129,.1);color:var(--ok);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 15px">
+      <i class="bi bi-send-check"></i>
+    </div>
+    <p style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:8px">Ready to Finalize?</p>
+    <p style="font-size:12.5px;color:var(--muted)">This will submit the application for <strong>{{ $application->applicant_name }}</strong> to the administration for final approval.</p>
   </div>
   <div class="mf">
     <button type="button" class="btn btn-o" onclick="closeModal('submitModal')">Cancel</button>
-    <form method="POST" action="{{ route('officer.walk-in.submit', $application) }}" id="modalForm">@csrf
-      <input type="hidden" name="officer_notes" id="modal_officer_notes">
+    <form method="POST" action="{{ route('officer.walk-in.submit', $application) }}" id="finalSubmitForm">@csrf
       <input type="hidden" name="signature_data" id="modal_signature_data">
       <button type="submit" class="btn btn-ok"><i class="bi bi-send-fill"></i> Confirm & Submit</button>
     </form>
@@ -718,6 +722,38 @@ $steps = [
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mo.open').forEach(m=>m.classList.remove('open'))})
+
+function uploadDoc(type, btn) {
+    let input = document.getElementById('file_' + type);
+    if (!input || !input.files[0]) return alert('Please select a file first.');
+    if (input.files[0].size > 5 * 1024 * 1024) return alert('File is too large (max 5MB).');
+    
+    let oldHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i>...';
+    btn.disabled = true;
+    
+    let formData = new FormData();
+    formData.append('file', input.files[0]);
+    formData.append('type', type);
+    formData.append('_token', '{{ csrf_token() }}');
+    
+    fetch('{{ route("officer.applications.documents.upload", $application) }}', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: formData
+    }).then(async res => {
+        if (res.ok) { 
+            window.location.reload(); 
+        } else {
+            let data = await res.json().catch(()=>({}));
+            alert(data.message || 'Upload failed. File type may be unsupported or too large.');
+            btn.innerHTML = oldHtml; btn.disabled = false;
+        }
+    }).catch(e => { 
+        alert('Network error'); 
+        btn.innerHTML = oldHtml; btn.disabled = false; 
+    });
+}
 
 function formatCard(input) {
   let v = input.value.replace(/\D/g,'').substring(0,16);
