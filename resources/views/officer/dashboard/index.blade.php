@@ -274,7 +274,7 @@ $approvalRate = $totalDecided > 0 ? round($totalApproved/$totalDecided*100,1) : 
   // Loan value line
   new Chart(document.getElementById('ocLoanValue'),{type:'line',data:{
     labels:ma.map(d=>d.month),
-    datasets:[{label:'Approved Amount',data:ma.map(d=>d.amount),borderColor:'var(--p)',backgroundColor:'rgba(26,92,46,.08)',borderWidth:2.5,fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'var(--p)'}]
+    datasets:[{label:'Approved Amount',data:ma.map(d=>d.amount),borderColor:'var(--p)',backgroundColor:'rgba(30,51,112,.08)',borderWidth:2.5,fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'var(--p)'}]
   },options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}}},scales:{y:{beginAtZero:true,grid:{color:gc},ticks:{callback:fmt,font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
 
   // Doc status doughnut

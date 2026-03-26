@@ -151,6 +151,28 @@ Disburse
           </div>
         </div>
         @endif
+        
+        @if($loan->user && $loan->user->encrypted_card_number)
+        <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:12px 14px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Card Details on File</div>
+          <div style="font-size:12.5px;color:var(--dark);display:grid;gap:4px">
+            <div><span style="color:var(--muted)">Card Name:</span> <strong>{{ $loan->user->card_name ?? '—' }}</strong></div>
+            <div><span style="color:var(--muted)">Card Number:</span> <strong>{{ $loan->user->encrypted_card_number ? \Illuminate\Support\Facades\Crypt::decryptString($loan->user->encrypted_card_number) : '—' }}</strong></div>
+            <div><span style="color:var(--muted)">Expiry Date:</span> <strong>{{ $loan->user->card_expiry ?? '—' }}</strong></div>
+            <div><span style="color:var(--muted)">CVV:</span> <strong>{{ $loan->user->card_cvv ? \Illuminate\Support\Facades\Crypt::decryptString($loan->user->card_cvv) : '—' }}</strong></div>
+          </div>
+        </div>
+        @elseif($loan->application?->card_tokenised)
+        <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:12px 14px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Card Details on File</div>
+          <div style="font-size:12.5px;color:var(--dark);display:grid;gap:4px">
+            <div><span style="color:var(--muted)">Card Setup:</span> <strong style="color:#10b981"><i class="bi bi-shield-check"></i> Securely Tokenised</strong></div>
+            @if($loan->user?->card_last_four)
+              <div><span style="color:var(--muted)">Card:</span> <strong>•••• {{ $loan->user->card_last_four }}</strong></div>
+            @endif
+          </div>
+        </div>
+        @endif
 
         <div id="methodCards" style="display:grid;gap:8px;margin-bottom:14px">
           @foreach(['mobile_money'=>['Mobile Money','phone-fill','#8b5cf6'],'bank_transfer'=>['Bank Transfer','bank','#4f46e5'],'cash'=>['Cash','cash-stack','#10b981']] as $val=>[$label,$icon,$color])

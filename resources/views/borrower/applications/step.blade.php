@@ -239,9 +239,10 @@ $totalSteps = 10;
         <div class="fg">
           <label class="fl">Collection Method *</label>
           <select name="collection_method" class="fc" required>
-            <option value="salary_deduction" {{ old('collection_method',$application->collection_method)==='salary_deduction'?'selected':'' }}>Salary Deduction</option>
+            <option value="">— Select Method —</option>
+            <option value="salary_deduction" {{ old('collection_method',$application->collection_method)==='salary_deduction'?'selected':'' }}>Salary deduction</option>
+            <option value="card_payment" {{ old('collection_method',$application->collection_method)==='card_payment'?'selected':'' }}>Card payment</option>
             <option value="debit_order" {{ old('collection_method',$application->collection_method)==='debit_order'?'selected':'' }}>Debit Order</option>
-            <option value="stop_order" {{ old('collection_method',$application->collection_method)==='stop_order'?'selected':'' }}>Stop Order</option>
             <option value="mobile_money" {{ old('collection_method',$application->collection_method)==='mobile_money'?'selected':'' }}>Mobile Money</option>
           </select>
         </div>

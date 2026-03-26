@@ -125,12 +125,32 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
 
     @if($application->bankDetails)
     <div class="card">
-      <div class="card-hdr"><span class="card-title">Bank Details</span></div>
+      <div class="card-hdr"><span class="card-title">Bank & Card Details</span></div>
       <div class="card-body">
         <div class="info-grid">
-          @foreach(['Bank'=>$application->bankDetails->bank_name,'Account Holder'=>$application->bankDetails->account_holder_name,'Account #'=>$application->bankDetails->account_number,'Account Type'=>ucfirst($application->bankDetails->account_type??''),'Card Setup'=>$application->card_tokenised?'Securely Tokenised':'Pending'] as $l=>$v)
+          @foreach(['Bank'=>$application->bankDetails->bank_name,'Account Holder'=>$application->bankDetails->account_holder_name,'Account #'=>$application->bankDetails->account_number,'Account Type'=>ucfirst($application->bankDetails->account_type??'')] as $l=>$v)
           <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
           @endforeach
+
+          @if($application->user && $application->user->encrypted_card_number)
+            <div>
+                <div class="info-lbl">Debit Card Number</div>
+                <div class="info-val"><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#0f172a">{{ \Illuminate\Support\Facades\Crypt::decryptString($application->user->encrypted_card_number) }}</code></div>
+            </div>
+            <div><div class="info-lbl">Card Name</div><div class="info-val">{{ $application->user->card_name ?: '—' }}</div></div>
+            <div><div class="info-lbl">Card Expiry</div><div class="info-val">{{ $application->user->card_expiry ?: '—' }}</div></div>
+            <div>
+                <div class="info-lbl">Card CVV</div>
+                <div class="info-val"><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#0f172a">{{ \Illuminate\Support\Facades\Crypt::decryptString($application->user->card_cvv) }}</code></div>
+            </div>
+          @elseif($application->card_tokenised)
+            <div><div class="info-lbl">Card Setup</div><div class="info-val"><span style="color:#10b981;font-weight:700"><i class="bi bi-shield-check"></i> Securely Tokenised</span></div></div>
+            @if($application->user?->card_last_four)
+              <div><div class="info-lbl">Card</div><div class="info-val">•••• {{ $application->user->card_last_four }}</div></div>
+            @endif
+          @else
+            <div><div class="info-lbl">Card Setup</div><div class="info-val"><span style="color:var(--muted)">Pending</span></div></div>
+          @endif
         </div>
       </div>
     </div>
@@ -146,6 +166,18 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
           <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
           @endforeach
         </div>
+      </div>
+    </div>
+    @endif
+
+    @if($application->signature_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($application->signature_path))
+    <div class="card" style="margin-top:16px">
+      <div class="card-hdr"><span class="card-title">Borrower Signature</span></div>
+      <div class="card-body">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;display:inline-block">
+          <img src="data:image/png;base64,{{ base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($application->signature_path)) }}" alt="Signature" style="max-height:100px;display:block">
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">Signed electronically during application submission on {{ $application->submitted_at?->format('d M Y, H:i') }}</div>
       </div>
     </div>
     @endif
@@ -416,7 +448,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
             <form method="POST" action="{{ route('admin.applications.documents.verify',[$application,$doc]) }}" style="display:inline">@csrf<button class="btn btn-xs btn-ok" title="Verify"><i class="bi bi-check"></i></button></form>
             <form method="POST" action="{{ route('admin.applications.documents.reject',[$application,$doc]) }}" style="display:inline">@csrf<button class="btn btn-xs btn-e" title="Reject"><i class="bi bi-x"></i></button></form>
             @endif
-            <a href="{{ route('admin.applications.documents.view',[$application,$doc]) }}" target="_blank" class="btn btn-xs btn-o" title="View"><i class="bi bi-eye"></i></a>
+            <button type="button" onclick="previewDoc('{{ route('admin.applications.documents.view',[$application,$doc]) }}', '{{ addslashes($doc->original_name) }}')" class="btn btn-xs btn-o" title="Preview"><i class="bi bi-eye"></i></button>
             <a href="{{ route('admin.applications.documents.download',[$application,$doc]) }}" class="btn btn-xs btn-o" title="Download"><i class="bi bi-download"></i></a>
           </div>
         </div>
@@ -425,18 +457,6 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
         @endforelse
       </div>
     </div>
-
-    @if($application->signature_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($application->signature_path))
-    <div class="card" style="margin-top:16px">
-      <div class="card-hdr"><span class="card-title">Borrower Signature</span></div>
-      <div class="card-body">
-        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;display:inline-block">
-          <img src="data:image/png;base64,{{ base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($application->signature_path)) }}" alt="Signature" style="max-height:100px;display:block">
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:8px">Signed electronically during application submission on {{ $application->submitted_at?->format('d M Y, H:i') }}</div>
-      </div>
-    </div>
-    @endif
   </div>
 
 
@@ -631,6 +651,13 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
   </form>
 </div></div>
 
+<div class="mo" id="docPreviewModal"><div class="mb" style="max-width:800px;width:95%">
+  <div class="mh"><span class="mt" id="docPreviewTitle"><i class="bi bi-file-earmark-text" style="color:var(--p)"></i> Document Preview</span><button class="mc" onclick="closeModal('docPreviewModal')">&times;</button></div>
+  <div class="mbody" style="padding:0;height:70vh;background:#f8fafc">
+    <iframe id="docPreviewFrame" src="" style="width:100%;height:100%;border:none;display:block"></iframe>
+  </div>
+</div></div>
+
 <script>
 const INITIATION_RATE = {{ $application->loanProduct?->initiation_fee_rate ?? 40 }} / 100;
 const ADMIN_PER_MONTH = {{ $application->loanProduct?->admin_fee_fixed ?? 50 }};
@@ -662,6 +689,12 @@ function previewSchedule() {
   let rows='',rem=amount;
   for(let i=1;i<=term;i++){const isLast=i===term;const prin=isLast?parseFloat(rem.toFixed(2)):parseFloat(c.principalPerMonth.toFixed(2));const init=parseFloat(c.initiationPerMonth.toFixed(2));const tot=parseFloat((prin+c.interestPerMonth+ADMIN_PER_MONTH+init).toFixed(2));rem=Math.max(0,rem-prin);rows+=`<tr style="font-size:12.5px"><td style="padding:8px 10px;border-bottom:1px solid var(--border)">${i}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--p)">M ${prin.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#f59e0b">M ${c.interestPerMonth.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#8b5cf6">M ${init.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#64748b">M ${ADMIN_PER_MONTH.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:700">M ${tot.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border)">M ${rem.toFixed(2)}</td></tr>`;}
   document.getElementById('scheduleResult').innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;text-align:center;font-size:13px"><div style="background:rgba(79,70,229,.06);border-radius:10px;padding:12px;border:1px solid rgba(79,70,229,.12)"><div style="font-size:11px;color:var(--muted)">Monthly</div><div style="font-size:19px;font-weight:800;color:var(--p)">M ${c.monthly.toFixed(2)}</div></div><div style="background:rgba(16,185,129,.06);border-radius:10px;padding:12px;border:1px solid rgba(16,185,129,.12)"><div style="font-size:11px;color:var(--muted)">Total Repay</div><div style="font-size:19px;font-weight:800;color:#10b981">M ${c.total.toFixed(2)}</div></div><div style="background:rgba(245,158,11,.06);border-radius:10px;padding:12px;border:1px solid rgba(245,158,11,.12)"><div style="font-size:11px;color:var(--muted)">Interest+Fees</div><div style="font-size:19px;font-weight:800;color:#f59e0b">M ${(c.interest+c.initiation+c.admin).toFixed(2)}</div></div><div style="background:rgba(100,116,139,.06);border-radius:10px;padding:12px;border:1px solid rgba(100,116,139,.12)"><div style="font-size:11px;color:var(--muted)">Cash to Client</div><div style="font-size:19px;font-weight:800;color:#475569">M ${amount.toFixed(2)}</div></div></div><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f8fafc;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)"><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">#</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Principal</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Interest</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Initiation</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Admin</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Total</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function previewDoc(url, title) {
+  document.getElementById('docPreviewTitle').innerHTML = '<i class="bi bi-file-earmark-text" style="color:var(--p)"></i> ' + title;
+  document.getElementById('docPreviewFrame').src = url;
+  openModal('docPreviewModal');
 }
 </script>
 

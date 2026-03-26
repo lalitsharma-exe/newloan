@@ -9,18 +9,18 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 /* ── IDENTICAL CSS VARIABLES TO ADMIN FOR FULL SYNC ── */
-:root{--p:#1a5c2e;--pd:#134821;--pl:#2d8a47;--s:#4caf69;--ok:#10b981;--warn:#f59e0b;--err:#ef4444;--info:#06b6d4;--dark:#0f172a;--sb:260px;--th:64px;--bg:#f1f5f9;--card:#fff;--border:#e2e8f0;--muted:#64748b}
+:root{--p:#1e3370;--pd:#0d1b3e;--pl:#2b4bad;--s:#3d60d4;--ok:#10b981;--warn:#f59e0b;--err:#ef4444;--info:#06b6d4;--accent:#c9a84c;--dark:#0d1b3e;--sb:260px;--th:64px;--bg:#f0f3fa;--card:#fff;--border:#dde3ef;--muted:#64748b}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;display:flex}
-.sb{width:var(--sb);min-height:100vh;background:#0f2318;position:fixed;left:0;top:0;z-index:1000;display:flex;flex-direction:column}
+.sb{width:var(--sb);min-height:100vh;background:#0d1b3e;position:fixed;left:0;top:0;z-index:1000;display:flex;flex-direction:column}
 .sb-logo{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px}
 .sb-logo .sub{color:rgba(255,255,255,.4);font-size:11px;margin-top:1px}
 .sb-nav{flex:1;padding:10px 0;overflow-y:auto}
 .nav-lbl{color:rgba(255,255,255,.3);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;padding:14px 22px 4px}
 .nav-item a{display:flex;align-items:center;gap:11px;padding:10px 22px;color:rgba(255,255,255,.6);text-decoration:none;font-size:13.5px;font-weight:500;transition:all .2s;position:relative}
 .nav-item a:hover{color:#fff;background:rgba(255,255,255,.06)}
-.nav-item a.active{color:#fff;background:rgba(76,175,105,.2)}
-.nav-item a.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#4caf69;border-radius:0 3px 3px 0}
+.nav-item a.active{color:#fff;background:rgba(61,96,212,.25)}
+.nav-item a.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#7c9ff5;border-radius:0 3px 3px 0}
 .nav-item a i{font-size:16px;width:18px;flex-shrink:0}
 .sb-foot{padding:14px 22px;border-top:1px solid rgba(255,255,255,.08)}
 .upill{display:flex;align-items:center;gap:10px}
@@ -40,16 +40,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-h
 .card-body{padding:22px}
 .sc{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:20px;display:flex;align-items:flex-start;gap:14px}
 .si{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.si.p{background:rgba(26,92,46,.1);color:var(--p)}.si.ok{background:rgba(16,185,129,.1);color:var(--ok)}
+.si.p{background:rgba(30,51,112,.1);color:var(--p)}.si.ok{background:rgba(16,185,129,.1);color:var(--ok)}
 .si.w{background:rgba(245,158,11,.1);color:var(--warn)}.si.e{background:rgba(239,68,68,.1);color:var(--err)}
-.si.i{background:rgba(6,182,212,.1);color:var(--info)}.si.s{background:rgba(76,175,105,.1);color:var(--s)}
+.si.i{background:rgba(6,182,212,.1);color:var(--info)}.si.s{background:rgba(61,96,212,.1);color:var(--s)}
 .sv{font-size:24px;font-weight:800;line-height:1.2}.sl{font-size:12px;color:var(--muted);margin-top:2px}
 .dt{width:100%;border-collapse:collapse}
 .dt th{padding:11px 15px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:#f8fafc;border-bottom:1px solid var(--border)}
 .dt td{padding:13px 15px;font-size:13.5px;border-bottom:1px solid var(--border);vertical-align:middle}
 .dt tbody tr:hover{background:#f8fafc}.dt tbody tr:last-child td{border-bottom:none}
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600}
-.bp{background:rgba(26,92,46,.1);color:var(--p)}.bok{background:rgba(16,185,129,.1);color:var(--ok)}
+.bp{background:rgba(30,51,112,.1);color:var(--p)}.bok{background:rgba(16,185,129,.1);color:var(--ok)}
 .bw{background:rgba(245,158,11,.15);color:var(--warn)}.be{background:rgba(239,68,68,.1);color:var(--err)}
 .bi{background:rgba(6,182,212,.1);color:var(--info)}.bs{background:rgba(100,116,139,.1);color:var(--muted)}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 17px;border-radius:10px;border:none;font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s;white-space:nowrap}
@@ -62,7 +62,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-h
 .btn-o{background:transparent;border:1.5px solid var(--border);color:var(--dark)}.btn-o:hover{border-color:var(--p);color:var(--p)}
 .fg{margin-bottom:18px}.fl{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px}
 .fc{width:100%;padding:9px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:13.5px;font-family:'Inter',sans-serif;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s}
-.fc:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(26,92,46,.1)}
+.fc:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(30,51,112,.1)}
 select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 .ft{font-size:12px;color:var(--muted);margin-top:3px}.iv{font-size:12px;color:var(--err);margin-top:3px;display:block}
 .alert{padding:12px 16px;border-radius:11px;font-size:13px;display:flex;align-items:flex-start;gap:9px;margin-bottom:18px}
@@ -88,7 +88,7 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 .tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:20px;overflow-x:auto}
 .tab{padding:9px 16px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;border-radius:8px 8px 0 0;transition:all .2s;display:flex;align-items:center;gap:6px}
 .tab:hover{color:var(--dark);background:var(--bg)}
-.tab.active{color:var(--p);border-bottom-color:var(--p);font-weight:700;background:rgba(26,92,46,.04)}
+.tab.active{color:var(--p);border-bottom-color:var(--p);font-weight:700;background:rgba(30,51,112,.04)}
 .tpanel{display:none}.tpanel.active{display:block}
 /* info grid */
 .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -104,11 +104,9 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 {{-- SIDEBAR --}}
 <aside class="sb" id="sb">
   <div class="sb-logo">
-    <div style="width:34px;height:34px;background:linear-gradient(135deg,var(--p),var(--s));border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-      <i class="bi bi-bank2" style="color:#fff;font-size:16px"></i>
-    </div>
+    <img style="height:36px;width:auto;object-fit:contain" src="{{ \Illuminate\Support\Facades\Storage::url(\App\Models\SystemSetting::get('app_logo')) }}" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=Officer&bg=1e3370&color=fff'">
     <div>
-      <div style="color:#fff;font-size:14px;font-weight:800;line-height:1.2">MyLoan</div>
+      <div style="color:#fff;font-size:14px;font-weight:800;line-height:1.2;letter-spacing:-.02em">{{ \App\Models\SystemSetting::get('app_name', 'MyLoan') }}</div>
       <div class="sub">Loan Officer Portal</div>
     </div>
   </div>
@@ -175,10 +173,10 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 
   <div class="sb-foot">
     <a href="{{ route('officer.profile.index') }}" style="text-decoration:none;display:block">
-      <div class="upill" style="cursor:pointer;transition:background .2s;border-radius:10px;padding:6px 4px" onmouseover="this.style.background='rgba(76,175,105,.12)'" onmouseout="this.style.background=''">
+      <div class="upill" style="cursor:pointer;transition:background .2s;border-radius:10px;padding:6px 4px" onmouseover="this.style.background='rgba(61,96,212,.12)'" onmouseout="this.style.background=''">
         @php $authUser = auth('officer')->user(); @endphp
         @if($authUser->profile_photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($authUser->profile_photo))
-        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($authUser->profile_photo) }}" alt="{{ $authUser->name }}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(76,175,105,.4)">
+        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($authUser->profile_photo) }}" alt="{{ $authUser->name }}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(61,96,212,.4)">
         @else
         <div class="uav">{{ strtoupper(substr($authUser->name??'O',0,1)) }}</div>
         @endif

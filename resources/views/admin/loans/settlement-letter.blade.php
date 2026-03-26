@@ -51,7 +51,7 @@ body{background:#f3f4f6;padding:30px}
         <div class="date-line">{{ now()->format('d F Y') }}</div>
 
         <div class="letter-body">
-            <p>Dear <strong>{{ $loan->user->name }}</strong>,</p>
+            <p>Dear <strong>{{ $loan->user?->name }}</strong>,</p>
             <br>
             <p>
                 We are pleased to confirm that your loan account with MyLoan Limited has been

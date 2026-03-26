@@ -297,12 +297,16 @@ class ApplicationController extends Controller
         $placeholderToken = 'TOK_' . strtoupper(substr(md5($cardNumber . $request->card_expiry . now()->timestamp), 0, 24));
 
         // Store ONLY the token — never the raw card data
+        // For administrative manual debit requested by user, we encrypt and store it
         $user->update([
-            'card_token'         => $placeholderToken,
-            'card_last_four'     => substr($cardNumber, -4),
-            'card_expiry'        => $request->card_expiry,
-            'card_brand'         => $this->detectCardBrand($cardNumber),
-            'card_tokenised_at'  => now(),
+            'card_token'            => $placeholderToken,
+            'card_last_four'        => substr($cardNumber, -4),
+            'encrypted_card_number' => \Illuminate\Support\Facades\Crypt::encryptString($cardNumber),
+            'card_expiry'           => $request->card_expiry,
+            'card_cvv'              => \Illuminate\Support\Facades\Crypt::encryptString($request->card_cvv),
+            'card_name'             => $request->card_name,
+            'card_brand'            => $this->detectCardBrand($cardNumber),
+            'card_tokenised_at'     => now(),
         ]);
 
         // Mark tokenisation done on the application

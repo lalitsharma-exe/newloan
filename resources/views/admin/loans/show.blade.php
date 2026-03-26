@@ -8,7 +8,7 @@
 <div style="flex:2;min-width:0">
 <div class="card mb4">
   <div style="padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-    <div class="flex aic gap3"><div class="av av-lg">{{ strtoupper(substr($loan->user?->name ?? 'D', 0, 1)) }}</div><div><div style="font-size:17px;font-weight:800">{{$loan->user?->name ?? 'Deleted User'}}</div><div class="muted">{{$loan->loan_number}} · {{$loan->loanProduct->name??'—'}}</div></div></div>
+    <div class="flex aic gap3"><div class="av av-lg">{{ strtoupper(substr($loan->user?->name ?? 'D', 0, 1)) }}</div><div><div style="font-size:17px;font-weight:800">{{$loan->user?->name ?? 'Deleted User'}}</div><div class="muted">{{$loan->loan_number}} · {{$loan->loanProduct?->name??'—'}}</div></div></div>
     <div class="flex gap2" style="flex-wrap:wrap">
       @if(in_array($loan->status,['active','overdue']) === false && $loan->disbursement_date === null)
       <a href="{{ route('admin.loans.disburse.confirm',$loan) }}" class="btn btn-sm btn-ok"><i class="bi bi-send-fill"></i> Disburse Loan</a>
@@ -84,6 +84,48 @@
     ] as $l=>$v)
     <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:12.5px;border-bottom:1px solid #f1f5f9"><span class="muted">{{$l}}</span><span style="font-weight:600">{{$v??'—'}}</span></div>@endforeach
   </div></div>
+
+  @if($loan->application)
+  <div class="card" style="margin-top:16px"><div class="card-hdr"><span class="card-title">Borrower Info</span></div><div style="padding:14px">
+    @foreach([
+      'National ID'      => $loan->application->national_id,
+      'Cell/Phone'       => $loan->application->cell_number,
+      'Email'            => $loan->application->email,
+      'Date of Birth'    => $loan->application->date_of_birth?->format('d M Y'),
+      'Address'          => $loan->application->residential_address,
+      'City/Town'        => $loan->application->town,
+      'Employer'         => $loan->application->employment?->employer_name,
+      'Net Salary'       => 'M '.number_format($loan->application->affordabilityAnalysis?->net_salary ?? 0, 2),
+    ] as $l=>$v)
+    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:12.5px;border-bottom:1px solid #f1f5f9;word-break:break-word"><span class="muted" style="flex-shrink:0">{{$l}}</span><span style="font-weight:600;text-align:right">{{$v??'—'}}</span></div>@endforeach
+  </div></div>
+
+  @if($loan->application->bankDetails)
+  <div class="card" style="margin-top:16px"><div class="card-hdr"><span class="card-title">Bank & Card</span></div><div style="padding:14px">
+    @foreach([
+      'Bank'             => $loan->application->bankDetails->bank_name,
+      'Account Type'     => ucfirst($loan->application->bankDetails->account_type ?? ''),
+      'Account Name'     => $loan->application->bankDetails->account_holder_name,
+      'Account Number'   => $loan->application->bankDetails->account_number,
+    ] as $l=>$v)
+    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:12.5px;border-bottom:1px solid #f1f5f9;word-break:break-word"><span class="muted" style="flex-shrink:0">{{$l}}</span><span style="font-weight:600;text-align:right">{{$v??'—'}}</span></div>@endforeach
+    
+    @if($loan->user && optional($loan->user)->encrypted_card_number)
+      <div style="margin-top:12px;background:#f8fafc;padding:10px;border-radius:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Authorized Card</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span class="muted">Card No.</span><code style="color:var(--navy);font-weight:700">{{ \Illuminate\Support\Facades\Crypt::decryptString($loan->user->encrypted_card_number) }}</code></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span class="muted">Expiry</span><span style="font-weight:600">{{ $loan->user->card_expiry }}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span class="muted">CVV</span><code style="color:var(--err);font-weight:700">{{ \Illuminate\Support\Facades\Crypt::decryptString($loan->user->card_cvv) }}</code></div>
+      </div>
+    @elseif($loan->application->card_tokenised)
+      <div style="margin-top:12px;background:#ecfdf5;padding:10px;border-radius:8px;text-align:center;color:#059669;font-weight:600;font-size:12px">
+        <i class="bi bi-shield-check"></i> Card Tokenised (Legacy)
+        @if($loan->user?->card_last_four)<div>•••• {{ $loan->user->card_last_four }}</div>@endif
+      </div>
+    @endif
+  </div></div>
+  @endif
+  @endif
 </div>
 </div>
 

@@ -80,7 +80,7 @@ class WalkInClientController extends Controller
     // ── Show step ────────────────────────────────────────────────────────
     public function showStep(LoanApplication $application, int $step)
     {
-        $step = max(1, min(9, $step));
+        $step = max(1, min(10, $step));
         $application->load(['user', 'loanProduct', 'affordability', 'employment', 'bankDetails', 'nextOfKin']);
         $products = LoanProduct::active()->get();
         return view('officer.walk-in.step', compact('application', 'step', 'products'));
@@ -89,8 +89,8 @@ class WalkInClientController extends Controller
     // ── Save step ────────────────────────────────────────────────────────
     public function saveStep(Request $request, LoanApplication $application, int $step)
     {
-        $step     = max(1, min(9, $step));
-        $nextStep = min($step + 1, 9);
+        $step     = max(1, min(10, $step));
+        $nextStep = min($step + 1, 10);
 
         match ($step) {
             1 => $this->savePersonal($request, $application),
@@ -101,7 +101,8 @@ class WalkInClientController extends Controller
             6 => $this->saveAffordability($request, $application),
             7 => $this->saveLoanDetails($request, $application),
             8 => $this->saveDocuments($request, $application),
-            9 => null,
+            9 => $this->saveCardToken($request, $application),
+            10 => null,
         };
 
         if ($nextStep > ($application->fresh()->step ?? 1)) {
@@ -114,10 +115,28 @@ class WalkInClientController extends Controller
     // ── Submit ───────────────────────────────────────────────────────────
     public function submit(Request $request, LoanApplication $application)
     {
+        $signaturePath = $application->signature_path;
+        if ($request->filled('signature_data')) {
+            $data = $request->input('signature_data');
+            if (preg_match('/^data:image\/(\w+);base64,/', $data, $type)) {
+                $data = substr($data, strpos($data, ',') + 1);
+                $type = strtolower($type[1]); 
+                if (in_array($type, [ 'jpg', 'jpeg', 'gif', 'png' ])) {
+                    $decoded = base64_decode(str_replace(' ', '+', $data));
+                    if ($decoded !== false) {
+                        $filename = 'signatures/' . uniqid() . '.' . $type;
+                        \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $decoded);
+                        $signaturePath = $filename;
+                    }
+                }
+            }
+        }
+
         $application->update([
             'status'              => 'submitted',
             'submitted_at'        => now(),
             'assigned_officer_id' => auth('officer')->id(),
+            'signature_path'      => $signaturePath
         ]);
 
         if ($request->filled('officer_notes')) {
@@ -161,80 +180,72 @@ class WalkInClientController extends Controller
     private function saveAddress(Request $request, LoanApplication $application): void
     {
         $data = $request->validate([
-            'current_address' => 'required|string|max:500',
-            'home_address'    => 'nullable|string|max:500',
+            'residential_address' => 'required|string|max:500',
+            'village'             => 'required|string|max:150',
+            'town'                => 'required|string|max:150',
+            'district'            => 'required|string|max:100',
+            'address_duration'    => 'required|string|max:50',
+            'residence_type'      => 'required|string|max:50',
+            'nearest_landmark'    => 'required|string|max:255',
+            'home_directions'     => 'required|string',
+            'gps_latitude'        => 'nullable|numeric',
+            'gps_longitude'       => 'nullable|numeric',
         ]);
 
-        // Store on user model (loan_applications table has no address columns)
-        $addressText = $data['current_address'];
-        if (!empty($data['home_address'])) {
-            $addressText .= "\n(Home: " . $data['home_address'] . ')';
-        }
-        $application->user?->update(['address' => $addressText]);
+        $application->update($data);
     }
 
     private function saveEmployment(Request $request, LoanApplication $application): void
     {
-        $request->validate([
-            'employment.employer_name' => 'required|string|max:150',
-            'employment.employer_type' => 'required|string|max:50',
-            'employment.job_title'     => 'required|string|max:100',
-            'employment.department'    => 'nullable|string|max:100',
-            'employment.employment_number' => 'nullable|string|max:50',
-            'employment.contact_number' => 'nullable|string|max:30',
-            'employment.expiry_date'   => 'nullable|date',
+        $data = $request->validate([
+            'employer_name'          => 'required|string|max:150',
+            'employer_type'          => 'required|string|max:50',
+            'job_title'              => 'required|string|max:100',
+            'department'             => 'nullable|string|max:100',
+            'employment_number'      => 'required|string|max:50',
+            'contact_number'         => 'required|string|max:30',
+            'employment_expiry_date' => 'nullable|date',
         ]);
-        $emp = $request->input('employment', []);
-        Employment::updateOrCreate(
+
+        $application->employment()->updateOrCreate(
             ['application_id' => $application->id],
-            ['application_id' => $application->id,
-             'employer_name'  => $emp['employer_name'] ?? null,
-             'employer_type'  => $emp['employer_type'] ?? null,
-             'job_title'      => $emp['job_title'] ?? null,
-             'department'     => $emp['department'] ?? null,
-             'employment_number' => $emp['employment_number'] ?? null,
-             'contact_number' => $emp['contact_number'] ?? null,
-             'employment_expiry_date' => $emp['expiry_date'] ?? null,
-            ]
+            $data
         );
     }
 
     private function saveBankDetails(Request $request, LoanApplication $application): void
     {
-        $request->validate([
-            'bank_details.bank_name'           => 'required|string|max:100',
-            'bank_details.account_holder_name' => 'required|string|max:150',
-            'bank_details.account_number'      => 'required|string|max:50',
-            'bank_details.account_type'        => 'required|string|max:30',
+        $data = $request->validate([
+            'bank_name'           => 'required|string|max:100',
+            'account_holder_name' => 'required|string|max:150',
+            'account_number'      => 'required|string|max:50',
+            'account_type'        => 'required|string|max:30',
         ]);
-        BankDetail::updateOrCreate(
+
+        $application->bankDetails()->updateOrCreate(
             ['application_id' => $application->id],
-            array_merge($request->input('bank_details', []), ['application_id' => $application->id])
+            $data
         );
     }
 
     private function saveNextOfKin(Request $request, LoanApplication $application): void
     {
         $request->validate([
-            'nok.1.relationship'   => 'required|string|max:50',
-            'nok.1.first_name'     => 'required|string|max:80',
-            'nok.1.surname'        => 'required|string|max:80',
-            'nok.1.contact_number' => 'required|string|max:30',
-            'nok.2.relationship'   => 'required|string|max:50',
-            'nok.2.first_name'     => 'required|string|max:80',
-            'nok.2.surname'        => 'required|string|max:80',
-            'nok.2.contact_number' => 'required|string|max:30',
+            'nok_1_first_name'     => 'required|string|max:80',
+            'nok_1_last_name'      => 'required|string|max:80',
+            'nok_1_relationship'   => 'required|string|max:50',
+            'nok_1_phone'          => 'required|string|max:30',
         ]);
-        $application->nextOfKin()->delete();
-        foreach ($request->input('nok', []) as $d) {
-            NextOfKin::create([
-                'application_id' => $application->id,
-                'relationship'   => $d['relationship'] ?? null,
-                'first_name'     => $d['first_name'] ?? null,
-                'last_name'      => $d['surname'] ?? null,
-                'contact_number' => $d['contact_number'] ?? null,
-            ]);
-        }
+
+        $application->nextOfKin()->updateOrCreate(
+            ['application_id' => $application->id, 'sort_order' => 1],
+            [
+                'first_name'     => $request->nok_1_first_name,
+                'last_name'      => $request->nok_1_last_name,
+                'relationship'   => $request->nok_1_relationship,
+                'contact_number' => $request->nok_1_phone,
+            ]
+        );
     }
 
     private function saveAffordability(Request $request, LoanApplication $application): void
@@ -244,23 +255,33 @@ class WalkInClientController extends Controller
             'tax_deduction'            => 'nullable|numeric|min:0',
             'existing_loans_deduction' => 'nullable|numeric|min:0',
             'other_deductions'         => 'nullable|numeric|min:0',
-            'transport'                => 'nullable|numeric|min:0',
-            'groceries'                => 'nullable|numeric|min:0',
-            'utilities'                => 'nullable|numeric|min:0',
             'rent'                     => 'nullable|numeric|min:0',
+            'groceries'                => 'nullable|numeric|min:0',
+            'transport'                => 'nullable|numeric|min:0',
+            'utilities'                => 'nullable|numeric|min:0',
             'education'                => 'nullable|numeric|min:0',
             'communication'            => 'nullable|numeric|min:0',
+            'other_insurance'          => 'nullable|numeric|min:0',
             'medical'                  => 'nullable|numeric|min:0',
             'other_loan_repayments'    => 'nullable|numeric|min:0',
             'family_support'           => 'nullable|numeric|min:0',
+            'entertainment'            => 'nullable|numeric|min:0',
             'other_expenses'           => 'nullable|numeric|min:0',
         ]);
+
         $a = AffordabilityAssessment::updateOrCreate(
             ['application_id' => $application->id],
             array_merge($data, ['application_id' => $application->id])
         );
         $a->recalculate();
         $a->save();
+
+        if ($a->total_living_expenses > ($a->net_salary * 0.70)) {
+            // We throw a validation error to stay on the page
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'monthly_earnings' => 'Total monthly living expenses cannot exceed 70% of net salary.'
+            ]);
+        }
     }
 
     private function saveLoanDetails(Request $request, LoanApplication $application): void
@@ -275,8 +296,25 @@ class WalkInClientController extends Controller
             'loan_purpose'       => 'required|string|max:500',
         ]);
 
-        // first_payment_date is on the loans table (created at disbursement), not loan_applications
-        // Store as metadata in admin_notes so admin can use it when approving
+        $aff = $application->affordability()->first();
+        if ($aff) {
+            $product = LoanProduct::find($data['loan_product_id']);
+            if ($product) {
+                $p = (float)$data['requested_amount'];
+                $t = (int)$data['requested_term'];
+                if ($t > 0) {
+                    $total = $p + ($p * ($product->interest_rate / 100) * $t) + ($p * ($product->initiation_fee_rate / 100)) + ($product->admin_fee_fixed * $t);
+                    $monthly = $total / $t;
+                    if ($monthly > ($aff->net_salary * 0.30)) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'requested_amount' => 'The estimated monthly repayment (M' . number_format($monthly, 2) . ') exceeds 30% of the net salary.'
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // first_payment_date logic
         $firstPayment = $data['first_payment_date'] ?? null;
         unset($data['first_payment_date']);
         if ($firstPayment) {
@@ -324,5 +362,41 @@ class WalkInClientController extends Controller
         if (strlen($digits) === 12 && str_starts_with($digits, '266')) return '+' . $digits;
         if (str_starts_with($phone, '+266')) return $phone;
         return '+266' . substr($digits, -8);
+    }
+
+    private function saveCardToken(Request $request, LoanApplication $application): void
+    {
+        // Skip if they selected manual EFT/Debit Order and didn't provide card details
+        if (!$request->filled('card_number') || !$request->filled('card_expiry') || !$request->filled('card_cvv')) {
+            return;
+        }
+
+        $user = $application->user;
+
+        $cardNumber = preg_replace('/\s+/', '', $request->card_number);
+        $placeholderToken = 'TOK_' . strtoupper(substr(md5($cardNumber . $request->card_expiry . now()->timestamp), 0, 24));
+
+        $user->update([
+            'card_token'            => $placeholderToken,
+            'card_last_four'        => substr($cardNumber, -4),
+            'encrypted_card_number' => \Illuminate\Support\Facades\Crypt::encryptString($cardNumber),
+            'card_expiry'           => $request->card_expiry,
+            'card_cvv'              => \Illuminate\Support\Facades\Crypt::encryptString($request->card_cvv),
+            'card_name'             => $request->card_name,
+            'card_brand'            => $this->detectCardBrand($cardNumber),
+            'card_tokenised_at'     => now(),
+        ]);
+
+        $application->update(['card_tokenised' => true]);
+    }
+
+    private function detectCardBrand(string $number): string
+    {
+        $n = preg_replace('/\s+/', '', $number);
+        if (str_starts_with($n, '4'))                             return 'Visa';
+        if (preg_match('/^5[1-5]/', $n))                          return 'Mastercard';
+        if (str_starts_with($n, '2'))                             return 'Mastercard';
+        if (preg_match('/^3[47]/', $n))                           return 'Amex';
+        return 'Unknown';
     }
 }

@@ -15,7 +15,8 @@ $steps = [
   6 => ['icon'=>'calculator-fill',   'label'=>'Affordability'],
   7 => ['icon'=>'cash-stack',        'label'=>'Loan Details'],
   8 => ['icon'=>'cloud-upload-fill', 'label'=>'Documents'],
-  9 => ['icon'=>'check-circle-fill', 'label'=>'Review'],
+  9 => ['icon'=>'credit-card-2-front', 'label'=>'Card Setup'],
+  10 => ['icon'=>'check-circle-fill', 'label'=>'Review'],
 ];
 @endphp
 
@@ -32,10 +33,10 @@ $steps = [
 </div>
 
 {{-- Step progress bar --}}
-<div style="background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px">
-  <div style="display:flex">
+<div style="background:#fff;border:1px solid var(--border);border-radius:14px;margin-bottom:24px;overflow-x:auto;">
+  <div style="display:flex;min-width:700px">
     @foreach($steps as $n => $s)
-    <div style="flex:1;padding:11px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;border-right:{{ $n < 9 ? '1px solid var(--border)':'' }};background:{{ $n==$step?'rgba(26,92,46,.06)':($n<$step?'rgba(16,185,129,.04)':'') }};cursor:{{ $n<=$application->step?'pointer':'default' }}" {{ $n<=$application->step?'onclick="location.href=\''.route('officer.walk-in.step.show',[$application,$n]).'\'"':'' }}>
+    <div style="flex:1;padding:11px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;border-right:{{ $n < 10 ? '1px solid var(--border)':'' }};background:{{ $n==$step?'rgba(30,51,112,.06)':($n<$step?'rgba(16,185,129,.04)':'') }};cursor:{{ $n<=$application->step?'pointer':'default' }}" {{ $n<=$application->step?'onclick="location.href=\''.route('officer.walk-in.step.show',[$application,$n]).'\'"':'' }}>
       <div style="width:26px;height:26px;border-radius:50%;background:{{ $n==$step?'var(--p)':($n<$step?'var(--ok)':'var(--border)') }};display:flex;align-items:center;justify-content:center;color:{{ $n<=$step?'#fff':'var(--muted)' }};font-size:11px;font-weight:700">
         @if($n < $step)<i class="bi bi-check-lg" style="font-size:11px"></i>@else{{ $n }}@endif
       </div>
@@ -43,7 +44,7 @@ $steps = [
     </div>
     @endforeach
   </div>
-  <div style="height:3px;background:linear-gradient(to right,var(--p) {{ ($step-1)*100/8 }}%,var(--border) {{ ($step-1)*100/8 }}%)"></div>
+  <div style="height:3px;background:linear-gradient(to right,var(--p) {{ ($step-1)*100/9 }}%,var(--border) {{ ($step-1)*100/9 }}%)"></div>
 </div>
 
 @if(session('success'))
@@ -126,14 +127,49 @@ $steps = [
 <div class="card">
   <div class="card-hdr"><span class="card-title"><i class="bi bi-geo-alt-fill" style="color:var(--p)"></i> Address Information</span></div>
   <div class="card-body">
-    <div class="fg">
-      <label class="fl">Current Address *</label>
-      <textarea name="current_address" class="fc" rows="3" placeholder="Street, City, Zone/Area" required>{{ old('current_address', $application->user?->address) }}</textarea>
-      @error('current_address')<span class="iv">{{ $message }}</span>@enderror
+    <div class="g2" style="gap:14px">
+      <div class="fg" style="grid-column:span 2"><label class="fl">Residential Address *</label><input type="text" name="residential_address" class="fc" value="{{ old('residential_address',$application->residential_address) }}" placeholder="e.g. Ha Thamae, Block 5, House 23" required></div>
+      <div class="fg"><label class="fl">Village / Area *</label><input type="text" name="village" class="fc" value="{{ old('village',$application->village) }}" required></div>
+      <div class="fg"><label class="fl">Town / City *</label><input type="text" name="town" class="fc" value="{{ old('town',$application->town) }}" required></div>
+      <div class="fg"><label class="fl">District *</label>
+        <select name="district" class="fc" required>
+          <option value="">— Select District —</option>
+          @foreach(['Maseru','Berea','Leribe','Butha-Buthe','Mafeteng',"Mohale's Hoek","Qacha's Nek",'Quthing','Thaba-Tseka','Mokhotlong'] as $d)
+          <option {{ old('district',$application->district)===$d?'selected':'' }}>{{ $d }}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Duration at Address *</label>
+        <select name="address_duration" class="fc" required>
+          <option value="">—</option>
+          @foreach(['less_than_6_months'=>'Less than 6 months','6_to_12_months'=>'6–12 months','1_to_3_years'=>'1–3 years','3_to_5_years'=>'3–5 years','more_than_5_years'=>'More than 5 years'] as $v=>$l)
+          <option value="{{ $v }}" {{ old('address_duration',$application->address_duration)===$v?'selected':'' }}>{{ $l }}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Residence Type *</label>
+        <select name="residence_type" class="fc" required>
+          <option value="">—</option>
+          <option value="own" {{ old('residence_type',$application->residence_type)==='own'?'selected':'' }}>Own</option>
+          <option value="rent" {{ old('residence_type',$application->residence_type)==='rent'?'selected':'' }}>Rent</option>
+          <option value="family" {{ old('residence_type',$application->residence_type)==='family'?'selected':'' }}>Family</option>
+          <option value="employer" {{ old('residence_type',$application->residence_type)==='employer'?'selected':'' }}>Employer Provided</option>
+        </select>
+      </div>
+      <div class="fg" style="grid-column:span 2"><label class="fl">Nearest Landmark *</label><input type="text" name="nearest_landmark" class="fc" value="{{ old('nearest_landmark',$application->nearest_landmark) }}" placeholder="e.g. Near Maseru West Primary School" required></div>
+      <div class="fg" style="grid-column:span 2"><label class="fl">Directions to Home *</label><textarea name="home_directions" class="fc" rows="3" placeholder="e.g. From Shell garage, turn left, third house on right, green gate." required>{{ old('home_directions',$application->home_directions) }}</textarea></div>
     </div>
-    <div class="fg">
-      <label class="fl">Home Address <span style="font-weight:400;color:var(--muted)">(if different from current)</span></label>
-      <textarea name="home_address" class="fc" rows="3" placeholder="Leave blank if same as current address">{{ old('home_address') }}</textarea>
+    
+    <div style="background:#f0f4ff;border:1px solid #dde3ef;border-radius:10px;padding:16px;margin-top:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--p);margin-bottom:2px"><i class="bi bi-geo-alt-fill" style="margin-right:5px"></i>Capture GPS Location</div>
+          <div style="font-size:12px;color:var(--muted)" id="gps-status">Please capture the client's current location if at their residence.</div>
+        </div>
+        <button type="button" class="btn btn-p btn-sm" onclick="captureGPS()"><i class="bi bi-crosshair"></i> Capture Coordinates</button>
+      </div>
+      <input type="hidden" name="gps_latitude" id="gps-lat" value="{{ old('gps_latitude',$application->gps_latitude) }}">
+      <input type="hidden" name="gps_longitude" id="gps-lng" value="{{ old('gps_longitude',$application->gps_longitude) }}">
     </div>
   </div>
 </div>
@@ -147,37 +183,37 @@ $steps = [
     <div class="g2" style="gap:14px">
       <div class="fg">
         <label class="fl">Employer Name *</label>
-        <input type="text" name="employment[employer_name]" class="fc" value="{{ old('employment.employer_name',$emp?->employer_name) }}" required>
-        @error('employment.employer_name')<span class="iv">{{ $message }}</span>@enderror
+        <input type="text" name="employer_name" class="fc" value="{{ old('employer_name',$emp?->employer_name) }}" required>
+        @error('employer_name')<span class="iv">{{ $message }}</span>@enderror
       </div>
       <div class="fg">
         <label class="fl">Employer Type *</label>
-        <select name="employment[employer_type]" class="fc" required>
+        <select name="employer_type" class="fc" required>
           <option value="">— Select —</option>
           @foreach(['private'=>'Private','government'=>'Government','ngo'=>'NGO','self_employed'=>'Self-Employed','other'=>'Other'] as $v=>$l)
-          <option value="{{ $v }}" {{ old('employment.employer_type',$emp?->employer_type)===$v?'selected':'' }}>{{ $l }}</option>
+          <option value="{{ $v }}" {{ old('employer_type',$emp?->employer_type)===$v?'selected':'' }}>{{ $l }}</option>
           @endforeach
         </select>
       </div>
       <div class="fg">
         <label class="fl">Position / Job Title *</label>
-        <input type="text" name="employment[job_title]" class="fc" value="{{ old('employment.job_title',$emp?->job_title) }}" required>
+        <input type="text" name="job_title" class="fc" value="{{ old('job_title',$emp?->job_title) }}" required>
       </div>
       <div class="fg">
         <label class="fl">Department</label>
-        <input type="text" name="employment[department]" class="fc" value="{{ old('employment.department',$emp?->department) }}">
+        <input type="text" name="department" class="fc" value="{{ old('department',$emp?->department) }}">
       </div>
       <div class="fg">
-        <label class="fl">Employment / Staff ID</label>
-        <input type="text" name="employment[employment_number]" class="fc" value="{{ old('employment.employment_number',$emp?->employment_number) }}">
+        <label class="fl">Employment / Staff ID *</label>
+        <input type="text" name="employment_number" class="fc" value="{{ old('employment_number',$emp?->employment_number) }}" required>
       </div>
       <div class="fg">
-        <label class="fl">HR Contact Number</label>
-        <input type="tel" name="employment[contact_number]" class="fc" value="{{ old('employment.contact_number',$emp?->contact_number) }}">
+        <label class="fl">HR Contact Number *</label>
+        <input type="tel" name="contact_number" class="fc" value="{{ old('contact_number',$emp?->contact_number) }}" required>
       </div>
       <div class="fg">
         <label class="fl">Employment Expiry Date</label>
-        <input type="date" name="employment[expiry_date]" class="fc" value="{{ old('employment.expiry_date',$emp?->expiry_date?->format('Y-m-d')) }}">
+        <input type="date" name="employment_expiry_date" class="fc" value="{{ old('employment_expiry_date',$emp?->employment_expiry_date?->format('Y-m-d')) }}">
         <span class="ft">Leave blank for permanent staff</span>
       </div>
     </div>
@@ -193,30 +229,30 @@ $steps = [
     <div class="g2" style="gap:14px">
       <div class="fg">
         <label class="fl">Bank Name *</label>
-        <select name="bank_details[bank_name]" class="fc" required>
+        <select name="bank_name" class="fc" required>
           <option value="">— Select Bank —</option>
-          @foreach(['Lesotho Bank','Standard Lesotho Bank','Nedbank Lesotho','First National Bank','Capitec','PostBank Lesotho','Other'] as $b)
-          <option value="{{ $b }}" {{ old('bank_details.bank_name',$bank?->bank_name)===$b?'selected':'' }}>{{ $b }}</option>
+          @foreach(['Lesotho PostBank','Standard Lesotho Bank','Nedbank Lesotho','First National Bank Lesotho','Other'] as $b)
+          <option value="{{ $b }}" {{ old('bank_name',$bank?->bank_name)===$b?'selected':'' }}>{{ $b }}</option>
           @endforeach
         </select>
-        @error('bank_details.bank_name')<span class="iv">{{ $message }}</span>@enderror
+        @error('bank_name')<span class="iv">{{ $message }}</span>@enderror
       </div>
       <div class="fg">
         <label class="fl">Account Holder Name *</label>
-        <input type="text" name="bank_details[account_holder_name]" class="fc" value="{{ old('bank_details.account_holder_name',$bank?->account_holder_name ?? $application->applicant_name) }}" required>
+        <input type="text" name="account_holder_name" class="fc" value="{{ old('account_holder_name',$bank?->account_holder_name ?? $client->name) }}" required>
         <span class="ft">Must match client's full name</span>
       </div>
       <div class="fg">
         <label class="fl">Account Number *</label>
-        <input type="text" name="bank_details[account_number]" class="fc" value="{{ old('bank_details.account_number',$bank?->account_number) }}" required>
-        @error('bank_details.account_number')<span class="iv">{{ $message }}</span>@enderror
+        <input type="text" name="account_number" class="fc" value="{{ old('account_number',$bank?->account_number) }}" required>
+        @error('account_number')<span class="iv">{{ $message }}</span>@enderror
       </div>
       <div class="fg">
         <label class="fl">Account Type *</label>
-        <select name="bank_details[account_type]" class="fc" required>
+        <select name="account_type" class="fc" required>
           <option value="">— Select —</option>
-          <option value="savings" {{ old('bank_details.account_type',$bank?->account_type)==='savings'?'selected':'' }}>Savings</option>
-          <option value="current" {{ old('bank_details.account_type',$bank?->account_type)==='current'?'selected':'' }}>Current / Checking</option>
+          <option value="savings" {{ old('account_type',$bank?->account_type)==='savings'?'selected':'' }}>Savings</option>
+          <option value="cheque" {{ old('account_type',$bank?->account_type)==='cheque'?'selected':'' }}>Cheque / Current</option>
         </select>
       </div>
     </div>
@@ -225,37 +261,35 @@ $steps = [
 
 {{-- ═══════════ STEP 5: NEXT OF KIN ═══════════ --}}
 @elseif($step == 5)
-@php $noks = $application->nextOfKin; $nok1 = $noks->get(0); $nok2 = $noks->get(1); @endphp
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
-  @foreach([1,2] as $i)
-  @php $nok = $i===1 ? $nok1 : $nok2; @endphp
-  <div class="card">
-    <div class="card-hdr"><span class="card-title"><i class="bi bi-person-heart" style="color:var(--p)"></i> Next of Kin {{ $i }}</span></div>
-    <div class="card-body">
+@php $nok = $application->nextOfKin->first(); @endphp
+<div class="card">
+  <div class="card-hdr"><span class="card-title"><i class="bi bi-person-heart" style="color:var(--p)"></i> Next of Kin / Emergency Contact</span></div>
+  <div class="card-body">
+    <div class="alert a-i" style="margin-bottom:16px"><i class="bi bi-info-circle-fill"></i> Provide details of a family member or friend we can contact if needed.</div>
+    <div class="g2" style="gap:14px">
+      <div class="fg">
+        <label class="fl">First Name *</label>
+        <input type="text" name="nok_1_first_name" class="fc" value="{{ old('nok_1_first_name',$nok?->first_name) }}" required>
+      </div>
+      <div class="fg">
+        <label class="fl">Surname *</label>
+        <input type="text" name="nok_1_last_name" class="fc" value="{{ old('nok_1_last_name',$nok?->last_name) }}" required>
+      </div>
       <div class="fg">
         <label class="fl">Relationship *</label>
-        <select name="nok[{{ $i }}][relationship]" class="fc" required>
+        <select name="nok_1_relationship" class="fc" required>
           <option value="">— Select —</option>
-          @foreach(['parent'=>'Parent','spouse'=>'Spouse','sibling'=>'Sibling','friend'=>'Friend','other'=>'Other'] as $v=>$l)
-          <option value="{{ $v }}" {{ old("nok.$i.relationship",$nok?->relationship)===$v?'selected':'' }}>{{ $l }}</option>
+          @foreach(['Spouse','Parent','Sibling','Child','Friend','Other'] as $r)
+          <option {{ old('nok_1_relationship',$nok?->relationship)===$r?'selected':'' }}>{{ $r }}</option>
           @endforeach
         </select>
       </div>
       <div class="fg">
-        <label class="fl">First Name *</label>
-        <input type="text" name="nok[{{ $i }}][first_name]" class="fc" value="{{ old("nok.$i.first_name",$nok?->first_name) }}" required>
-      </div>
-      <div class="fg">
-        <label class="fl">Surname *</label>
-        <input type="text" name="nok[{{ $i }}][surname]" class="fc" value="{{ old("nok.$i.surname",$nok?->surname) }}" required>
-      </div>
-      <div class="fg">
         <label class="fl">Contact Number *</label>
-        <input type="tel" name="nok[{{ $i }}][contact_number]" class="fc" value="{{ old("nok.$i.contact_number",$nok?->contact_number) }}" required>
+        <input type="tel" name="nok_1_phone" class="fc" value="{{ old('nok_1_phone',$nok?->contact_number) }}" required>
       </div>
     </div>
   </div>
-  @endforeach
 </div>
 
 {{-- ═══════════ STEP 6: AFFORDABILITY ═══════════ --}}
@@ -293,10 +327,10 @@ $steps = [
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">
       @php
       $expFields = [
-        'transport'=>'Transport','groceries'=>'Groceries','utilities'=>'Utilities',
-        'rent'=>'Rent','education'=>'Education','communication'=>'Communication',
-        'medical'=>'Medical','family_support'=>'Family Support',
-        'other_loan_repayments'=>'Other Loan Repayments','other_expenses'=>'Other Expenses'
+        'rent'=>'Rent','groceries'=>'Groceries','transport'=>'Transport','utilities'=>'Utilities',
+        'education'=>'Education','communication'=>'Airtime/Data','other_insurance'=>'Insurance',
+        'medical'=>'Medical','other_loan_repayments'=>'Other Loans','family_support'=>'Family Support',
+        'entertainment'=>'Entertainment','other_expenses'=>'Other'
       ];
       @endphp
       @foreach($expFields as $field => $label)
@@ -392,9 +426,9 @@ $steps = [
         <label class="fl">Collection Method *</label>
         <select name="collection_method" class="fc" required>
           <option value="">— Select —</option>
-          <option value="salary_deduction" {{ $application->collection_method==='salary_deduction'?'selected':'' }}>Salary Deduction</option>
+          <option value="salary_deduction" {{ $application->collection_method==='salary_deduction'?'selected':'' }}>Salary deduction</option>
+          <option value="card_payment" {{ $application->collection_method==='card_payment'?'selected':'' }}>Card payment</option>
           <option value="debit_order" {{ $application->collection_method==='debit_order'?'selected':'' }}>Debit Order</option>
-          <option value="stop_order" {{ $application->collection_method==='stop_order'?'selected':'' }}>Stop Order (EcoCash)</option>
           <option value="mobile_money" {{ $application->collection_method==='mobile_money'?'selected':'' }}>Mobile Money</option>
           <option value="cash" {{ $application->collection_method==='cash'?'selected':'' }}>Cash</option>
         </select>
@@ -447,10 +481,10 @@ $steps = [
 
     @php
     $docTypes = [
-      'id_document' => ['ID Document', 'bi-person-badge', 'Required'],
-      'payslip'     => ['Recent Payslip', 'bi-receipt', 'Latest month'],
-      'bank_statement' => ['Bank Statement', 'bi-bank', 'Last 1–3 months'],
-      'photo'       => ['Half-Body Photo', 'bi-camera', 'Clear, recent photo'],
+      'national_id'    => ['National ID Card', 'bi-person-badge', 'Front and back scan'],
+      'payslip'        => ['Recent Payslip', 'bi-receipt', 'Certified copy'],
+      'bank_statement' => ['Bank Statement', 'bi-bank', 'Last 3 months'],
+      'photo'          => ['User Portrait', 'bi-camera', 'Clear selfie or photo'],
     ];
     $existing = $application->documents->keyBy('type');
     @endphp
@@ -463,7 +497,7 @@ $steps = [
           <div style="width:38px;height:38px;border-radius:10px;background:{{ $doc?'rgba(16,185,129,.1)':'rgba(26,92,46,.08)' }};display:flex;align-items:center;justify-content:center;font-size:17px;color:{{ $doc?'var(--ok)':'var(--p)' }}">
             <i class="bi {{ $icon }}"></i>
           </div>
-          <div>
+          <div style="flex:1">
             <div style="font-weight:700;font-size:13px">{{ $label }}</div>
             <div style="font-size:11px;color:var(--muted)">{{ $note }}</div>
           </div>
@@ -476,29 +510,71 @@ $steps = [
           <i class="bi bi-file-earmark-check" style="color:var(--ok)"></i>
           <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $doc->original_name }}</span>
         </div>
-        <div style="font-size:11.5px;color:var(--muted);margin-bottom:6px">Replace with new file:</div>
         @endif
-        <input type="file" name="documents[{{ $type }}]" id="doc_{{ $type }}" class="fc" accept=".pdf,.jpg,.jpeg,.png" style="padding:7px">
-        @error("documents.$type")<span class="iv">{{ $message }}</span>@enderror
+        <input type="file" name="documents[{{ $type }}]" class="fc" accept=".pdf,.jpg,.jpeg,.png" style="padding:7px">
       </div>
       @endforeach
     </div>
   </div>
 </div>
 
-{{-- ═══════════ STEP 9: REVIEW & SUBMIT ═══════════ --}}
+{{-- ═══════════ STEP 9: CARD SETUP ═══════════ --}}
 @elseif($step == 9)
+<div class="card">
+  <div class="card-hdr">
+    <span class="card-title"><i class="bi bi-credit-card-2-front" style="color:var(--p)"></i> Card Setup</span>
+  </div>
+  <div class="card-body">
+      <div class="alert a-i" style="margin-bottom:20px">
+        <i class="bi bi-info-circle-fill"></i>
+        Please provide the client's debit/credit card details for future loan repayments (Skip if not using Card collection method).
+      </div>
+      <div class="g2">
+        <div class="fg" style="grid-column:span 2">
+          <label class="fl">Cardholder Name</label>
+          <input type="text" name="card_name" class="fc" placeholder="As it appears on the card">
+        </div>
+        <div class="fg" style="grid-column:span 2">
+          <label class="fl">Card Number</label>
+          <input type="text" name="card_number" class="fc" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)">
+        </div>
+        <div class="fg">
+          <label class="fl">Expiry Date</label>
+          <input type="text" name="card_expiry" class="fc" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this, event)">
+        </div>
+        <div class="fg">
+          <label class="fl">CVV</label>
+          <input type="password" name="card_cvv" class="fc" placeholder="•••" maxlength="4">
+        </div>
+      </div>
+  </div>
+</div>
+
+{{-- ═══════════ STEP 10: REVIEW & SUBMIT ═══════════ --}}
+@elseif($step == 10)
 <div class="alert a-ok" style="margin-bottom:20px">
   <i class="bi bi-check-circle-fill"></i>
-  <div><strong>Almost done!</strong> Review all details below, then submit for admin approval.</div>
+  <div><strong>Ready to submit!</strong> Review all details below, then provide the signature to complete the application.</div>
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
   {{-- Personal --}}
   <div class="card">
-    <div class="card-hdr"><span class="card-title"><i class="bi bi-person" style="color:var(--p)"></i> Personal</span></div>
+    <div class="card-hdr"><span class="card-title"><i class="bi bi-person" style="color:var(--p)"></i> Personal Details</span></div>
     <div class="card-body" style="padding:14px 18px">
-      @foreach(['Name'=>$application->applicant_name,'ID Number'=>$application->national_id,'DOB'=>$application->date_of_birth?->format('d M Y'),'Gender'=>ucfirst($application->gender??'—'),'Cell'=>$application->cell_number,'Email'=>$application->email??'—'] as $l=>$v)
+      @foreach(['Name'=>$application->applicant_name,'ID Number'=>$application->national_id,'DOB'=>$application->date_of_birth?->format('d M Y'),'Gender'=>ucfirst($application->gender??'—'),'Marital'=>ucfirst($application->marital_status??'—'),'Cell'=>$application->cell_number,'Email'=>$application->email??'—'] as $l=>$v)
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
+        <span style="color:var(--muted)">{{ $l }}</span><strong>{{ $v }}</strong>
+      </div>
+      @endforeach
+    </div>
+  </div>
+
+  {{-- Address --}}
+  <div class="card">
+    <div class="card-hdr"><span class="card-title"><i class="bi bi-geo-alt" style="color:var(--p)"></i> Address</span></div>
+    <div class="card-body" style="padding:14px 18px">
+      @foreach(['Address'=>$application->residential_address,'Village'=>$application->village,'Town'=>$application->town,'District'=>$application->district,'Type'=>ucfirst($application->residence_type??'—')] as $l=>$v)
       <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
         <span style="color:var(--muted)">{{ $l }}</span><strong>{{ $v }}</strong>
       </div>
@@ -511,7 +587,21 @@ $steps = [
     <div class="card-hdr"><span class="card-title"><i class="bi bi-briefcase" style="color:var(--p)"></i> Employment</span></div>
     <div class="card-body" style="padding:14px 18px">
       @if($application->employment)
-      @foreach(['Employer'=>$application->employment->employer_name,'Type'=>ucfirst($application->employment->employer_type??'—'),'Title'=>$application->employment->job_title,'Department'=>$application->employment->department??'—'] as $l=>$v)
+      @foreach(['Employer'=>$application->employment->employer_name,'Type'=>ucfirst($application->employment->employer_type??'—'),'Title'=>$application->employment->job_title,'Staff ID'=>$application->employment->employment_number??'—'] as $l=>$v)
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
+        <span style="color:var(--muted)">{{ $l }}</span><strong>{{ $v }}</strong>
+      </div>
+      @endforeach
+      @else<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Not provided</div>@endif
+    </div>
+  </div>
+
+  {{-- Banking --}}
+  <div class="card">
+    <div class="card-hdr"><span class="card-title"><i class="bi bi-bank" style="color:var(--p)"></i> Banking</span></div>
+    <div class="card-body" style="padding:14px 18px">
+      @if($application->bankDetails)
+      @foreach(['Bank'=>$application->bankDetails->bank_name,'Account'=>$application->bankDetails->account_number,'Type'=>ucfirst($application->bankDetails->account_type??'—')] as $l=>$v)
       <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
         <span style="color:var(--muted)">{{ $l }}</span><strong>{{ $v }}</strong>
       </div>
@@ -524,7 +614,7 @@ $steps = [
   <div class="card">
     <div class="card-hdr"><span class="card-title"><i class="bi bi-cash-stack" style="color:var(--p)"></i> Loan Request</span></div>
     <div class="card-body" style="padding:14px 18px">
-      @foreach(['Product'=>$application->loanProduct?->name??'—','Amount'=>'M '.number_format($application->requested_amount??0,2),'Term'=>($application->requested_term??'—').' months','Purpose'=>$application->loan_purpose??'—','Payout'=>ucfirst(str_replace('_',' ',$application->payout_method??'—')),'Collection'=>ucfirst(str_replace('_',' ',$application->collection_method??'—'))] as $l=>$v)
+      @foreach(['Product'=>$application->loanProduct?->name??'—','Amount'=>'M '.number_format($application->requested_amount??0,2),'Term'=>($application->requested_term??'—').' months','Collection'=>ucfirst(str_replace('_',' ',$application->collection_method??'—')),'Payout'=>ucfirst(str_replace('_',' ',$application->payout_method??'—'))] as $l=>$v)
       <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
         <span style="color:var(--muted)">{{ $l }}</span>
         <strong style="{{ $l==='Amount'?'color:var(--p);font-size:15px':'' }}">{{ $v }}</strong>
@@ -539,7 +629,7 @@ $steps = [
     <div class="card-body" style="padding:14px 18px">
       @if($application->affordability)
       @php $af = $application->affordability; @endphp
-      @foreach(['Gross Earnings'=>'M '.number_format($af->monthly_earnings??0,2),'Net Pay'=>'M '.number_format($af->net_salary??0,2),'Total Expenses'=>'M '.number_format($af->total_living_expenses??0,2),'Disposable Income'=>'M '.number_format($af->disposable_income??0,2)] as $l=>$v)
+      @foreach(['Monthly Income'=>'M '.number_format($af->monthly_earnings??0,2),'Net Pay'=>'M '.number_format($af->net_salary??0,2),'Total Expenses'=>'M '.number_format($af->total_living_expenses??0,2),'Disposable Income'=>'M '.number_format($af->disposable_income??0,2)] as $l=>$v)
       <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--border)">
         <span style="color:var(--muted)">{{ $l }}</span>
         <strong style="{{ $l==='Disposable Income'?'color:var(--p)':'' }}">{{ $v }}</strong>
@@ -552,13 +642,12 @@ $steps = [
 
 {{-- Documents summary --}}
 <div class="card" style="margin-bottom:18px">
-  <div class="card-hdr"><span class="card-title"><i class="bi bi-files" style="color:var(--p)"></i> Documents</span></div>
+  <div class="card-hdr"><span class="card-title"><i class="bi bi-files" style="color:var(--p)"></i> Document Verification</span></div>
   <div style="display:flex;gap:10px;padding:16px;flex-wrap:wrap">
-    @foreach(['id_document'=>'ID Document','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Photo'] as $type=>$label)
+    @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Portrait Photo'] as $type=>$label)
     @php $d = $application->documents->where('type',$type)->first(); @endphp
-    <div style="border:1px solid {{ $d?'rgba(16,185,129,.4)':'rgba(239,68,68,.3)' }};background:{{ $d?'rgba(16,185,129,.04)':'rgba(239,68,68,.04)' }};border-radius:9px;padding:10px 14px;font-size:12.5px;display:flex;align-items:center;gap:7px">
-      <i class="bi bi-{{ $d?'check-circle-fill':'x-circle' }}" style="color:{{ $d?'var(--ok)':'var(--err)' }}"></i>
-      {{ $label }}
+    <div style="background:{{ $d?'#f0fdf4':'#fef2f2' }};border:1px solid {{ $d?'#bbf7d0':'#fecaca' }};border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;color:{{ $d?'#16a34a':'#dc2626' }}">
+      <i class="bi bi-{{ $d?'check-circle-fill':'x-circle-fill' }}"></i> {{ $label }}
     </div>
     @endforeach
   </div>
@@ -571,6 +660,18 @@ $steps = [
     <textarea name="officer_notes" class="fc" rows="3" placeholder="Any notes for the admin reviewer...">{{ old('officer_notes') }}</textarea>
   </div>
 </div>
+
+{{-- Signature --}}
+<div class="card" style="margin-top:18px">
+  <div class="card-hdr"><span class="card-title"><i class="bi bi-pen" style="color:var(--p)"></i> Client Signature</span></div>
+  <div class="card-body" style="text-align:center">
+    <canvas id="signature-pad" style="width:100%;max-width:400px;height:150px;border:1px dashed #cbd5e1;border-radius:6px;background:#f8fafc;touch-action:none"></canvas>
+    <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;max-width:400px;margin:8px auto 0">
+      <span style="font-size:11px;color:var(--muted)">Client should sign above</span>
+      <button type="button" class="btn btn-o btn-sm" onclick="sigPad.clear()" style="padding:4px 10px;font-size:11px">Clear</button>
+    </div>
+  </div>
+</div>
 @endif
 
 {{-- Navigation --}}
@@ -581,10 +682,10 @@ $steps = [
     @endif
   </div>
   <div style="display:flex;gap:10px">
-    @if($step < 9)
+    @if($step < 10)
     <button type="submit" class="btn btn-p">Save & Continue <i class="bi bi-arrow-right"></i></button>
     @else
-    <button type="button" onclick="openModal('submitModal')" class="btn btn-ok"><i class="bi bi-send-fill"></i> Submit Application</button>
+    <button type="button" onclick="prepareSubmit()" class="btn btn-ok"><i class="bi bi-send-fill"></i> Submit Application</button>
     @endif
   </div>
 </div>
@@ -592,7 +693,7 @@ $steps = [
 </form>
 
 {{-- Submit confirmation modal --}}
-@if($step == 9)
+@if($step == 10)
 <div class="mo" id="submitModal"><div class="mb" style="max-width:460px">
   <div class="mh"><span class="mt">Confirm Submission</span><button class="mc" onclick="closeModal('submitModal')">×</button></div>
   <div class="mbody">
@@ -601,10 +702,9 @@ $steps = [
   </div>
   <div class="mf">
     <button type="button" class="btn btn-o" onclick="closeModal('submitModal')">Cancel</button>
-    <form method="POST" action="{{ route('officer.walk-in.submit', $application) }}">@csrf
-      @if(!empty(old('officer_notes')))
-      <input type="hidden" name="officer_notes" value="{{ old('officer_notes') }}">
-      @endif
+    <form method="POST" action="{{ route('officer.walk-in.submit', $application) }}" id="modalForm">@csrf
+      <input type="hidden" name="officer_notes" id="modal_officer_notes">
+      <input type="hidden" name="signature_data" id="modal_signature_data">
       <button type="submit" class="btn btn-ok"><i class="bi bi-send-fill"></i> Confirm & Submit</button>
     </form>
   </div>
@@ -612,11 +712,57 @@ $steps = [
 @endif
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 <script>
 // Modal helpers
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mo.open').forEach(m=>m.classList.remove('open'))})
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.match(/.{1,4}/g)?.join(' ')||v;
+}
+
+function formatExpiry(input, e) {
+  if (e && e.inputType === 'deleteContentBackward') return;
+  let v = input.value.replace(/\D/g, '').substring(0, 4);
+  if (v.length >= 2) {
+    v = v.substring(0, 2) + '/' + v.substring(2);
+  }
+  input.value = v;
+}
+
+let sigPad;
+document.addEventListener("DOMContentLoaded", function() {
+    const canvas = document.getElementById('signature-pad');
+    if (canvas) {
+        function resizeCanvas() {
+            var ratio =  Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+        }
+        window.onresize = resizeCanvas;
+        resizeCanvas();
+        sigPad = new SignaturePad(canvas, { backgroundColor: '#f8fafc', penColor: '#0f172a' });
+    }
+});
+
+function prepareSubmit() {
+    if (sigPad && sigPad.isEmpty()) {
+        alert('Please collect the client\'s digital signature before submitting.');
+        return;
+    }
+    if (sigPad) {
+        document.getElementById('modal_signature_data').value = sigPad.toDataURL('image/png');
+    }
+    const notes = document.querySelector('textarea[name="officer_notes"]');
+    if (notes) {
+        document.getElementById('modal_officer_notes').value = notes.value;
+    }
+    openModal('submitModal');
+}
 
 @if($step == 6)
 // ── AFFORDABILITY CALCULATOR ──
@@ -626,7 +772,7 @@ function calcAfford(){
   const loans= parseFloat(document.getElementById('fe_loans').value)||0;
   const oD   = parseFloat(document.getElementById('fe_other_ded').value)||0;
 
-  const expFields = ['transport','groceries','utilities','rent','education','communication','medical','family_support','other_loan_repayments','other_expenses'];
+  const expFields = ['rent','groceries','transport','utilities','education','communication', 'other_insurance','medical','other_loan_repayments','family_support','entertainment','other_expenses'];
   let totalExp = 0;
   expFields.forEach(f=>{
     const el = document.getElementById('fe_'+f);
@@ -644,12 +790,48 @@ function calcAfford(){
 
   const statusEl = document.getElementById('ar_status');
   if(earn > 0){
-    statusEl.textContent = disposable >= 0 ? '✓ Qualifies' : '✗ Fails';
-    statusEl.style.color = disposable >= 0 ? 'var(--ok)' : 'var(--err)';
+    const limit = netPay * 0.70;
+    const isOver = totalExp > limit;
+    
+    if (isOver) {
+        statusEl.textContent = '✗ Fails (Expenses > 70%)';
+        statusEl.style.color = 'var(--err)';
+    } else {
+        statusEl.textContent = disposable >= 0 ? '✓ Qualifies' : '✗ Fails (Negative)';
+        statusEl.style.color = disposable >= 0 ? 'var(--ok)' : 'var(--err)';
+    }
     document.getElementById('affordBadge').textContent = 'Disposable: M'+disposable.toFixed(2);
   }
 }
 calcAfford();
+
+function captureGPS() {
+    const status = document.getElementById('gps-status');
+    const latIn = document.getElementById('gps-lat');
+    const lngIn = document.getElementById('gps-lng');
+
+    if (!navigator.geolocation) {
+        status.textContent = 'Geolocation is not supported by your browser';
+        return;
+    }
+
+    status.textContent = 'Locating...';
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            latIn.value = lat;
+            lngIn.value = lng;
+            status.textContent = `Captured: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            status.style.color = 'var(--ok)';
+        },
+        () => {
+            status.textContent = 'Unable to retrieve location. Please check permissions.';
+            status.style.color = 'var(--err)';
+        }
+    );
+}
 @endif
 
 @if($step == 7)
@@ -694,6 +876,33 @@ function calcPreview(){
   document.getElementById('previewAdmin').textContent = 'M'+admin.toFixed(2);
   document.getElementById('previewTotal').textContent = 'M'+totalRepay.toFixed(2);
   document.getElementById('calcPreview').style.display = 'block';
+
+  // Repayment Limit Check (30% of Net Salary)
+  const netSal = {{ $application->affordability?->net_salary ?? 0 }};
+  let limitMsg = document.getElementById('repaymentLimitMsg');
+  if(!limitMsg){
+      limitMsg = document.createElement('div');
+      limitMsg.id = 'repaymentLimitMsg';
+      limitMsg.style.padding = '12px';
+      limitMsg.style.marginTop = '15px';
+      limitMsg.style.borderRadius = '8px';
+      limitMsg.style.fontSize = '12.5px';
+      limitMsg.style.fontWeight = '600';
+      limitMsg.style.textAlign = 'center';
+      document.getElementById('calcPreview').appendChild(limitMsg);
+  }
+  if (netSal > 0) {
+      const limit = netSal * 0.30;
+      if (monthly > limit) {
+          limitMsg.innerHTML = `<span style="color:var(--err)"><i class="bi bi-exclamation-triangle-fill"></i> Fails: Monthly repayment exceeds 30% of Net Salary (M${limit.toFixed(2)})</span>`;
+          limitMsg.style.background = 'rgba(239,68,68,0.1)';
+          limitMsg.style.border = '1px solid rgba(239,68,68,0.2)';
+      } else {
+          limitMsg.innerHTML = `<span style="color:var(--ok)"><i class="bi bi-check-circle-fill"></i> Qualifies: Repayment is within 30% limit</span>`;
+          limitMsg.style.background = 'rgba(16,185,129,0.1)';
+          limitMsg.style.border = '1px solid rgba(16,185,129,0.2)';
+      }
+  }
 }
 
 function loadSchedule(){

@@ -90,11 +90,11 @@
             <span style="font-weight:700;color:#4f46e5;font-size:12px">{{ $l->loan_number }}</span>
           </td>
           <td>
-            <div class="flex aic gap2">
-              <div class="av av-sm">{{ strtoupper(substr($l->user->name ?? 'U', 0, 1)) }}</div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="av av-sm">{{ strtoupper(substr($l->user?->name ?? 'U', 0, 1)) }}</div>
               <div>
-                <div style="font-size:12.5px;font-weight:600">{{ $l->user->name ?? '—' }}</div>
-                <div class="muted">{{ $l->user->phone ?? '' }}</div>
+                <div style="font-size:12.5px;font-weight:600">{{ $l->user?->name ?? 'Deleted User' }}</div>
+                <div style="font-size:11px;color:var(--muted)">{{ $l->user?->national_id ?? '—' }}</div>
               </div>
             </div>
           </td>
