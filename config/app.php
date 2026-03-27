@@ -7,7 +7,7 @@ return [
     "background_video"=>env("APP_BACKGROUND_VIDEO", "storage/video/mixkit-top-view-of-financial-accounting-with-coins-and-glasses-33435-medium.mp4"),
     "debug"=>(bool)env("APP_DEBUG",false),
     "url"=>env("APP_URL","http://localhost"),
-    "timezone"=>"UTC",
+    "timezone"=>"Africa/Maseru",
     "locale"=>"en",
     "fallback_locale"=>"en",
     "faker_locale"=>"en_US",
