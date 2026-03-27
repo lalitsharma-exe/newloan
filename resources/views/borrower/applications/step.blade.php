@@ -273,12 +273,36 @@ $totalSteps = 10;
           @else<span class="badge be">Required</span>@endif
         </div>
         @if(!$existing || $existing->status==='rejected')
-          <div style="display:flex;gap:6px">
-            <input type="file" id="file_{{ $dtype }}" class="fc" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required style="flex:1;padding:6px;font-size:12px">
-            <input type="file" id="cam_{{ $dtype }}" accept="image/*" capture="environment" style="display:none" onchange="const df=new DataTransfer();df.items.add(this.files[0]);document.getElementById('file_{{ $dtype }}').files=df.files;uploadDoc('{{ $dtype }}', document.getElementById('btn_{{ $dtype }}'))">
-            <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('cam_{{ $dtype }}').click()" title="Take Photo" style="padding:4px 10px"><i class="bi bi-camera" style="font-size:16px"></i></button>
-            <button type="button" id="btn_{{ $dtype }}" class="btn btn-p btn-sm" onclick="uploadDoc('{{ $dtype }}', this)">Upload</button>
-          </div>
+          @if($dtype === 'photo')
+            <div id="live_cam_section_{{ $dtype }}">
+              <div id="cam_container_{{ $dtype }}" style="display:none; text-align:center; margin-bottom: 10px;">
+                <video id="video_{{ $dtype }}" autoplay playsinline style="width:100%; max-width: 300px; border-radius: 8px; border: 1px solid var(--border);"></video>
+                <canvas id="canvas_{{ $dtype }}" style="display:none;"></canvas>
+                <div style="margin-top:10px; display:flex; gap: 10px; justify-content: center;">
+                  <button type="button" class="btn btn-p btn-sm" onclick="captureLivePhoto('{{ $dtype }}')"><i class="bi bi-camera"></i> Capture</button>
+                  <button type="button" class="btn btn-o btn-sm" onclick="stopLiveCam('{{ $dtype }}')">Cancel</button>
+                </div>
+              </div>
+              <div id="cam_preview_container_{{ $dtype }}" style="display:none; text-align:center; margin-bottom: 10px;">
+                <img id="photo_preview_{{ $dtype }}" style="width:100%; max-width: 300px; border-radius: 8px; border: 1px solid var(--border);" />
+                <div style="margin-top:10px; display:flex; gap: 10px; justify-content: center;">
+                  <button type="button" class="btn btn-o btn-sm" onclick="retakeLivePhoto('{{ $dtype }}')"><i class="bi bi-arrow-counterclockwise"></i> Retake</button>
+                  <button type="button" id="btn_{{ $dtype }}" class="btn btn-ok btn-sm" onclick="uploadLivePhoto('{{ $dtype }}', this)"><i class="bi bi-upload"></i> Upload</button>
+                </div>
+              </div>
+              <div id="cam_start_btn_{{ $dtype }}">
+                <button type="button" class="btn btn-o btn-sm w-100" onclick="startLiveCam('{{ $dtype }}')"><i class="bi bi-camera-video"></i> Open Camera for Live Selfie</button>
+                <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center;">For fraud prevention, only live photos are accepted.</div>
+              </div>
+            </div>
+          @else
+            <div style="display:flex;gap:6px">
+              <input type="file" id="file_{{ $dtype }}" class="fc" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required style="flex:1;padding:6px;font-size:12px">
+              <input type="file" id="cam_{{ $dtype }}" accept="image/*" capture="environment" style="display:none" onchange="const df=new DataTransfer();df.items.add(this.files[0]);document.getElementById('file_{{ $dtype }}').files=df.files;uploadDoc('{{ $dtype }}', document.getElementById('btn_{{ $dtype }}'))">
+              <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('cam_{{ $dtype }}').click()" title="Take Photo" style="padding:4px 10px"><i class="bi bi-camera" style="font-size:16px"></i></button>
+              <button type="button" id="btn_{{ $dtype }}" class="btn btn-p btn-sm" onclick="uploadDoc('{{ $dtype }}', this)">Upload</button>
+            </div>
+          @endif
 
         @else
         <div style="font-size:12.5px;color:var(--muted)"><i class="bi bi-check-circle-fill" style="color:var(--ok)"></i> {{ $existing->original_name }}</div>
@@ -370,7 +394,7 @@ $totalSteps = 10;
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
             <select name="type" class="fc" required style="padding:9px 11px;font-size:13px" form="uploadForm_step10">
               <option value="">— Document Type —</option>
-              @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Selfie Picture','other'=>'Other'] as $v=>$l)
+              @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','other'=>'Other'] as $v=>$l)
               <option value="{{ $v }}">{{ $l }}</option>
               @endforeach
             </select>
@@ -435,6 +459,86 @@ function uploadDoc(type, btn) {
         else {
             let data = await res.json().catch(()=>({}));
             alert(data.message || 'Upload failed. File type may be unsupported or too large.');
+            btn.innerHTML = oldHtml; btn.disabled = false;
+        }
+    }).catch(e => { alert('Network error'); btn.innerHTML = oldHtml; btn.disabled = false; });
+}
+
+let liveStream = null;
+let capturedBlob = null;
+
+async function startLiveCam(dtype) {
+    try {
+        liveStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+        const video = document.getElementById('video_' + dtype);
+        video.srcObject = liveStream;
+        document.getElementById('cam_container_' + dtype).style.display = 'block';
+        document.getElementById('cam_start_btn_' + dtype).style.display = 'none';
+        document.getElementById('cam_preview_container_' + dtype).style.display = 'none';
+    } catch (err) {
+        alert("Camera access denied or not available. Please allow camera permissions to take a live selfie.");
+    }
+}
+
+function stopLiveCam(dtype) {
+    if (liveStream) {
+        liveStream.getTracks().forEach(track => track.stop());
+        liveStream = null;
+    }
+    document.getElementById('cam_container_' + dtype).style.display = 'none';
+    document.getElementById('cam_start_btn_' + dtype).style.display = 'block';
+}
+
+function captureLivePhoto(dtype) {
+    const video = document.getElementById('video_' + dtype);
+    const canvas = document.getElementById('canvas_' + dtype);
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Convert to blob
+    canvas.toBlob(blob => {
+        capturedBlob = blob;
+        const preview = document.getElementById('photo_preview_' + dtype);
+        preview.src = URL.createObjectURL(blob);
+        
+        // Stop stream
+        if (liveStream) {
+            liveStream.getTracks().forEach(track => track.stop());
+            liveStream = null;
+        }
+        
+        document.getElementById('cam_container_' + dtype).style.display = 'none';
+        document.getElementById('cam_preview_container_' + dtype).style.display = 'block';
+    }, 'image/jpeg', 0.8);
+}
+
+function retakeLivePhoto(dtype) {
+    capturedBlob = null;
+    document.getElementById('cam_preview_container_' + dtype).style.display = 'none';
+    startLiveCam(dtype);
+}
+
+function uploadLivePhoto(dtype, btn) {
+    if (!capturedBlob) return alert('Please capture a photo first.');
+    let oldHtml = btn.innerHTML;
+    btn.innerHTML = 'Uploading...';
+    btn.disabled = true;
+    
+    let formData = new FormData();
+    formData.append('file', capturedBlob, 'selfie.jpg');
+    formData.append('type', dtype);
+    formData.append('_token', '{{ csrf_token() }}');
+    
+    fetch('{{ route("borrower.documents.upload.application", $application) }}', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: formData
+    }).then(async res => {
+        if (res.ok) { window.location.reload(); }
+        else {
+            let data = await res.json().catch(()=>({}));
+            alert(data.message || 'Upload failed.');
             btn.innerHTML = oldHtml; btn.disabled = false;
         }
     }).catch(e => { alert('Network error'); btn.innerHTML = oldHtml; btn.disabled = false; });

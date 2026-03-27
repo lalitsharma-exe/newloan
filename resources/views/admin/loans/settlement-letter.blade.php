@@ -26,7 +26,13 @@ body{background:#f3f4f6;padding:30px}
 .sig-block{font-size:12px;color:#6b7280}
 .sig-block .line{border-top:1px solid #374151;width:160px;margin-bottom:6px;margin-top:32px}
 .footer{border-top:1px solid #e2e8f0;padding:14px 36px;font-size:11px;color:#9ca3af;display:flex;justify-content:space-between;align-items:center}
-@media print{body{background:#fff;padding:0}.doc{box-shadow:none}.footer button{display:none}}
+@media print{
+    body{background:#fff;padding:0}
+    .doc{box-shadow:none}
+    .header{background:#fff !important;color:#065f46 !important;padding:20px 0;border-bottom:2px solid #e2e8f0}
+    .header-right{color:#374151 !important}
+    .footer button{display:none}
+}
 </style>
 </head>
 <body>

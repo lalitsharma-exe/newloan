@@ -54,9 +54,6 @@ class ApplicationController extends Controller
             'admin_notes'        => 'nullable|string|max:1000',
         ]);
 
-        $data['application_number'] = 'APP-' . str_pad(
-            LoanApplication::withTrashed()->count() + 1, 6, '0', STR_PAD_LEFT
-        );
         $data['status']       = 'submitted';
         $data['submitted_at'] = now();
 

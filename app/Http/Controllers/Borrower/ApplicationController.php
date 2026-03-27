@@ -23,7 +23,6 @@ class ApplicationController extends Controller
         $draft = LoanApplication::where('user_id', $user->id)->where('status','draft')->latest()->first();
         if (!$draft) {
             $draft = LoanApplication::create([
-                'application_number' => 'APP-' . str_pad(LoanApplication::withTrashed()->count() + 1, 6, '0', STR_PAD_LEFT),
                 'user_id'            => $user->id,
                 'status'             => 'draft',
                 'step'               => 1,

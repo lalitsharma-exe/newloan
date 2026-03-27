@@ -56,6 +56,42 @@ class LoanApplication extends Model {
     'gps_longitude'      => 'decimal:6',
 ];
 
+    // ── Booted ────────────────────────────────────────────────────
+    protected static function booted()
+    {
+        static::creating(function ($app) {
+            if ($app->status === 'submitted') {
+                $app->application_number = self::generateApplicationNumber();
+            } else {
+                $app->application_number = self::generateDraftNumber();
+            }
+        });
+
+        static::updating(function ($app) {
+            if ($app->status === 'submitted' && $app->getOriginal('status') !== 'submitted' && str_starts_with($app->application_number, 'DRF-')) {
+                $app->application_number = self::generateApplicationNumber();
+            }
+        });
+    }
+
+    // ── Application Number Generators ─────────────────────────────
+    public static function generateDraftNumber(): string {
+        return 'DRF-' . strtoupper(\Illuminate\Support\Str::random(8));
+    }
+
+    public static function generateApplicationNumber(): string {
+        $latest = self::where('application_number', 'like', 'APP-%')
+            ->orderByRaw('CAST(SUBSTRING(application_number, 5) AS UNSIGNED) DESC')
+            ->first();
+
+        if (!$latest) {
+            return 'APP-000001';
+        }
+
+        $number = (int) str_replace('APP-', '', $latest->application_number);
+        return 'APP-' . str_pad($number + 1, 6, '0', STR_PAD_LEFT);
+    }
+
     // ── Scopes ────────────────────────────────────────────────────
     public function scopeSubmitted($q)    { return $q->where('status', 'submitted'); }
     public function scopePending($q)      { return $q->whereIn('status', ['submitted','under_review','info_requested','on_hold']); }

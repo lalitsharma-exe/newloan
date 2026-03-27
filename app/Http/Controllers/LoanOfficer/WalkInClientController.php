@@ -61,7 +61,6 @@ class WalkInClientController extends Controller
     public function startApplication(User $client)
     {
         $app = LoanApplication::create([
-            'application_number'  => 'APP-' . str_pad(LoanApplication::withTrashed()->count() + 1, 6, '0', STR_PAD_LEFT),
             'user_id'             => $client->id,
             'assigned_officer_id' => auth('officer')->id(),
             'status'              => 'draft',

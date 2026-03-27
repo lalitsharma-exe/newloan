@@ -25,7 +25,14 @@ h2{font-size:15px;font-weight:700;color:#1e3a5f;margin-bottom:12px;padding-botto
 .total-row{background:#f0fdf4}
 .total-row td{font-weight:800;color:#065f46;font-size:16px;padding:16px 14px}
 .footer{border-top:1px solid #e2e8f0;padding:16px 36px;font-size:12px;color:#9ca3af;display:flex;justify-content:space-between;align-items:center}
-@media print{body{background:#fff;padding:0}.doc{box-shadow:none;border-radius:0;max-width:none}.footer button{display:none}}
+@media print{
+    body{background:#fff;padding:0;}
+    .doc{box-shadow:none;border-radius:0;max-width:none;}
+    .header{background:#fff !important;color:#1e3a5f !important;padding:20px 0;border-bottom:2px solid #e2e8f0;}
+    .header img{filter:none !important;}
+    .header .header-right strong{color:#475569 !important;}
+    .footer button{display:none;}
+}
 </style>
 </head>
 <body>
@@ -55,6 +62,8 @@ h2{font-size:15px;font-weight:700;color:#1e3a5f;margin-bottom:12px;padding-botto
         <div class="info-grid">
             <div class="info-item"><div class="lbl">Full Name</div><div class="val">{{ $loan->user?->name ?? 'Deleted User' }}</div></div>
             <div class="info-item"><div class="lbl">Loan Number</div><div class="val">{{ $loan->loan_number }}</div></div>
+            <div class="info-item"><div class="lbl">Employer</div><div class="val">{{ $loan->application?->employment?->employer_name ?? '—' }}</div></div>
+            <div class="info-item"><div class="lbl">Employee ID</div><div class="val">{{ $loan->application?->employment?->employment_number ?? '—' }}</div></div>
             <div class="info-item"><div class="lbl">Product</div><div class="val">{{ $loan->loanProduct?->name ?? '—' }}</div></div>
             <div class="info-item"><div class="lbl">Disbursement Date</div><div class="val">{{ $loan->disbursement_date?->format('d M Y') ?? '—' }}</div></div>
             <div class="info-item"><div class="lbl">Maturity Date</div><div class="val">{{ $loan->maturity_date?->format('d M Y') ?? '—' }}</div></div>

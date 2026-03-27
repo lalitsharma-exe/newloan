@@ -60,7 +60,6 @@ class AuthController extends Controller
         // Pre-fill draft application with registration data
         $nameParts = explode(' ', trim($user->name), 2);
         \App\Models\LoanApplication::create([
-            'application_number' => 'APP-' . str_pad(\App\Models\LoanApplication::withTrashed()->count() + 1, 6, '0', STR_PAD_LEFT),
             'user_id'            => $user->id,
             'status'             => 'draft',
             'step'               => 1,
