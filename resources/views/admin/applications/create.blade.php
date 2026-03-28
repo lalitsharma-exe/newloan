@@ -400,24 +400,39 @@ function fetchBorrowerInfo(userId) {
 
 // ── AFFORDABILITY CALCULATOR ───────────────────────────────────────────────
 function calcAffordability() {
-  const net     = parseFloat(document.getElementById('netSalary').value) || 0;
-  const existing= parseFloat(document.getElementById('existingLoans').value) || 0;
-  const other   = parseFloat(document.getElementById('otherDeductions').value) || 0;
-  if (!net) { document.getElementById('affordResult').style.display='none'; return; }
+  const gross    = parseFloat(document.getElementById('grossSalary').value) || 0;
+  const existing = parseFloat(document.getElementById('existingLoans').value) || 0;
+  const other    = parseFloat(document.getElementById('otherDeductions').value) || 0;
+  const net      = gross - existing - other;
+  
+  // Set net salary value manually if they typed it directly
+  const manualNet = parseFloat(document.getElementById('netSalary').value);
+  const finalNet = isNaN(manualNet) ? net : manualNet;
 
-  const limit       = net * 0.30;
-  const available   = Math.max(0, limit - existing - other);
-  const qualifies   = available > 0;
+  if (finalNet <= 0) { 
+    document.getElementById('affordResult').style.display='none'; 
+    return; 
+  }
 
-  document.getElementById('ar-net').textContent     = 'M' + net.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('ar-limit').textContent   = 'M' + limit.toFixed(2);
-  document.getElementById('ar-qualify').textContent = 'M' + available.toFixed(2);
+  // Common rule: 30% of GROSS is the total allowed deductions
+  const totalLimit = gross * 0.30;
+  const available  = Math.max(0, totalLimit - existing); // remaining room for new loan
+  
+  // Alternative rule: 40% of NET for installment
+  const netLimit = finalNet * 0.40; 
+  const qualifyValue = Math.min(available > 0 ? available : netLimit, netLimit);
+
+  const qualifies = qualifyValue > 100;
+
+  document.getElementById('ar-net').textContent     = 'M' + finalNet.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('ar-limit').textContent   = 'M' + totalLimit.toFixed(2);
+  document.getElementById('ar-qualify').textContent = 'M' + qualifyValue.toFixed(2);
   document.getElementById('ar-qualify').style.color = qualifies ? 'var(--ok)' : 'var(--err)';
 
   const msg = document.getElementById('ar-message');
   if (qualifies) {
     msg.style.background = '#d1fae5'; msg.style.color = '#065f46'; msg.style.border = '1px solid #a7f3d0';
-    msg.innerHTML = '<i class="bi bi-check-circle-fill"></i> Borrower can afford a loan whose monthly installment does not exceed <strong>M' + available.toFixed(2) + '</strong>. The loan amount and period will be set in the next step.';
+    msg.innerHTML = '<i class="bi bi-check-circle-fill"></i> Borrower can afford a loan whose monthly installment does not exceed <strong>M' + qualifyValue.toFixed(2) + '</strong>. The loan amount and period will be set in the next step.';
   } else {
     msg.style.background = '#fee2e2'; msg.style.color = '#991b1b'; msg.style.border = '1px solid #fca5a5';
     msg.innerHTML = '<i class="bi bi-x-circle-fill"></i> Borrower does not qualify — existing deductions exceed the 30% affordability limit';
@@ -428,12 +443,12 @@ function calcAffordability() {
   document.getElementById('affordResult').style.display = 'block';
 
   // Carry to step 3
-  document.getElementById('hiddenNetSalary').value = net;
-  document.getElementById('hiddenMaxLoan').value   = available;
+  document.getElementById('hiddenNetSalary').value = finalNet;
+  document.getElementById('hiddenMaxLoan').value   = qualifyValue;
 
   // Show hint in step 3
   document.getElementById('affordHint').textContent =
-    available > 0 ? 'Max monthly installment: M' + available.toFixed(2) : '';
+    qualifyValue > 0 ? 'Max monthly installment: M' + qualifyValue.toFixed(2) : '';
 }
 
 // ── FLAT INTEREST CALCULATOR (matches backend exactly) ─────────────────────

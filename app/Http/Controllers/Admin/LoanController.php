@@ -98,6 +98,13 @@ class LoanController extends Controller
             }
         }
 
+        // ── Block if CPay API failed ──────────────────────────────────────────
+        // (Admins can still record manually by selecting 'cash' or turning off API)
+        if ($cpayError && $method !== 'cash') {
+            return back()->with('error', "CPay API Disbursement FAILED: {$cpayError}. The loan status has NOT been updated. Please check the logs or try again.")
+                         ->withInput();
+        }
+
         // ── Update loan record ────────────────────────────────────────────────
         $loan->update([
             'status'                 => 'active',

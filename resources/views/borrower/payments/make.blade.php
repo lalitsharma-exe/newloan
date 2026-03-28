@@ -20,9 +20,17 @@
   </div>
   @else
   @if($cpayIsSandbox)
-  <div style="background:rgba(79,70,229,.06);border:1px solid rgba(79,70,229,.2);border-radius:11px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:13px;color:#4338ca">
-    <i class="bi bi-shield-check"></i>
-    <div><strong>Sandbox Mode</strong> — CPay UAT active. No real money will be moved.</div>
+  <div style="background:rgba(79,70,229,.06);border:1px solid rgba(79,70,229,.2);border-radius:11px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#4338ca">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <i class="bi bi-shield-check"></i>
+      <strong>Sandbox Mode Active</strong>
+    </div>
+    <div style="font-size:12px;opacity:0.8;line-height:1.5">
+      CPay UAT is active. Use these <strong>test numbers</strong> for Mobile Money:<br>
+      • <code style="background:rgba(0,0,0,0.1);padding:1px 4px;border-radius:3px">22000001</code> (Success)<br>
+      • <code style="background:rgba(0,0,0,0.1);padding:1px 4px;border-radius:3px">22000002</code> (Insufficient Funds)<br>
+      Note: Real phone numbers will return <em>"Wallet account does not exist"</em> in Sandbox.
+    </div>
   </div>
   @endif
   @endif
@@ -190,7 +198,7 @@
             <input type="tel" name="phone" class="fc"
               value="{{ auth('borrower')->user()->phone }}"
               placeholder="+26653000000"
-              style="font-size:14px">
+              style="font-size:14px" disabled>
           </div>
         </div>
 
@@ -248,10 +256,19 @@ function switchMethod(method, loanId) {
     selected.style.background = bgs[method];
   }
 
-  // Show/hide info boxes
-  document.getElementById(`mmInfo${loanId}`).style.display     = method === 'mobile_money' ? '' : 'none';
-  document.getElementById(`cardInfo${loanId}`).style.display   = method === 'card'         ? '' : 'none';
-  document.getElementById(`walletInfo${loanId}`).style.display = method === 'cpay_wallet'  ? '' : 'none';
+  // Show/hide info boxes AND disable/enable inputs so they don't conflict
+  const mm = document.getElementById(`mmInfo${loanId}`);
+  const card = document.getElementById(`cardInfo${loanId}`);
+  const wallet = document.getElementById(`walletInfo${loanId}`);
+
+  mm.style.display = method === 'mobile_money' ? '' : 'none';
+  mm.querySelectorAll('input').forEach(i => i.disabled = (method !== 'mobile_money'));
+
+  card.style.display = method === 'card' ? '' : 'none';
+  card.querySelectorAll('input').forEach(i => i.disabled = (method !== 'card'));
+
+  wallet.style.display = method === 'cpay_wallet' ? '' : 'none';
+  wallet.querySelectorAll('input').forEach(i => i.disabled = (method !== 'cpay_wallet'));
 
   // Update summary
   const icons   = { mobile_money:'bi-phone-fill', card:'bi-credit-card-fill', cpay_wallet:'bi-wallet2' };

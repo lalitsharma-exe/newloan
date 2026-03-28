@@ -82,22 +82,28 @@ class CPayService
 
         // Card payments don't need otpMedium; mobile/wallet do
         if (!$isCard) {
-            $inner['otpMedium'] = 'sms';
+            $inner['otpMedium'] = $this->sandbox ? 'email' : 'sms';
         }
 
         $body = ['transactionRequest' => $inner];
 
-        // Card payments add ?cardPayment=true query param
+        // API Endpoint & Params
         $endpoint = $isCard
             ? '/api/cpaypayments/payment?cardPayment=true'
             : '/api/cpaypayments/payment';
+
+        // In Sandbox email mode, we MUST provide the email in query param
+        if (!$isCard && $this->sandbox) {
+            $userEmail = auth('borrower')->user()->email ?? 'test@example.com';
+            $endpoint .= (str_contains($endpoint, '?') ? '&' : '?') . 'email=' . urlencode($userEmail);
+        }
 
         Log::info('CPay::initiateRepayment', [
             'txnId'    => $txnId,
             'amount'   => $amount,
             'msisdn'   => $msisdn,
             'method'   => $method,
-            'isCard'   => $isCard,
+            'otpMedium' => $inner['otpMedium'] ?? 'N/A',
         ]);
 
         $result = $this->post($endpoint, $body, 'initiateRepayment');
@@ -162,28 +168,82 @@ class CPayService
         $amount = number_format((float) $loan->principal_amount, 2, '.', '');
         $msisdn = $this->normalisePhone($phone);
 
+        $msisdn8 = $this->msisdn($phone);
+        $app     = $loan->application;
+
         $body = [
             'transactionRequest' => [
                 'transactionRequest' => [
                     'extTransactionId' => $txnId,
                     'clientCode'       => $this->clientCode,
-                    'msisdn'           => $msisdn,
+                    'msisdn'           => $msisdn8,
                     'amount'           => $amount,
-                    'shortDescription' => 'Loan disbursement ' . $loan->loan_number,
-                    'checksum'         => $this->checksumInitiate($txnId, $amount, $msisdn),
+                    'shortDescription' => 'Disburse ' . substr($loan->loan_number, 0, 10),
+                    'checksum'         => $this->checksumInitiate($txnId, $amount, $msisdn8),
                     'currency'         => 'LSL',
+                    'otp'              => '',
+                    'otpMedium'        => 'sms',
                     'redirectUrl'      => url(route('webhooks.payment')),
-                    'additionalData'   => 'loan:' . $loan->loan_number,
+                    'additionalData'   => [
+                        'recipientKyc' => [
+                            'idDocument' => [
+                                [
+                                    'idType'        => 'ID',
+                                    'idNumber'      => $app->national_id ?? '123456789098', // Fallback to Sandbox test ID
+                                    'expiryDate'    => '2030-12-31',
+                                    'issuerCountry' => 'LS',
+                                ]
+                            ],
+                            'firstName'     => $app->first_name ?? 'Ared',
+                            'middleName'    => '',
+                            'lastName'      => $app->surname ?? 'TUNCARA',
+                            'fullName'      => $loan->user->name ?? 'Ared TUNCARA',
+                            'gender'        => $app->gender ?? 'MALE',
+                            'sourceOfFunds' => 'Loan Disbursal',
+                        ],
+                        // Duplicate as customerKYC to handle documentation ambiguity
+                        'customerKYC' => [
+                            'idDocument' => [
+                                [
+                                    'idType'        => 'ID',
+                                    'idNumber'      => $app->national_id ?? '123456789098',
+                                    'expiryDate'    => '2030-12-31',
+                                    'issuerCountry' => 'LS',
+                                ]
+                            ],
+                            'firstName'     => $app->first_name ?? 'Ared',
+                            'lastName'      => $app->surname ?? 'TUNCARA',
+                            'fullName'      => $loan->user->name ?? 'Ared TUNCARA',
+                        ],
+                    ],
                 ],
             ],
         ];
 
+        $providerSlug = strtolower($provider);
+        if ($providerSlug === 'vodacom' || $providerSlug === 'mpesa') $providerSlug = 'mpesa';
+        if ($providerSlug === 'econet'  || $providerSlug === 'ecocash') $providerSlug = 'ecocash';
+        if ($providerSlug === 'cpay') $providerSlug = 'CPAY'; // Uppercase per doc note
+
         $queryParams = [
-            'destinationOperator'     => strtoupper($provider),
-            'destinationWalletNumber' => $this->msisdn($phone),
+            'destinationOperator'     => $providerSlug,
+            'destinationWalletNumber' => $msisdn8,
         ];
 
-        return $this->postWithQuery('/api/disbursements/external-payment', $queryParams, $body, 'disburseExternal');
+        return $this->postWithQuery('/api/disbursements/wallet-topup-advance', $queryParams, $body, 'disburseExternal');
+    }
+
+    /**
+     * Disburse loan funds directly to borrower's CPay Wallet.
+     * Endpoint: POST /api/disbursements/wallet-payment
+     */
+    public function disburseToWallet(Loan $loan, string $phone, string $reference): array
+    {
+        $txnId  = $this->generateTxnId($reference);
+        $amount = number_format((float) $loan->principal_amount, 2, '.', '');
+        $msisdn = $this->normalisePhone($phone);
+
+        return $this->disburseExternal($loan, $phone, 'CPAY', $reference);
     }
 
     /**
@@ -367,11 +427,12 @@ class CPayService
             ];
         }
 
-        $err = $response->json('description')
-            ?? $response->json('Description')
-            ?? $response->json('message')
-            ?? $response->json('error')
-            ?? "HTTP {$response->status()}";
+        $data = $response->json()['return'] ?? $response->json() ?? [];
+        $err  = $data['Description'] 
+              ?? $data['description'] 
+              ?? $data['message'] 
+              ?? $data['error'] 
+              ?? ($response->json('Description') ?? $response->json('description') ?? "HTTP {$response->status()}");
 
         Log::warning("CPay::{$context} failed", [
             'http_status' => $response->status(),
@@ -384,6 +445,7 @@ class CPayService
             'error'       => $err,
             'status'      => 'FAILED',
             'http_status' => $response->status(),
+            'body'        => $response->json(),
         ];
     }
 }

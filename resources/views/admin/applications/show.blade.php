@@ -222,7 +222,8 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
           </div>
           <div style="background:#f0fdf4;border-radius:10px;padding:16px;text-align:center;border:1px solid #bbf7d0">
             <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Net Salary</div>
-            <div style="font-size:24px;font-weight:800;color:#16a34a">M{{ number_format($a->net_salary??0,2) }}</div>
+            @php $netSalMatch = ($a->monthly_earnings??0) - $totalDed; @endphp
+            <div style="font-size:24px;font-weight:800;color:#16a34a">M{{ number_format($netSalMatch,2) }}</div>
           </div>
         </div>
 
@@ -506,7 +507,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
           <div class="fg" style="margin-bottom:0"><label class="fl">Amount (M)</label><input type="number" id="schAmt" class="fc" style="width:150px" value="{{ $application->approved_amount ?? $application->requested_amount }}" step="0.01"></div>
           <div class="fg" style="margin-bottom:0"><label class="fl">Rate (%/mo)</label><input type="number" id="schRate" class="fc" style="width:130px" value="{{ $application->approved_interest_rate ?? $application->loanProduct?->interest_rate ?? 0 }}" step="0.01"></div>
           <div class="fg" style="margin-bottom:0"><label class="fl">Term (months)</label><input type="number" id="schTerm" class="fc" style="width:130px" value="{{ $application->approved_term ?? $application->requested_term }}"></div>
-          <div style="display:flex;align-items:flex-end"><button onclick="previewSchedule()" class="btn btn-p"><i class="bi bi-table"></i> Generate</button></div>
+          <div style="display:flex;align-items:end"><button onclick="previewSchedule()" class="btn btn-p"><i class="bi bi-table"></i> Generate</button></div>
         </div>
         <div id="scheduleResult" style="overflow-x:auto"></div>
       </div>
@@ -629,22 +630,28 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
       <div style="font-size:12px;color:var(--muted);margin-bottom:16px;text-align:center">Update the borrower's income and living expenses to recalculate affordability.</div>
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--p);margin-bottom:8px">Income & Deductions</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
-        <div class="fg"><label class="fl">Gross / Basic Salary (M)</label><input type="number" name="monthly_earnings" class="fc" value="{{ $a->monthly_earnings ?? '' }}" step="0.01" required></div>
-        <div class="fg"><label class="fl">Tax Deduction (M)</label><input type="number" name="tax_deduction" class="fc" value="{{ $a->tax_deduction ?? '' }}" step="0.01"></div>
-        <div class="fg"><label class="fl">Existing Loans Ded. (M)</label><input type="number" name="existing_loans_deduction" class="fc" value="{{ $a->existing_loans_deduction ?? '' }}" step="0.01"></div>
-        <div class="fg"><label class="fl">Other Deductions (M)</label><input type="number" name="other_deductions" class="fc" value="{{ $a->other_deductions ?? '' }}" step="0.01"></div>
+        <div class="fg"><label class="fl">Gross / Basic Salary (M)</label><input type="number" name="monthly_earnings" id="aff-gross" class="fc" value="{{ $a->monthly_earnings ?? '' }}" step="0.01" required oninput="liveAfford()"></div>
+        <div class="fg"><label class="fl">Tax Deduction (M)</label><input type="number" name="tax_deduction" id="aff-tax" class="fc" value="{{ $a->tax_deduction ?? '' }}" step="0.01" oninput="liveAfford()"></div>
+        <div class="fg"><label class="fl">Existing Loans Ded. (M)</label><input type="number" name="existing_loans_deduction" id="aff-loans" class="fc" value="{{ $a->existing_loans_deduction ?? '' }}" step="0.01" oninput="liveAfford()"></div>
+        <div class="fg"><label class="fl">Other Deductions (M)</label><input type="number" name="other_deductions" id="aff-other" class="fc" value="{{ $a->other_deductions ?? '' }}" step="0.01" oninput="liveAfford()"></div>
       </div>
+      
+      <div id="affordPreview" style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="text-align:center"><div style="font-size:10px;color:var(--muted);font-weight:600">PREVIEW TOTAL DED.</div><div style="font-size:18px;font-weight:800;color:#dc2626" id="pre-total-ded">—</div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:var(--muted);font-weight:600">PREVIEW NET SALARY</div><div style="font-size:18px;font-weight:800;color:#16a34a" id="pre-net-salary">—</div></div>
+      </div>
+
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--p);margin-bottom:8px">Living Expenses</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
-        <div class="fg"><label class="fl">Rent</label><input type="number" name="rent" class="fc" value="{{ $a->rent ?? '' }}" step="0.01"></div>
-        <div class="fg"><label class="fl">Groceries</label><input type="number" name="groceries" class="fc" value="{{ $a->groceries ?? '' }}" step="0.01"></div>
-        <div class="fg"><label class="fl">Transport</label><input type="number" name="transport" class="fc" value="{{ $a->transport ?? '' }}" step="0.01"></div>
-        <div class="fg"><label class="fl">Utilities</label><input type="number" name="utilities" class="fc" value="{{ $a->utilities ?? '' }}" step="0.01"></div>
-        <div class="fg"><label class="fl">Education</label><input type="number" name="education" class="fc" value="{{ $a->education ?? '' }}" step="0.01"></div>
-        <div class="fg"><label class="fl">Communication</label><input type="number" name="communication" class="fc" value="{{ $a->communication ?? '' }}" step="0.01"></div>
-        <div class="fg"><label class="fl">Medical</label><input type="number" name="medical" class="fc" value="{{ $a->medical ?? '' }}" step="0.01"></div>
-        <div class="fg"><label class="fl">Other Loans</label><input type="number" name="other_loan_repayments" class="fc" value="{{ $a->other_loan_repayments ?? '' }}" step="0.01"></div>
-        <div class="fg"><label class="fl">Other Exp.</label><input type="number" name="other_expenses" class="fc" value="{{ $a->other_expenses ?? '' }}" step="0.01"></div>
+        <div class="fg"><label class="fl">Rent</label><input type="number" name="rent" class="fc aff-exp" value="{{ $a->rent ?? '' }}" step="0.01" oninput="liveAfford()"></div>
+        <div class="fg"><label class="fl">Groceries</label><input type="number" name="groceries" class="fc aff-exp" value="{{ $a->groceries ?? '' }}" step="0.01" oninput="liveAfford()"></div>
+        <div class="fg"><label class="fl">Transport</label><input type="number" name="transport" class="fc aff-exp" value="{{ $a->transport ?? '' }}" step="0.01" oninput="liveAfford()"></div>
+        <div class="fg"><label class="fl">Utilities</label><input type="number" name="utilities" class="fc aff-exp" value="{{ $a->utilities ?? '' }}" step="0.01" oninput="liveAfford()"></div>
+        <div class="fg"><label class="fl">Education</label><input type="number" name="education" class="fc aff-exp" value="{{ $a->education ?? '' }}" step="0.01" oninput="liveAfford()"></div>
+        <div class="fg"><label class="fl">Communication</label><input type="number" name="communication" class="fc aff-exp" value="{{ $a->communication ?? '' }}" step="0.01" oninput="liveAfford()"></div>
+        <div class="fg"><label class="fl">Medical</label><input type="number" name="medical" class="fc aff-exp" value="{{ $a->medical ?? '' }}" step="0.01" oninput="liveAfford()"></div>
+        <div class="fg"><label class="fl">Other Loans</label><input type="number" name="other_loan_repayments" class="fc aff-exp" value="{{ $a->other_loan_repayments ?? '' }}" step="0.01" oninput="liveAfford()"></div>
+        <div class="fg"><label class="fl">Other Exp.</label><input type="number" name="other_expenses" class="fc aff-exp" value="{{ $a->other_expenses ?? '' }}" step="0.01" oninput="liveAfford()"></div>
       </div>
     </div>
     <div class="mf"><button type="button" class="btn btn-o" onclick="closeModal('affordModal')">Cancel</button><button type="submit" class="btn btn-p">Save Affordability</button></div>
@@ -679,6 +686,19 @@ function liveCalc() {
   const netSal={{ (float)($application->affordability?->net_salary ?? 0) }};
   const warn=document.getElementById('mc-afford');
   if(warn&&netSal>0){const limit=netSal*0.3;if(c.monthly>limit){warn.style.display='block';warn.textContent='⚠ Monthly M'+c.monthly.toFixed(2)+' exceeds 30% limit M'+limit.toFixed(2);}else warn.style.display='none';}
+}
+
+function liveAfford() {
+  const gross = parseFloat(document.getElementById('aff-gross').value) || 0;
+  const tax = parseFloat(document.getElementById('aff-tax').value) || 0;
+  const loans = parseFloat(document.getElementById('aff-loans').value) || 0;
+  const other = parseFloat(document.getElementById('aff-other').value) || 0;
+  
+  const totalDed = tax + loans + other;
+  const net = gross - totalDed;
+  
+  document.getElementById('pre-total-ded').textContent = 'M ' + totalDed.toFixed(2);
+  document.getElementById('pre-net-salary').textContent = 'M ' + net.toFixed(2);
 }
 
 function previewSchedule() {

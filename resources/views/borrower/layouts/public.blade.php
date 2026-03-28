@@ -370,12 +370,12 @@ footer {
         <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-03-22%20at%205.48.11%20PM.jpeg" alt="M-Pesa">
       </div>
       <!-- CPay text -->
-      <div class="pay-logo" title="CPay">
-        <span style="color:#7ab033;font-weight:800">C</span><span>Pay</span>
+      <div class="pay-logo pay-logo-img-real" title="CPay">
+        <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-03-22%20at%205.48.12%20PM.jpeg?updatedAt=1774190687928" alt="M-Pesa">
       </div>
       <!-- EcoCash text -->
-      <div class="pay-logo" title="EcoCash">
-        <span style="color:#00a651;font-weight:800">Eco</span><span>Cash</span>
+      <div class="pay-logo pay-logo-img-real" title="EcoCash">
+        <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-03-22%20at%205.48.12%20PM%20(1).jpeg?updatedAt=1774190687934" alt="Eco-Cash">
       </div>
     </div>
 

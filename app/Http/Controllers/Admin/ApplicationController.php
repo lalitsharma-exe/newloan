@@ -104,10 +104,14 @@ class ApplicationController extends Controller
             'other_expenses'           => 'nullable|numeric|min:0',
         ]);
 
-        $application->affordability()->updateOrCreate(
+        $afford = $application->affordability()->updateOrCreate(
             ['application_id' => $application->id],
             $data
         );
+
+        // Ensure net salary and disposable income are correctly updated after edits
+        $afford->recalculate();
+        $afford->save();
 
         return redirect()->back()->with('success', 'Affordability data updated successfully.');
     }
