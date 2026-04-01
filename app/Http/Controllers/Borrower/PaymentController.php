@@ -110,19 +110,23 @@ class PaymentController extends Controller
             return view('borrower.payments.cpay-otp', [
                 'payment' => $payment,
                 'phone'   => $this->cpay->normalisePhone($phone),
-                'message' => $result['message'] ?? 'An OTP has been sent to your phone.',
+                'message' => $result['description'] ?? $result['message'] ?? 'An OTP has been sent to your phone.',
             ]);
         }
 
         // CPay rejected the initiation request
-        $payment->update(['status' => 'failed', 'notes' => 'CPay initiation error: ' . ($result['error'] ?? 'unknown')]);
+        $errMsg = $result['error'] ?? $result['description'] ?? 'Please try again.';
+        $reasonCode = $result['reason_code'] ?? null;
+        $fullErr = $reasonCode ? "[{$reasonCode}] {$errMsg}" : $errMsg;
+
+        $payment->update(['status' => 'failed', 'notes' => 'CPay error: ' . $fullErr]);
         Log::error('CPay repayment initiation failed', [
-            'ref'   => $payment->payment_reference,
-            'error' => $result['error'] ?? '',
+            'ref'    => $payment->payment_reference,
+            'error'  => $fullErr,
         ]);
 
         return redirect()->route('borrower.payments.make')
-            ->with('error', 'Payment could not be started: ' . ($result['error'] ?? 'Please try again or contact support.'));
+            ->with('error', 'Payment could not be started: ' . $fullErr);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

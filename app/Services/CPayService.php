@@ -523,18 +523,30 @@ class CPayService
 
         Log::info("CPay::{$ctx} response", ['http' => $httpStatus, 'body' => $raw]);
 
+        // Always unwrap the 'return' envelope first (CPay wraps all responses)
+        $data = $raw['return'] ?? $raw ?? [];
+
         if (!$response->successful()) {
-            $err = $raw['Description'] ?? $raw['description'] ?? $raw['message'] ?? "HTTP {$httpStatus}";
+            $err = $data['Description'] ?? $data['description']
+                ?? $data['message']     ?? $raw['Description']
+                ?? $raw['description']  ?? "HTTP {$httpStatus}";
+
+            Log::warning("CPay::{$ctx} failed", [
+                'http' => $httpStatus,
+                'err'  => $err,
+                'raw'  => $raw,
+            ]);
+
             return [
                 'success'     => false,
                 'error'       => $err,
+                'message'     => $err,
                 'status'      => 'FAILED',
                 'http_status' => $httpStatus,
-                'data'        => $raw ?? [],
+                'reason_code' => $data['ReasonCode'] ?? $data['reasonCode'] ?? null,
+                'data'        => $data,
             ];
         }
-
-        $data = $raw['return'] ?? $raw ?? [];
 
         return [
             'success'      => true,
@@ -542,6 +554,7 @@ class CPayService
             'status'       => strtoupper($data['paymentRequestStatus'] ?? $data['PaymentRequestStatus'] ?? 'PENDING'),
             'code'         => $data['statusCode']  ?? $data['StatusCode']  ?? null,
             'description'  => $data['description'] ?? $data['Description'] ?? 'OK',
+            'message'      => $data['description'] ?? $data['Description'] ?? 'OK',
             'redirect_url' => $data['redirectUrl'] ?? $data['RedirectUrl'] ?? null,
             'reason_code'  => $data['reasonCode']  ?? $data['ReasonCode']  ?? null,
             'data'         => $data,

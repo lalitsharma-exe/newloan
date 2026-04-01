@@ -73,7 +73,12 @@ class AuthController extends Controller
         \Illuminate\Support\Facades\Auth::guard('borrower')->login($user);
         $request->session()->regenerate();
         $user->update(['last_login_at' => now()]);
-        return redirect()->intended(route('borrower.dashboard'))->with('success', "Welcome, {$user->name}! Your account is ready.");
+
+        // Send OTP for phone verification
+        app(\App\Services\SmsService::class)->sendOtp($phone);
+
+        return redirect()->route('borrower.phone.verify.show')
+            ->with('success', "Welcome, {$user->name}! Please verify your phone number to continue.");
     }
 
     public function verifyEmail(Request $request, string $token) {

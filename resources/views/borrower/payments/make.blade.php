@@ -8,8 +8,18 @@
   <div style="font-size:13.5px;color:var(--muted);margin-bottom:24px">Choose your loan and preferred payment method</div>
 
   @if(session('error'))
-  <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:11px;padding:13px 16px;display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:13.5px;color:#991b1b">
-    <i class="bi bi-exclamation-circle-fill"></i> {{ session('error') }}
+  <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:11px;padding:13px 16px;margin-bottom:20px;font-size:13.5px;color:#991b1b">
+    <div style="display:flex;align-items:flex-start;gap:10px">
+      <i class="bi bi-exclamation-circle-fill" style="margin-top:2px;flex-shrink:0"></i>
+      <div>
+        {{ session('error') }}
+        @if(str_contains(session('error'), 'login') || str_contains(session('error'), 'does not exist'))
+        <div style="margin-top:8px;font-size:12px;opacity:.85">
+          <strong>Sandbox tip:</strong> Use test number <code style="background:rgba(0,0,0,.1);padding:1px 5px;border-radius:3px">22000001</code> (or contact CPay support to register your number in UAT).
+        </div>
+        @endif
+      </div>
+    </div>
   </div>
   @endif
 
@@ -140,7 +150,7 @@
 
         {{-- Method-specific instructions --}}
 
-        {{-- Mobile Money — needs phone number + explains OTP flow --}}
+        {{-- Mobile Money — explains OTP flow --}}
         <div id="mmInfo{{ $loan->id }}" style="background:rgba(43,75,173,.04);border:1px solid rgba(43,75,173,.15);border-radius:11px;padding:14px 16px;margin-bottom:16px">
           <div style="font-size:12.5px;font-weight:700;color:var(--blue);margin-bottom:8px">
             <i class="bi bi-shield-lock-fill"></i> How CPay Mobile Payment works
@@ -151,18 +161,7 @@
             3. Enter the <strong>OTP</strong> on the next screen to confirm<br>
             4. Payment is processed and applied ✓
           </div>
-          <div class="fg" style="margin-top:12px;margin-bottom:0">
-            <label class="fl">Mobile Phone Number (for OTP)</label>
-            <input type="tel" name="phone" class="fc"
-              value="{{ auth('borrower')->user()->phone }}"
-              placeholder="+26653000000"
-              style="font-size:14px">
-            <div style="font-size:11.5px;color:var(--muted);margin-top:4px">
-              <i class="bi bi-info-circle"></i> The OTP will be sent to this number via SMS
-            </div>
-          </div>
         </div>
-
 
         {{-- Card — explains hosted page redirect --}}
         <div id="cardInfo{{ $loan->id }}" style="display:none;background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.2);border-radius:11px;padding:14px 16px;margin-bottom:16px">
@@ -193,12 +192,17 @@
             3. Approve the payment in the app or enter your CPay PIN<br>
             4. Payment applied automatically ✓
           </div>
-          <div class="fg" style="margin-top:12px;margin-bottom:0">
-            <label class="fl">CPay Wallet Phone Number</label>
-            <input type="tel" name="phone" class="fc"
-              value="{{ auth('borrower')->user()->phone }}"
-              placeholder="+26653000000"
-              style="font-size:14px" disabled>
+        </div>
+
+        {{-- SINGLE shared phone input (card payments hide it entirely) --}}
+        <div class="fg" id="phoneField{{ $loan->id }}">
+          <label class="fl" id="phoneLabel{{ $loan->id }}">Mobile Phone Number (for OTP)</label>
+          <input type="tel" name="phone" id="phoneInput{{ $loan->id }}" class="fc"
+            value="{{ auth('borrower')->user()->phone }}"
+            placeholder="e.g. 22000001 or +26622000001"
+            style="font-size:15px;font-weight:600">
+          <div style="font-size:11.5px;color:var(--muted);margin-top:4px" id="phoneHint{{ $loan->id }}">
+            <i class="bi bi-info-circle"></i> OTP will be sent to this number via SMS
           </div>
         </div>
 
@@ -240,11 +244,10 @@
 
 <script>
 function switchMethod(method, loanId) {
-  // Deactivate all method options for this loan
+  // Deactivate all method option buttons
   document.querySelectorAll(`.method-opt[data-loan="${loanId}"]`).forEach(el => {
     el.style.border = '2px solid var(--border)';
     el.style.background = '';
-    el.classList.remove('active-method');
   });
 
   // Activate selected
@@ -256,23 +259,35 @@ function switchMethod(method, loanId) {
     selected.style.background = bgs[method];
   }
 
-  // Show/hide info boxes AND disable/enable inputs so they don't conflict
-  const mm = document.getElementById(`mmInfo${loanId}`);
-  const card = document.getElementById(`cardInfo${loanId}`);
-  const wallet = document.getElementById(`walletInfo${loanId}`);
+  // Show/hide info boxes
+  document.getElementById(`mmInfo${loanId}`).style.display     = method === 'mobile_money' ? '' : 'none';
+  document.getElementById(`cardInfo${loanId}`).style.display   = method === 'card' ? '' : 'none';
+  document.getElementById(`walletInfo${loanId}`).style.display = method === 'cpay_wallet' ? '' : 'none';
 
-  mm.style.display = method === 'mobile_money' ? '' : 'none';
-  mm.querySelectorAll('input').forEach(i => i.disabled = (method !== 'mobile_money'));
+  // Shared phone field — hide for card (no phone needed), show + relabel for others
+  const phoneField = document.getElementById(`phoneField${loanId}`);
+  const phoneLabel = document.getElementById(`phoneLabel${loanId}`);
+  const phoneHint  = document.getElementById(`phoneHint${loanId}`);
+  const phoneInput = document.getElementById(`phoneInput${loanId}`);
 
-  card.style.display = method === 'card' ? '' : 'none';
-  card.querySelectorAll('input').forEach(i => i.disabled = (method !== 'card'));
+  if (method === 'card') {
+    phoneField.style.display = 'none';
+    phoneInput.disabled = true;   // don't submit for card
+  } else {
+    phoneField.style.display = '';
+    phoneInput.disabled = false;
+    if (method === 'cpay_wallet') {
+      phoneLabel.textContent = 'CPay Wallet Phone Number';
+      phoneHint.innerHTML = '<i class="bi bi-info-circle"></i> Your CPay wallet must be linked to this number';
+    } else {
+      phoneLabel.textContent = 'Mobile Phone Number (for OTP)';
+      phoneHint.innerHTML = '<i class="bi bi-info-circle"></i> OTP will be sent to this number via SMS';
+    }
+  }
 
-  wallet.style.display = method === 'cpay_wallet' ? '' : 'none';
-  wallet.querySelectorAll('input').forEach(i => i.disabled = (method !== 'cpay_wallet'));
-
-  // Update summary
-  const icons   = { mobile_money:'bi-phone-fill', card:'bi-credit-card-fill', cpay_wallet:'bi-wallet2' };
-  const labels  = { mobile_money:'Mobile Money', card:'Card Payment', cpay_wallet:'CPay Wallet' };
+  // Update summary icon/label
+  const icons  = { mobile_money:'bi-phone-fill', card:'bi-credit-card-fill', cpay_wallet:'bi-wallet2' };
+  const labels = { mobile_money:'Mobile Money',  card:'Card Payment',        cpay_wallet:'CPay Wallet' };
   document.getElementById(`summaryMethod${loanId}`).innerHTML =
     `<i class="bi ${icons[method]}" style="font-size:20px;display:block;margin-bottom:4px"></i>${labels[method]}`;
 }

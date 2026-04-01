@@ -45,4 +45,18 @@ return [
         'live_url'    => env('CPAY_LIVE_URL', 'https://api.chaperone.co.ls'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | BulkSMS South Africa — SMS Gateway
+    |--------------------------------------------------------------------------
+    | Used for phone number verification OTPs at registration.
+    | Get credentials at: https://bulksmssouthafrica.co.za
+    |--------------------------------------------------------------------------
+    */
+    'bulksms' => [
+        'username' => env('BULKSMS_USERNAME', ''),
+        'password' => env('BULKSMS_PASSWORD', ''),
+        'sender'   => env('BULKSMS_SENDER', 'MyLoan'),
+    ],
+
 ];

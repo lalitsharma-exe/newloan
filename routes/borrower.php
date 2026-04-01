@@ -58,6 +58,13 @@ Route::prefix('portal')->name('borrower.')->group(function () {
         Route::post('/reset-password',          [AuthController::class, 'resetPassword'])->name('password.update');
     });
 
+    // ── Phone Verification (auth required, unverified) ──────────────────────
+    Route::middleware('auth:borrower')->group(function () {
+        Route::get('/verify-phone',  [\App\Http\Controllers\Borrower\PhoneVerificationController::class, 'show'])->name('phone.verify.show');
+        Route::post('/verify-phone', [\App\Http\Controllers\Borrower\PhoneVerificationController::class, 'verify'])->name('phone.verify');
+        Route::post('/verify-phone/resend', [\App\Http\Controllers\Borrower\PhoneVerificationController::class, 'resend'])->name('phone.resend');
+    });
+
     // Email verification notice (after register, before confirming)
     Route::get('/email-verification-pending', fn() => view('borrower.auth.verify-pending'))->name('verify.pending');
 
