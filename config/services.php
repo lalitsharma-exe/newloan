@@ -37,13 +37,15 @@ return [
     |--------------------------------------------------------------------------
     */
     'cpay' => [
-        'client_code' => env('CPAY_CLIENT_CODE', ''),
-        'api_key'     => env('CPAY_API_KEY', ''),
-        'secret_key'  => env('CPAY_SECRET_KEY', ''),
-        'sandbox'     => env('CPAY_SANDBOX', true),
-        'sandbox_url' => 'https://cpay-uat-env.chaperone.co.ls:5100',
-        'live_url'    => env('CPAY_LIVE_URL', 'https://api.chaperone.co.ls'),
+        'client_code'   => env('CPAY_CLIENT_CODE', ''),
+        'api_key'       => env('CPAY_API_KEY', ''),
+        'secret_key'    => env('CPAY_SECRET_KEY', ''),
+        'merchant_code' => env('CPAY_MERCHANT_CODE', ''),
+        'sandbox'       => env('CPAY_SANDBOX', true),
+        'sandbox_url'   => 'https://cpay-uat-env.chaperone.co.ls:5100',
+        'live_url'      => env('CPAY_LIVE_URL', 'https://api.chaperone.co.ls'),
     ],
+
 
     /*
     |--------------------------------------------------------------------------

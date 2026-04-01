@@ -1,70 +1,74 @@
 #!/usr/bin/env php
 <?php
-
 /**
- * CPay Direct Test Script
- * Run: php cpay_test.php [test]
+ * CPay UAT Direct Test Script v2.0
+ * Usage: php cpay_test.php [command]
  *
- * Tests:
- *   php cpay_test.php mobile     — initiate mobile money repayment (OTP)
- *   php cpay_test.php confirm    — confirm OTP (edit $otp below first)
- *   php cpay_test.php card       — initiate card payment
- *   php cpay_test.php checksum   — verify checksum via CPay's own endpoint
- *   php cpay_test.php status     — query transaction status
- *   php cpay_test.php disburse   — external disbursement (MPesa)
- *   php cpay_test.php wallet     — wallet top-up advance
- *   php cpay_test.php all        — run mobile + checksum + status
+ *   checksum   verify checksum calculation matches CPay
+ *   mobile     initiate OTP payment (step 1)
+ *   confirm    confirm OTP (step 2) — set FIXED_TXN_ID + TEST_OTP first
+ *   async      USSD push async payment
+ *   card       card payment (returns HTML redirect)
+ *   status     check transaction status (set FIXED_TXN_ID first)
+ *   list       list recent transactions for this merchant
+ *   disburse   external disbursement (MPesa)
+ *   wallet     CPay wallet top-up advance (with KYC)
+ *   all        run checksum + mobile + async
  */
 
-// ============================================================
-// HARDCODED CONFIG — edit these
-// ============================================================
-const BASE_URL    = 'https://cpay-uat-env.chaperone.co.ls:5100';
-const API_KEY     = 'XUCZxmSxQ10qkCRmx4wS9fflZjTnvlbTWlwYzcI4mO4=';
-const CLIENT_CODE = 'MYLOAN_LTD8465';
-const SECRET_KEY  = '6vmQlo';
+// ================================================================
+// CONFIG
+// ================================================================
+define('BASE_URL',      'https://cpay-uat-env.chaperone.co.ls:5100');
+define('API_KEY',       'bECUOonmbsAbJ6F8ZKd5Yo5/d251KKjV15kqb4zWI18=');
+define('CLIENT_CODE',   'MYLOAN18374');
+define('SECRET_KEY',    'TGq9jD');
+define('MERCHANT_CODE', '8374');
 
-// Test MSISDN — 8-digit format as confirmed by CPay team
-// Replace with the number CPay registers for you in UAT
-const TEST_MSISDN = '50123456';
+// 8-digit local MSISDN — change to your CPay-registered test number
+define('TEST_MSISDN',  '58145851');  // Provided by CPay support (Titisi)
+define('TEST_AMOUNT',  '10.00');
 
-// For confirm test — paste the OTP CPay SMS'd to TEST_MSISDN
-const TEST_OTP    = '123456';
+// For confirm test: paste OTP CPay sent, and the extTransactionId from mobile
+define('TEST_OTP',     '123456');    // ← replace with OTP Titisi receives on his phone
+define('FIXED_TXN_ID', 'OTP-F3D52005-1775061593');  // ← from last mobile run
 
-// Transaction IDs — auto-generated, but you can hardcode for status/confirm tests
-const FIXED_TXN_ID = 'TEST-' . TEST_MSISDN . '-' . '001';
+// Public HTTPS URL for card/async callbacks (use ngrok locally)
+define('REDIRECT_URL', 'https://your-ngrok-url.ngrok.io/webhooks/payment');
+// ================================================================
 
-// Loan details for disbursement tests
-const LOAN_NUMBER = 'LOAN-TEST-001';
-const TEST_AMOUNT = '10.00';   // Keep small for sandbox
-
-// Redirect URL — must be publicly reachable for card payments
-// Use ngrok locally: ngrok http 8000 → paste the https URL here
-const REDIRECT_URL = 'https://your-ngrok-url.ngrok.io/webhooks/payment';
-// ============================================================
-
-$test = $argv[1] ?? 'mobile';
+$test = $argv[1] ?? 'help';
 
 echo "\n";
 echo "╔══════════════════════════════════════════════════╗\n";
-echo "║         CPay UAT Direct Test — v1.1              ║\n";
+echo "║      CPay UAT Test — v2.0 (MYLOAN18374)         ║\n";
 echo "╚══════════════════════════════════════════════════╝\n";
-echo "Base URL:    " . BASE_URL    . "\n";
-echo "Client Code: " . CLIENT_CODE . "\n";
-echo "MSISDN:      " . TEST_MSISDN . "\n";
-echo "Amount:      " . TEST_AMOUNT . "\n";
-echo "Test:        " . $test       . "\n\n";
+echo "  Client Code  : " . CLIENT_CODE   . "\n";
+echo "  Merchant Code: " . MERCHANT_CODE . "\n";
+echo "  MSISDN       : " . TEST_MSISDN   . "\n";
+echo "  Amount       : " . TEST_AMOUNT   . "\n";
+echo "  Test         : " . $test         . "\n\n";
 
-// ============================================================
+// ================================================================
 // HELPERS
-// ============================================================
+// ================================================================
 
 function txnId(string $prefix = 'TEST'): string
 {
-    return strtoupper($prefix) . '-' . strtoupper(substr(md5(uniqid()), 0, 8)) . '-' . time();
+    return strtoupper($prefix) . '-' . strtoupper(substr(md5(uniqid('', true)), 0, 8)) . '-' . time();
 }
 
-function checksum(string $txnId, string $amount, string $msisdn, string $otp = ''): string
+function fixedOrNew(string $prefix = 'TEST'): string
+{
+    return FIXED_TXN_ID === 'AUTO' ? txnId($prefix) : FIXED_TXN_ID;
+}
+
+/**
+ * CHECKSUM: HMAC-SHA256
+ * Salt (initiate):  txnId + clientCode + amount + msisdn
+ * Salt (confirm):   txnId + clientCode + amount + msisdn + otp
+ */
+function checksumCalc(string $txnId, string $amount, string $msisdn, string $otp = ''): string
 {
     $salt = $txnId . CLIENT_CODE . $amount . $msisdn . $otp;
     $hash = hash_hmac('sha256', $salt, SECRET_KEY);
@@ -73,7 +77,7 @@ function checksum(string $txnId, string $amount, string $msisdn, string $otp = '
     return $hash;
 }
 
-function request(string $method, string $endpoint, array $body = [], array $query = []): void
+function req(string $method, string $endpoint, array $body = [], array $query = []): mixed
 {
     $url = BASE_URL . $endpoint;
     if ($query) {
@@ -86,7 +90,6 @@ function request(string $method, string $endpoint, array $body = [], array $quer
     echo "  │ {$method} {$url}\n";
     echo "  │ Authorization: " . API_KEY . "\n";
     if ($bodyJson) {
-        echo "  │ Body:\n";
         foreach (explode("\n", $bodyJson) as $line) {
             echo "  │   {$line}\n";
         }
@@ -98,7 +101,7 @@ function request(string $method, string $endpoint, array $body = [], array $quer
         CURLOPT_CUSTOMREQUEST  => $method,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 30,
-        CURLOPT_SSL_VERIFYPEER => false,   // UAT cert may be self-signed
+        CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false,
         CURLOPT_HTTPHEADER     => [
             'Authorization: ' . API_KEY,
@@ -108,18 +111,30 @@ function request(string $method, string $endpoint, array $body = [], array $quer
         CURLOPT_POSTFIELDS => $bodyJson ?: null,
     ]);
 
-    $raw        = curl_exec($ch);
-    $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError  = curl_error($ch);
+    $raw     = curl_exec($ch);
+    $http    = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr = curl_error($ch);
     curl_close($ch);
 
     echo "  ┌─ RESPONSE ─────────────────────────────────────\n";
-    echo "  │ HTTP Status: {$httpStatus}\n";
+    echo "  │ HTTP: {$http}\n";
 
-    if ($curlError) {
-        echo "  │ cURL Error: {$curlError}\n";
+    if ($curlErr) {
+        echo "  │ ❌ cURL Error: {$curlErr}\n";
         echo "  └────────────────────────────────────────────────\n\n";
-        return;
+        return null;
+    }
+
+    // Detect HTML (card payment)
+    if (trim($raw) && str_starts_with(trim($raw), '<')) {
+        echo "  │ [HTML response — card redirect page, " . strlen($raw) . " bytes]\n";
+        if (preg_match('/content=["\']0;url=([^"\']+)["\']/', $raw, $m)) {
+            echo "  │ ✅ Redirect URL: {$m[1]}\n";
+        } elseif (preg_match('/action=["\']([^"\']+)["\']/', $raw, $m)) {
+            echo "  │ 📝 Form action: {$m[1]}\n";
+        }
+        echo "  └────────────────────────────────────────────────\n\n";
+        return $raw;
     }
 
     $decoded = json_decode($raw, true);
@@ -128,146 +143,57 @@ function request(string $method, string $endpoint, array $body = [], array $quer
         echo "  │ {$line}\n";
     }
 
-    $status = $decoded['paymentRequestStatus']
-        ?? $decoded['PaymentRequestStatus']
-        ?? $decoded['StatusCode']
-        ?? $decoded['statusCode']
-        ?? '—';
-    $desc   = $decoded['Description'] ?? $decoded['description'] ?? '—';
-    $reason = $decoded['ReasonCode']  ?? $decoded['reasonCode']  ?? '—';
+    $data   = $decoded['return'] ?? $decoded ?? [];
+    $status = $data['paymentRequestStatus'] ?? $data['PaymentRequestStatus']
+           ?? $data['statusCode']           ?? $data['StatusCode']   ?? '—';
+    $desc   = $data['description'] ?? $data['Description'] ?? '—';
+    $reason = $data['reasonCode']  ?? $data['ReasonCode']  ?? '—';
+    $cid    = $data['cPayTransactionId']  ?? $data['CPayTransactionId']  ?? '—';
 
     echo "  ├─ PARSED ───────────────────────────────────────\n";
     echo "  │ Status:      {$status}\n";
     echo "  │ Description: {$desc}\n";
     echo "  │ ReasonCode:  {$reason}\n";
+    if ($cid !== '—') echo "  │ CPay TxnId:  {$cid}\n";
 
-    if ($httpStatus >= 200 && $httpStatus < 300) {
-        echo "  │ ✓ SUCCESS\n";
+    if ($http >= 200 && $http < 300) {
+        echo "  │ ✅ SUCCESS\n";
     } else {
-        echo "  │ ✗ FAILED\n";
+        echo "  │ ❌ FAILED (HTTP {$http})\n";
+        if ($reason === 'validationFailure' || str_contains(strtolower($desc), 'does not exist')) {
+            echo "  │ 💡 MSISDN not registered in CPay UAT.\n";
+            echo "  │    Email: apisupport@chaperone.co.ls\n";
+            echo "  │    Ask:   Register " . TEST_MSISDN . " for client MYLOAN18374\n";
+        } elseif ($reason === 'checksumError') {
+            echo "  │ 💡 Checksum mismatch. Run: php cpay_test.php checksum\n";
+        } elseif ($http === 401) {
+            echo "  │ 💡 Invalid API Key — check API_KEY constant.\n";
+        }
     }
     echo "  └────────────────────────────────────────────────\n\n";
+
+    return $decoded;
 }
 
-// ============================================================
-// TESTS
-// ============================================================
-
-function testMobileMoney(): void
-{
-    echo "━━━ TEST: Mobile Money Repayment (OTP initiation) ━━━\n\n";
-    $id     = txnId('MOBILE');
-    $amount = TEST_AMOUNT;
-    $msisdn = TEST_MSISDN;
-
-    echo "  TxnId: {$id}\n";
-    $cs = checksum($id, $amount, $msisdn);
-    echo "\n";
-
-    request('POST', '/api/cpaypayments/payment', [
-        'transactionRequest' => [
-            'extTransactionId' => $id,
-            'clientCode'       => CLIENT_CODE,
-            'msisdn'           => $msisdn,
-            'amount'           => $amount,
-            'otp'              => '',
-            'shortDescription' => 'Test repayment',
-            'checksum'         => $cs,
-            'currency'         => 'LSL',
-            'otpMedium'        => 'sms',
-            'additionalData'   => null,
-            'redirectUrl'      => REDIRECT_URL,
-        ],
-    ]);
-
-    echo "  → If successful, CPay will SMS an OTP to " . TEST_MSISDN . "\n";
-    echo "  → Edit TEST_OTP at the top of this file, then run: php cpay_test.php confirm\n\n";
-}
-
-function testConfirmOtp(): void
-{
-    echo "━━━ TEST: Confirm OTP ━━━\n\n";
-    // Use FIXED_TXN_ID so you can match it to the initiation
-    $id     = FIXED_TXN_ID;
-    $amount = TEST_AMOUNT;
-    $msisdn = TEST_MSISDN;
-    $otp    = TEST_OTP;
-
-    echo "  TxnId: {$id}\n";
-    echo "  OTP:   {$otp}\n";
-    $cs = checksum($id, $amount, $msisdn, $otp);
-    echo "\n";
-
-    request('POST', '/api/cpaypayments/confirm', [
-        'transactionRequest' => [
-            'extTransactionId' => $id,
-            'clientCode'       => CLIENT_CODE,
-            'msisdn'           => $msisdn,
-            'amount'           => $amount,
-            'otp'              => $otp,
-            'checksum'         => $cs,
-            'currency'         => 'LSL',
-            'redirectUrl'      => REDIRECT_URL,
-        ],
-    ]);
-}
-
-function testCard(): void
-{
-    echo "━━━ TEST: Card Payment ━━━\n\n";
-    echo "  NOTE: 'Client Account not found' means your clientCode is not enabled\n";
-    echo "  for card payments in UAT. Ask CPay to enable card on MYLOAN_LTD8465.\n\n";
-    echo "  NOTE: redirectUrl MUST be a public HTTPS URL (not 127.0.0.1).\n";
-    echo "  Use ngrok: ngrok http 8000 → paste URL into REDIRECT_URL constant.\n\n";
-
-    $id     = txnId('CARD');
-    $amount = TEST_AMOUNT;
-    $msisdn = TEST_MSISDN;
-
-    echo "  TxnId: {$id}\n";
-    $cs = checksum($id, $amount, $msisdn);
-    echo "\n";
-
-    request('POST', '/api/cpaypayments/payment', [
-        'transactionRequest' => [
-            'extTransactionId' => $id,
-            'clientCode'       => CLIENT_CODE,
-            'msisdn'           => $msisdn,
-            'amount'           => $amount,
-            'otp'              => '',
-            'shortDescription' => 'Test card payment',
-            'checksum'         => $cs,
-            'currency'         => 'LSL',
-            'otpMedium'        => 'sms',
-            'additionalData'   => null,
-            'redirectUrl'      => REDIRECT_URL,
-        ],
-    ], ['cardPayment' => 'true', 'rememberMe' => 'false']);
-
-    echo "  → Card payment returns HTML or a redirect URL, not JSON.\n";
-    echo "  → If you get a URL back, open it in a browser to complete 3DS.\n\n";
-}
+// ================================================================
+// TEST FUNCTIONS
+// ================================================================
 
 function testChecksum(): void
 {
-    echo "━━━ TEST: Verify Checksum via CPay endpoint ━━━\n\n";
-    echo "  This uses CPay's own /getchecksum endpoint to verify our calculation.\n\n";
-
-    $id     = txnId('CHKSUM');
-    $amount = TEST_AMOUNT;
-    $msisdn = TEST_MSISDN;
-
+    echo "━━━ TEST: Checksum Verification ━━━\n\n";
+    $id = txnId('CHKSUM');
     echo "  TxnId: {$id}\n";
-    $ourChecksum = checksum($id, $amount, $msisdn);
-    echo "\n";
+    $ourHash = checksumCalc($id, TEST_AMOUNT, TEST_MSISDN);
+    echo "\n  → Asking CPay to compute same checksum...\n\n";
 
-    request('POST', '/api/cpaypayments/getchecksum', [
+    req('POST', '/api/cpaypayments/getchecksum', [
         'transactionRequest' => [
             'extTransactionId' => $id,
             'clientCode'       => CLIENT_CODE,
-            'msisdn'           => $msisdn,
+            'msisdn'           => TEST_MSISDN,
             'otp'              => '',
-            'amount'           => $amount,
+            'amount'           => TEST_AMOUNT,
             'shortDescription' => '',
             'checksum'         => '',
             'currency'         => 'LSL',
@@ -277,77 +203,213 @@ function testChecksum(): void
         ],
     ]);
 
-    echo "  → Our computed checksum:  {$ourChecksum}\n";
-    echo "  → Compare to CPay response above — they must match.\n\n";
+    echo "  Our hash  : {$ourHash}\n";
+    echo "  CPay hash : (see response above)\n";
+    echo "  ✅ = match → checksum logic correct\n";
+    echo "  ❌ = mismatch → wrong secret key or salt order\n\n";
+}
+
+function testMobile(): void
+{
+    echo "━━━ TEST: OTP Payment Initiation ━━━\n\n";
+    $id = txnId('OTP');
+    echo "  TxnId: {$id}\n";
+    $cs = checksumCalc($id, TEST_AMOUNT, TEST_MSISDN);
+    echo "\n";
+
+    req('POST', '/api/cpaypayments/payment', [
+        'transactionRequest' => [
+            'extTransactionId' => $id,
+            'clientCode'       => CLIENT_CODE,
+            'msisdn'           => TEST_MSISDN,
+            'amount'           => TEST_AMOUNT,
+            'otp'              => '',
+            'shortDescription' => 'Loan repayment test',
+            'checksum'         => $cs,
+            'currency'         => 'LSL',
+            'otpMedium'        => 'sms',
+            'additionalData'   => null,
+            'redirectUrl'      => REDIRECT_URL,
+        ],
+    ]);
+
+    echo "  ↳ TxnId: {$id}\n";
+    echo "  ↳ If reasonCode=otpSend: OTP was sent to " . TEST_MSISDN . "\n";
+    echo "  ↳ Next: set FIXED_TXN_ID='{$id}' and TEST_OTP to the received OTP\n";
+    echo "          then run: php cpay_test.php confirm\n\n";
+}
+
+function testConfirm(): void
+{
+    echo "━━━ TEST: OTP Confirmation ━━━\n\n";
+    $id  = fixedOrNew('OTP');
+    $otp = TEST_OTP;
+
+    echo "  TxnId: {$id}\n";
+    echo "  OTP:   {$otp}\n";
+
+    if (FIXED_TXN_ID === 'AUTO') {
+        echo "\n  ⚠️  FIXED_TXN_ID is AUTO — set it to the extTransactionId from the mobile run.\n\n";
+    }
+
+    $cs = checksumCalc($id, TEST_AMOUNT, TEST_MSISDN, $otp);
+    echo "\n";
+
+    req('POST', '/api/cpaypayments/confirm', [
+        'transactionRequest' => [
+            'extTransactionId' => $id,
+            'clientCode'       => CLIENT_CODE,
+            'msisdn'           => TEST_MSISDN,
+            'amount'           => TEST_AMOUNT,
+            'otp'              => $otp,
+            'checksum'         => $cs,
+            'currency'         => 'LSL',
+            'redirectUrl'      => REDIRECT_URL,
+        ],
+    ]);
+}
+
+function testAsync(): void
+{
+    echo "━━━ TEST: Async USSD Payment ━━━\n\n";
+    echo "  Sends a USSD push to the customer's phone.\n";
+    echo "  Customer selects 'Pay Merchant' to confirm.\n";
+    echo "  ⚠️  redirectUrl must be public HTTPS (use ngrok for local dev).\n\n";
+
+    $id = txnId('ASYNC');
+    echo "  TxnId: {$id}\n";
+    $cs = checksumCalc($id, TEST_AMOUNT, TEST_MSISDN);
+    echo "\n";
+
+    req('POST', '/api/cpaypayments/paymentrequest/async/transactions', [
+        'transactionRequest' => [
+            'extTransactionId' => $id,
+            'clientCode'       => CLIENT_CODE,
+            'msisdn'           => TEST_MSISDN,
+            'amount'           => TEST_AMOUNT,
+            'otp'              => '',
+            'shortDescription' => 'Async loan repayment test',
+            'checksum'         => $cs,
+            'currency'         => 'LSL',
+            'otpMedium'        => 'sms',
+            'additionalData'   => null,
+            'redirectUrl'      => REDIRECT_URL,
+        ],
+    ]);
+
+    echo "  ↳ TxnId: {$id}\n";
+    echo "  ↳ If open: USSD push sent. Set FIXED_TXN_ID='{$id}' then:\n";
+    echo "             php cpay_test.php status\n\n";
+}
+
+function testCard(): void
+{
+    echo "━━━ TEST: Card Payment ━━━\n\n";
+    echo "  Returns HTML/redirect — open in browser to complete 3DS.\n";
+    echo "  ⚠️  redirectUrl must be public HTTPS.\n";
+    echo "  ⚠️  Card payments must be enabled for MYLOAN18374 in UAT.\n\n";
+
+    $id = txnId('CARD');
+    echo "  TxnId: {$id}\n";
+    $cs = checksumCalc($id, TEST_AMOUNT, TEST_MSISDN);
+    echo "\n";
+
+    req('POST', '/api/cpaypayments/payment', [
+        'transactionRequest' => [
+            'extTransactionId' => $id,
+            'clientCode'       => CLIENT_CODE,
+            'msisdn'           => TEST_MSISDN,
+            'amount'           => TEST_AMOUNT,
+            'otp'              => '',
+            'shortDescription' => 'Card payment test',
+            'checksum'         => $cs,
+            'currency'         => 'LSL',
+            'otpMedium'        => 'sms',
+            'additionalData'   => null,
+            'redirectUrl'      => REDIRECT_URL,
+        ],
+    ], ['cardPayment' => 'true', 'rememberMe' => 'false']);
 }
 
 function testStatus(): void
 {
-    echo "━━━ TEST: Transaction Status Check ━━━\n\n";
-    $id   = FIXED_TXN_ID;
+    echo "━━━ TEST: Transaction Status ━━━\n\n";
+    $id   = fixedOrNew('QUERY');
     $date = date('Y-m-d');
 
-    echo "  Querying txnId: {$id}\n";
-    echo "  Date:           {$date}\n\n";
+    echo "  TxnId: {$id}\n";
+    echo "  Date:  {$date}\n\n";
 
-    request('GET', '/api/cpaypayments/transaction-status', [], [
+    if (FIXED_TXN_ID === 'AUTO') {
+        echo "  ⚠️  Set FIXED_TXN_ID to a real extTransactionId.\n\n";
+    }
+
+    req('GET', '/api/cpaypayments/transaction-status', [], [
         'requestReference' => $id,
         'dateTime'         => $date,
     ]);
 }
 
-function testDisburseExternal(): void
+function testList(): void
+{
+    echo "━━━ TEST: List Transactions ━━━\n\n";
+    req('GET', '/api/cpaypayments/payment/request/transactions', [], [
+        'merchantCode' => MERCHANT_CODE,
+        'pageSize'     => 10,
+        'page'         => 0,
+        'orderBy'      => 'dateDesc',
+    ]);
+}
+
+function testDisburse(): void
 {
     echo "━━━ TEST: External Disbursement (MPesa) ━━━\n\n";
     $id      = txnId('DISB');
-    $amount  = TEST_AMOUNT;
-    $msisdn  = TEST_MSISDN;         // 8-digit in body
-    $msisdn8 = TEST_MSISDN;         // same here since TEST_MSISDN is already 8-digit
-
-    echo "  TxnId: {$id}\n";
-    $cs = checksum($id, $amount, $msisdn);
-    echo "\n";
-
-    request('POST', '/api/disbursements/external-payment', [
-        'transactionRequest' => [
-            'transactionRequest' => [   // double-wrapped per docs
-                'extTransactionId' => $id,
-                'clientCode'       => CLIENT_CODE,
-                'msisdn'           => $msisdn,
-                'amount'           => $amount,
-                'shortDescription' => 'Test disbursement',
-                'checksum'         => $cs,
-                'currency'         => 'LSL',
-                'otp'              => '',
-                'redirectUrl'      => REDIRECT_URL,
-                'additionalData'   => 'loan:' . LOAN_NUMBER,
-            ],
-        ],
-    ], ['destinationOperator' => 'mpesa', 'destinationWalletNumber' => $msisdn8]);
-}
-
-function testDisburseWallet(): void
-{
-    echo "━━━ TEST: Wallet Top-Up Advance ━━━\n\n";
-    $id      = txnId('WALLET');
-    $amount  = TEST_AMOUNT;
-    $msisdn  = TEST_MSISDN;   // 8-digit in body for wallet-topup
+    $msisdn  = '+266' . TEST_MSISDN;
     $msisdn8 = TEST_MSISDN;
 
-    echo "  TxnId: {$id}\n";
-    // Checksum uses +266 format per our service logic
-    // If this fails, try passing $msisdn (8-digit) here instead
-    $msisdnFull = '+266' . $msisdn8;
-    $cs = checksum($id, $amount, $msisdnFull);
+    echo "  TxnId:   {$id}\n";
+    echo "  MSISDN:  {$msisdn} (body) | {$msisdn8} (query param)\n";
+    $cs = checksumCalc($id, TEST_AMOUNT, $msisdn);
     echo "\n";
 
-    request('POST', '/api/disbursements/wallet-topup-advance', [
+    req('POST', '/api/disbursements/external-payment', [
         'transactionRequest' => [
             'transactionRequest' => [
                 'extTransactionId' => $id,
                 'clientCode'       => CLIENT_CODE,
                 'msisdn'           => $msisdn,
-                'amount'           => $amount,
+                'amount'           => TEST_AMOUNT,
+                'shortDescription' => 'Test disbursement MPesa',
+                'checksum'         => $cs,
+                'currency'         => 'LSL',
+                'otp'              => '',
+                'redirectUrl'      => REDIRECT_URL,
+                'additionalData'   => 'loan:TEST-001',
+            ],
+        ],
+    ], ['destinationOperator' => 'mpesa', 'destinationWalletNumber' => $msisdn8]);
+}
+
+function testWallet(): void
+{
+    echo "━━━ TEST: Wallet Top-Up Advance (CPay + KYC) ━━━\n\n";
+    $id      = txnId('WALLT');
+    $msisdn  = '+266' . TEST_MSISDN;
+    $msisdn8 = TEST_MSISDN;
+
+    echo "  TxnId:   {$id}\n";
+    echo "  MSISDN:  {$msisdn8} (body) | {$msisdn} (checksum salt)\n";
+    $cs = checksumCalc($id, TEST_AMOUNT, $msisdn);
+    echo "\n";
+
+    req('POST', '/api/disbursements/wallet-topup-advance', [
+        'transactionRequest' => [
+            'transactionRequest' => [
+                'extTransactionId' => $id,
+                'clientCode'       => CLIENT_CODE,
+                'msisdn'           => $msisdn8,
+                'amount'           => TEST_AMOUNT,
                 'shortDescription' => 'Test wallet top-up',
                 'checksum'         => $cs,
                 'currency'         => 'LSL',
@@ -356,7 +418,7 @@ function testDisburseWallet(): void
                     'recipientKyc' => [
                         'idDocument' => [[
                             'idType'        => 'ID',
-                            'idNumber'      => 'TEST123456',
+                            'idNumber'      => 'TEST123456789',
                             'expiryDate'    => '2030-12-31',
                             'issuerCountry' => 'LS',
                         ]],
@@ -373,25 +435,42 @@ function testDisburseWallet(): void
     ], ['destinationOperator' => 'CPAY', 'destinationWalletNumber' => $msisdn8]);
 }
 
-// ============================================================
-// RUNNER
-// ============================================================
+function showHelp(string $test): void
+{
+    if ($test !== 'help') {
+        echo "  ❌ Unknown command: {$test}\n\n";
+    }
+    echo "  Usage: php cpay_test.php <command>\n\n";
+    echo "  Commands:\n";
+    echo "    checksum   verify our checksum vs CPay's\n";
+    echo "    mobile     initiate OTP payment (step 1)\n";
+    echo "    confirm    confirm OTP (step 2) — set FIXED_TXN_ID + TEST_OTP\n";
+    echo "    async      USSD push async payment\n";
+    echo "    card       card payment (HTML redirect)\n";
+    echo "    status     check transaction status\n";
+    echo "    list       list recent transactions\n";
+    echo "    disburse   external disbursement (MPesa)\n";
+    echo "    wallet     CPay wallet top-up advance\n";
+    echo "    all        run checksum + mobile + async\n\n";
+}
 
+// ================================================================
+// RUNNER
+// ================================================================
 match ($test) {
-    'mobile'   => testMobileMoney(),
-    'confirm'  => testConfirmOtp(),
-    'card'     => testCard(),
     'checksum' => testChecksum(),
+    'mobile'   => testMobile(),
+    'confirm'  => testConfirm(),
+    'async'    => testAsync(),
+    'card'     => testCard(),
     'status'   => testStatus(),
-    'disburse' => testDisburseExternal(),
-    'wallet'   => testDisburseWallet(),
+    'list'     => testList(),
+    'disburse' => testDisburse(),
+    'wallet'   => testWallet(),
     'all'      => (function () {
         testChecksum();
-        testMobileMoney();
-        testStatus();
+        testMobile();
+        testAsync();
     })(),
-    default => (function () use ($test) {
-        echo "Unknown test: {$test}\n";
-        echo "Available: mobile, confirm, card, checksum, status, disburse, wallet, all\n\n";
-    })(),
+    default    => showHelp($test),
 };

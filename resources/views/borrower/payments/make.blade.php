@@ -15,7 +15,7 @@
         {{ session('error') }}
         @if(str_contains(session('error'), 'login') || str_contains(session('error'), 'does not exist'))
         <div style="margin-top:8px;font-size:12px;opacity:.85">
-          <strong>Sandbox tip:</strong> Use test number <code style="background:rgba(0,0,0,.1);padding:1px 5px;border-radius:3px">22000001</code> (or contact CPay support to register your number in UAT).
+          <strong>Sandbox tip:</strong> Use test number <code style="background:rgba(0,0,0,.1);padding:1px 5px;border-radius:3px">58145851</code> (registered CPay UAT number).
         </div>
         @endif
       </div>
@@ -36,12 +36,12 @@
       <strong>Sandbox Mode Active</strong>
     </div>
     <div style="font-size:12px;opacity:0.8;line-height:1.5">
-      CPay UAT is active. Use these <strong>test numbers</strong> for Mobile Money:<br>
-      • <code style="background:rgba(0,0,0,0.1);padding:1px 4px;border-radius:3px">22000001</code> (Success)<br>
-      • <code style="background:rgba(0,0,0,0.1);padding:1px 4px;border-radius:3px">22000002</code> (Insufficient Funds)<br>
-      Note: Real phone numbers will return <em>"Wallet account does not exist"</em> in Sandbox.
+      CPay UAT is active. Use the following <strong>registered test number</strong> for Mobile Money:<br>
+      • <code style="background:rgba(0,0,0,0.1);padding:1px 4px;border-radius:3px">58145851</code> — registered UAT test number (OTP will be sent)<br>
+      <span style="font-size:11px;opacity:.7">Contact CPay support to register other numbers in UAT.</span>
     </div>
   </div>
+
   @endif
   @endif
 
@@ -169,17 +169,18 @@
             <i class="bi bi-credit-card-fill"></i> How Card payment works
           </div>
           <div style="font-size:12.5px;color:var(--muted);line-height:1.7">
-            1. Click <strong>Pay Now</strong><br>
-            2. You'll be <strong>redirected to the CPay secure payment page</strong><br>
+            1. Enter your <strong>CPay-registered phone number</strong> below<br>
+            2. Click <strong>Pay Now</strong> — you'll be redirected to the <strong>CPay secure card page</strong><br>
             3. Enter your <strong>Visa/Mastercard details</strong> on that page<br>
             4. After confirmation you'll be returned here ✓
           </div>
           <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
             <img src="https://img.icons8.com/color/28/visa.png" alt="Visa" style="border-radius:4px">
             <img src="https://img.icons8.com/color/28/mastercard.png" alt="MC" style="border-radius:4px">
-            <span style="font-size:11px;color:var(--muted)">Secured by CPay / 3D Secure</span>
+            <span style="font-size:11px;color:var(--muted)">Secured by CPay / PayFast</span>
           </div>
         </div>
+
 
         {{-- CPay Wallet --}}
         <div id="walletInfo{{ $loan->id }}" style="display:none;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.2);border-radius:11px;padding:14px 16px;margin-bottom:16px">
@@ -271,8 +272,10 @@ function switchMethod(method, loanId) {
   const phoneInput = document.getElementById(`phoneInput${loanId}`);
 
   if (method === 'card') {
-    phoneField.style.display = 'none';
-    phoneInput.disabled = true;   // don't submit for card
+    phoneField.style.display = '';
+    phoneInput.disabled = false;
+    phoneLabel.textContent = 'CPay-Registered Mobile Number';
+    phoneHint.innerHTML = '<i class="bi bi-info-circle"></i> Enter your CPay-registered phone number — required to generate the card payment link';
   } else {
     phoneField.style.display = '';
     phoneInput.disabled = false;

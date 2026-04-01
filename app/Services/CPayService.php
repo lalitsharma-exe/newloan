@@ -10,41 +10,44 @@ use Illuminate\Support\Str;
  * CPayService — Chaperone Payments API v1.1
  * Sandbox: https://cpay-uat-env.chaperone.co.ls:5100
  *
- * ╔════════════════════════════════════════════════════════════════════╗
- * ║  CONFIRMED FROM OFFICIAL SWAGGER DOCS                             ║
- * ║                                                                   ║
- * ║  AUTH:     Authorization: {apiKey}  — NO "Bearer " prefix         ║
- * ║                                                                   ║
- * ║  MSISDN:   Body and checksum salt MUST use identical format.      ║
- * ║            For repayment + external disburse: +266XXXXXXXX        ║
- * ║            For wallet-topup msisdn field: 8-digit local           ║
- * ║            BUT checksum must still use the +266 format.           ║
- * ║                                                                   ║
- * ║  CHECKSUM: HMAC-SHA256( txnId + clientCode + amount + msisdn,     ║
- * ║            secretKey ) — msisdn format must match what's in body  ║
- * ║                                                                   ║
- * ║  SANDBOX NOTE: The MSISDN +26650123456 in CPay docs is just an   ║
- * ║  example. You MUST use a real sandbox MSISDN registered in UAT.  ║
- * ║  Contact: apisupport@chaperone.co.ls to get test credentials.    ║
- * ║                                                                   ║
- * ║  REPAYMENT (OTP):                                                 ║
- * ║    1. POST /api/cpaypayments/payment    → CPay sends OTP          ║
- * ║    2. POST /api/cpaypayments/confirm    → submit OTP              ║
- * ║    Body: single-wrap { "transactionRequest": {...} }              ║
- * ║                                                                   ║
- * ║  DISBURSEMENT — simple external (MPesa/EFT):                      ║
- * ║    POST /api/disbursements/external-payment                       ║
- * ║    Body: double-wrap { "transactionRequest": {"transactionRequest":{...}}} ║
- * ║                                                                   ║
- * ║  DISBURSEMENT — wallet-topup-advance (CPay wallet + KYC):         ║
- * ║    POST /api/disbursements/wallet-topup-advance                   ║
- * ║    Body: double-wrap with additionalData.recipientKyc             ║
- * ║    msisdn in body = 8-digit, BUT checksum salt uses +266 format   ║
- * ║                                                                   ║
- * ║  STATUS CHECK (pull):                                             ║
- * ║    GET /api/cpaypayments/transaction-status                       ║
- * ║    ?requestReference={txnId}&dateTime={YYYY-MM-DD}               ║
- * ╚════════════════════════════════════════════════════════════════════╝
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  UAT CONFIRMED (MYLOAN18374 / secret TGq9jD)  — 2026-04-01         ║
+ * ║                                                                     ║
+ * ║  AUTH:     Authorization: {apiKey}  — NO "Bearer " prefix           ║
+ * ║                                                                     ║
+ * ║  MSISDN:   ✅ CONFIRMED: use 8-digit local format (e.g. 58145851)   ║
+ * ║            for BOTH body AND checksum salt in repayment endpoints.  ║
+ * ║            CPay getchecksum endpoint verified our hash = their hash ║
+ * ║                                                                     ║
+ * ║  CHECKSUM: HMAC-SHA256( txnId + clientCode + amount + msisdn,       ║
+ * ║            secretKey ) — confirmed working with 8-digit msisdn      ║
+ * ║                                                                     ║
+ * ║  REPAYMENT (OTP):  ✅ CONFIRMED WORKING                             ║
+ * ║    1. POST /api/cpaypayments/payment    → HTTP 200, OTP sent        ║
+ * ║    2. POST /api/cpaypayments/confirm    → submit OTP               ║
+ * ║    Body: single-wrap { "transactionRequest": {...} }               ║
+ * ║    reasonCode=otpSent → success, OTP delivered to phone            ║
+ * ║                                                                     ║
+ * ║  CARD PAYMENT:  ✅ CONFIRMED WORKING (CPay quirk)                   ║
+ * ║    POST /api/cpaypayments/payment?cardPayment=true&rememberMe=false ║
+ * ║    CPay returns HTTP 400 but body StatusCode="202" + Description=   ║
+ * ║    "Payment Link Created." → treated as success in parseResponse()  ║
+ * ║                                                                     ║
+ * ║  STATUS CHECK:  ✅ CONFIRMED WORKING                                ║
+ * ║    GET /api/cpaypayments/transaction-status                         ║
+ * ║    ?requestReference={txnId}&dateTime={YYYY-MM-DD}                 ║
+ * ║    Returns OTPSEND/paymentIncomplete when OTP not yet confirmed     ║
+ * ║                                                                     ║
+ * ║  DISBURSEMENT — external (MPesa/EFT):                              ║
+ * ║    POST /api/disbursements/external-payment                         ║
+ * ║    Body: double-wrap { "transactionRequest":{"transactionRequest":{}}}║
+ * ║    msisdn in body = +266 format, destinationWalletNumber = 8-digit  ║
+ * ║                                                                     ║
+ * ║  DISBURSEMENT — wallet-topup-advance (CPay wallet + KYC):           ║
+ * ║    POST /api/disbursements/wallet-topup-advance                     ║
+ * ║    Body: double-wrap with additionalData.recipientKyc               ║
+ * ║    msisdn in body = 8-digit, checksum salt uses +266 format         ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
  */
 class CPayService
 {
@@ -79,15 +82,24 @@ class CPayService
     // =========================================================================
 
     /**
+     * Initiate a CPay repayment.
+     *
+     * ✅ UAT CONFIRMED 2026-04-01:
+     *    - 8-digit MSISDN format works (e.g. 58145851)
+     *    - checksum with same 8-digit msisdn matches CPay's getchecksum endpoint
+     *    - OTP sent successfully with reasonCode=otpSent
+     *    - Card: HTTP 400 returned by CPay but body StatusCode=202 → treated as success
+     *
      * @param  string $method  'mobile_money' | 'card' | 'cpay_wallet'
      */
     public function initiateRepayment(Payment $payment, string $phone, string $method = 'mobile_money'): array
     {
         $txnId  = $payment->payment_reference;
         $amount = number_format((float) $payment->amount, 2, '.', '');
-        // CPay team confirmed: use 8-digit format (no country code) in the body.
-        // Checksum salt uses the same 8-digit format so both sides match.
-        $msisdn = $this->msisdn($phone);   // 8-digit: 58145851
+
+        // ✅ CONFIRMED: 8-digit local format for both body AND checksum salt
+        // CPay's /getchecksum verifies our HMAC-SHA256 matches theirs with this format.
+        $msisdn = $this->msisdn($phone);   // strips to 8-digit: e.g. 58145851
         $isCard = ($method === 'card');
 
         $inner = [
@@ -104,6 +116,7 @@ class CPayService
             'redirectUrl'      => url(route('webhooks.payment')),
         ];
 
+        // Card: append query params to same endpoint
         $endpoint = $isCard
             ? '/api/cpaypayments/payment?cardPayment=true&rememberMe=false'
             : '/api/cpaypayments/payment';
@@ -112,13 +125,38 @@ class CPayService
 
         $result = $this->post($endpoint, ['transactionRequest' => $inner], 'initiateRepayment');
 
-        if (!$result['success'] && str_contains($result['error'] ?? '', 'does not exist')) {
-            Log::warning('CPay::initiateRepayment — MSISDN not registered in CPay. '
-                . 'Ask CPay team to register this number in UAT, or provide your own Lesotho number. '
+        // ── CARD: Log full parsed result so we can see exactly what CPay returned ──
+        if ($isCard) {
+            Log::info('CPay::initiateRepayment CARD_RESULT', [
+                'txnId'        => $txnId,
+                'success'      => $result['success'] ?? null,
+                'is_card_link' => $result['is_card_link'] ?? false,
+                'redirect_url' => $result['redirect_url'] ?? null,
+                'description'  => $result['description'] ?? null,
+                'reason_code'  => $result['reason_code'] ?? null,
+                'cpay_txn_id'  => $result['cpay_txn_id'] ?? null,
+                'status'       => $result['status'] ?? null,
+                'data'         => $result['data'] ?? null,
+                'error'        => $result['error'] ?? null,
+            ]);
+        }
+
+        // Flag card results so controller can handle the payment link
+        if ($isCard) {
+            $result['is_card'] = true;
+        }
+
+        if (!$result['success'] && !($result['is_card_link'] ?? false)
+            && str_contains($result['error'] ?? '', 'does not exist')) {
+            Log::warning('CPay::initiateRepayment — MSISDN not registered in CPay sandbox. '
+                . 'The MSISDN must be registered in UAT by CPay team. '
                 . 'MSISDN used (8-digit): ' . $msisdn);
         }
 
-        $result['is_card'] = $isCard;
+        // is_card_link set by parseResponse when HTTP 400 but body StatusCode is 2xx (CPay card quirk)
+        if ($isCard && !isset($result['is_card'])) {
+            $result['is_card'] = true;
+        }
         return $result;
     }
 
@@ -506,6 +544,14 @@ class CPayService
         $httpStatus = $response->status();
         $raw        = $response->json();
 
+        // ── FULL RAW RESPONSE LOG — always log, essential for debugging CPay quirks ──
+        Log::info("CPay::{$ctx} RAW_RESPONSE", [
+            'http_status'  => $httpStatus,
+            'headers'      => $response->headers(),
+            'body_raw'     => $response->body(),
+            'body_json'    => $raw,
+        ]);
+
         // Handle non-JSON responses (card payments return HTML/URL)
         if (!$raw && $response->body()) {
             $bodyStr = trim($response->body());
@@ -526,7 +572,36 @@ class CPayService
         // Always unwrap the 'return' envelope first (CPay wraps all responses)
         $data = $raw['return'] ?? $raw ?? [];
 
+        // ── Card payment quirk: CPay returns HTTP 400 but StatusCode "202" in body ──
+        // The actual payment page URL is in the HTTP response HEADER "RedirectUrl" (not the body!)
+        // Treat body StatusCode 2xx as success regardless of HTTP status
+        $bodyCode    = (int) ($raw['StatusCode'] ?? $raw['statusCode'] ?? $data['StatusCode'] ?? $data['statusCode'] ?? 0);
+        $headerRedirect = $response->header('RedirectUrl') ?: null;   // CPay puts URL here!
+
+        if (!$response->successful() && $bodyCode >= 200 && $bodyCode < 300) {
+            Log::info("CPay::{$ctx} — body StatusCode {$bodyCode} treated as success (HTTP {$httpStatus})", [
+                'body'           => $raw,
+                'header_redirect'=> $headerRedirect,
+            ]);
+            return [
+                'success'      => true,
+                'cpay_txn_id'  => $data['cPayTransactionId'] ?? $data['CPayTransactionId'] ?? null,
+                'status'       => strtoupper($data['paymentRequestStatus'] ?? $data['PaymentRequestStatus'] ?? 'PENDING'),
+                'code'         => (string) $bodyCode,
+                'description'  => $data['description'] ?? $data['Description'] ?? 'Payment Link Created',
+                'message'      => $data['description'] ?? $data['Description'] ?? 'Payment Link Created',
+                // ✅ Check header first — CPay sends payment URL in RedirectUrl header, not body
+                'redirect_url' => $headerRedirect
+                    ?? $data['redirectUrl'] ?? $data['RedirectUrl'] ?? $data['paymentLink'] ?? null,
+                'reason_code'  => $data['reasonCode']  ?? $data['ReasonCode']  ?? null,
+                'data'         => $data,
+                'is_card_link' => true,
+            ];
+        }
+
+
         if (!$response->successful()) {
+
             $err = $data['Description'] ?? $data['description']
                 ?? $data['message']     ?? $raw['Description']
                 ?? $raw['description']  ?? "HTTP {$httpStatus}";

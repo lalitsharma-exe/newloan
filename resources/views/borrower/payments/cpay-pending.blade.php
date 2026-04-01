@@ -11,8 +11,12 @@
     </div>
     <div style="font-size:22px;font-weight:800;color:var(--dark);margin-bottom:8px" id="statusTitle">Awaiting Confirmation</div>
     <div style="font-size:14px;color:var(--muted);line-height:1.6" id="statusMessage">
-      Please check your phone.<br>
-      Confirm the payment via the <strong>USSD prompt</strong> or <strong>OTP</strong> sent to your number.
+      @if(isset($message) && $message)
+        {{ $message }}
+      @else
+        Please check your phone.<br>
+        Confirm the payment via the <strong>USSD prompt</strong> or <strong>OTP</strong> sent to your number.
+      @endif
     </div>
   </div>
 
@@ -61,7 +65,7 @@
 
   {{-- Actions --}}
   <div style="display:flex;gap:10px">
-    <a href="{{ route('borrower.payments.cancel') }}" class="btn btn-o" style="flex:1;justify-content:center">
+    <a href="{{ route('borrower.payments.callback.cancel') }}" class="btn btn-o" style="flex:1;justify-content:center">
       <i class="bi bi-x-circle"></i> Cancel
     </a>
     <button onclick="checkNow()" class="btn btn-p" style="flex:1;justify-content:center" id="checkBtn">

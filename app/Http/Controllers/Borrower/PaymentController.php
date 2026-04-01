@@ -81,30 +81,40 @@ class PaymentController extends Controller
 
         if ($result['success']) {
 
-            // ── CARD: CPay returns HTML/URL — redirect user there directly ────
+            // ── CARD: CPay returns "Payment Link Created" — redirect user there ─
+            // CPay card quirk: HTTP 400 body StatusCode=202 → parseResponse sets success=true + is_card_link=true
             if ($result['is_card'] ?? false) {
-                $redirectUrl = $result['data']['redirectUrl']
-                    ?? $result['data']['description']
+                $redirectUrl = $result['redirect_url']
+                    ?? $result['data']['redirectUrl']
+                    ?? $result['data']['paymentLink']
                     ?? null;
 
+                // Case 1: Valid URL → redirect to CPay card payment page
                 if ($redirectUrl && filter_var($redirectUrl, FILTER_VALIDATE_URL)) {
                     Log::info('CPay card redirect', ['url' => $redirectUrl, 'ref' => $payment->payment_reference]);
                     return redirect()->away($redirectUrl);
                 }
 
-                // CPay returned HTML content directly — render it
-                $html = $result['data']['html'] ?? $result['raw'] ?? null;
-                if ($html) {
-                    return response($html);
+                // Case 2: Raw HTML (CPay renders 3DS page inline)
+                $html = $result['raw'] ?? null;
+                if ($html && strlen($html) > 100 && str_contains($html, '<')) {
+                    return response($html)->header('Content-Type', 'text/html');
                 }
 
-                // Fallback: can't determine redirect, fail gracefully
-                $payment->update(['status' => 'failed', 'notes' => 'Card redirect URL not returned']);
-                return redirect()->route('borrower.payments.make')
-                    ->with('error', 'Card payment page unavailable. Please try Mobile Money.');
+                // Case 3: "Payment Link Created" but no URL/HTML.
+                // CPay sends link via SMS/email to the user's registered number.
+                // Show status-polling page — webhook marks payment verified when card is paid.
+                Log::info('CPay card: payment link created (no redirect URL), showing pending page', [
+                    'ref'  => $payment->payment_reference,
+                    'desc' => $result['description'] ?? $result['message'] ?? '',
+                ]);
+                return view('borrower.payments.cpay-pending', [
+                    'payment' => $payment,
+                    'message' => 'Your card payment link has been created. CPay will send it to your registered number via SMS. Click "Check Status" below once you\'ve paid.',
+                ]);
             }
 
-            // ── MOBILE / WALLET: OTP was sent — show OTP form ────────────────
+            // ── MOBILE / WALLET: OTP was sent — show OTP confirmation form ────
             session(['cpay_phone_' . $payment->payment_reference => $phone]);
 
             return view('borrower.payments.cpay-otp', [
@@ -115,14 +125,14 @@ class PaymentController extends Controller
         }
 
         // CPay rejected the initiation request
-        $errMsg = $result['error'] ?? $result['description'] ?? 'Please try again.';
+        $errMsg     = $result['error'] ?? $result['description'] ?? 'Please try again.';
         $reasonCode = $result['reason_code'] ?? null;
-        $fullErr = $reasonCode ? "[{$reasonCode}] {$errMsg}" : $errMsg;
+        $fullErr    = $reasonCode ? "[{$reasonCode}] {$errMsg}" : $errMsg;
 
         $payment->update(['status' => 'failed', 'notes' => 'CPay error: ' . $fullErr]);
         Log::error('CPay repayment initiation failed', [
-            'ref'    => $payment->payment_reference,
-            'error'  => $fullErr,
+            'ref'   => $payment->payment_reference,
+            'error' => $fullErr,
         ]);
 
         return redirect()->route('borrower.payments.make')
