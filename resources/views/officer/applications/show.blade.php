@@ -186,9 +186,12 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
   {{-- AFFORDABILITY --}}
   <div class="tpanel" data-pg="app" data-p="afford">
     <div class="card">
-      <div class="card-hdr">
+      <div class="card-hdr" style="display:flex;justify-content:space-between;align-items:center;">
         <span class="card-title">Affordability Assessment</span>
-        <a href="{{ route('officer.applications.affordability', $application) }}" class="btn btn-sm btn-p"><i class="bi bi-pencil"></i> Edit</a>
+        <div style="display:flex;gap:10px;">
+          <a href="https://cc.experian.co.ls/" target="_blank" class="btn btn-sm btn-w"><i class="bi bi-box-arrow-up-right"></i> Credit Check</a>
+          <a href="{{ route('officer.applications.affordability', $application) }}" class="btn btn-sm btn-p"><i class="bi bi-pencil"></i> Edit</a>
+        </div>
       </div>
       <div class="card-body">
         @if($application->affordability)

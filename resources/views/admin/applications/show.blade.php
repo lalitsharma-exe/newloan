@@ -204,7 +204,10 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
     <div class="card">
       <div class="card-hdr" style="display:flex;justify-content:space-between;align-items:center;">
         <span class="card-title"><i class="bi bi-calculator" style="color:var(--p);margin-right:6px"></i>Affordability Assessment</span>
-        <button onclick="document.getElementById('affordModal').style.display='flex'" style="background:var(--p);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer"><i class="bi bi-pencil" style="margin-right:5px"></i>{{ $a ? 'Edit' : 'Add' }} Affordability</button>
+        <div style="display:flex;gap:10px;">
+          <a href="https://cc.experian.co.ls/" target="_blank" style="background:#f59e0b;color:#fff;text-decoration:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;display:flex;align-items:center"><i class="bi bi-box-arrow-up-right" style="margin-right:5px"></i>Credit Check</a>
+          <button onclick="document.getElementById('affordModal').style.display='flex'" style="background:var(--p);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer"><i class="bi bi-pencil" style="margin-right:5px"></i>{{ $a ? 'Edit' : 'Add' }} Affordability</button>
+        </div>
       </div>
       <div class="card-body">
         @if($a)
