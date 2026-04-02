@@ -153,6 +153,7 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     <div class="nav-item"><a href="{{ route('admin.loans.index') }}" class="{{ request()->routeIs('admin.loans.*')?'active':'' }}"><i class="bi bi-bank2"></i> Loan Management</a></div>
     <div class="nav-item"><a href="{{ route('admin.payments.index') }}" class="{{ request()->routeIs('admin.payments.*')?'active':'' }}"><i class="bi bi-credit-card-fill"></i> Payments</a></div>
     <div class="nav-item"><a href="{{ route('admin.credit.index') }}" class="{{ request()->routeIs('admin.credit.*')?'active':'' }}"><i class="bi bi-shield-check-fill"></i> Credit Bureau</a></div>
+    <div class="nav-item"><a href="{{ route('admin.compuscan.index') }}" class="{{ request()->routeIs('admin.compuscan.*')?'active':'' }}"><i class="bi bi-cloud-arrow-up-fill"></i> Compuscan (CCI)</a></div>
     <div class="nav-lbl">Reports</div>
     <div class="nav-item"><a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*')?'active':'' }}"><i class="bi bi-bar-chart-fill"></i> Reports</a></div>
     <div class="nav-lbl">Config</div>

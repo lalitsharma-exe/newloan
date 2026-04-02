@@ -276,6 +276,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         /*
+        | ── COMPUSCAN (CCI) ──────────────────────────────────────────
+        */
+        Route::prefix('compuscan')->name('compuscan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\CompuscanController::class, 'index'])->name('index');
+            Route::post('/generate', [\App\Http\Controllers\Admin\CompuscanController::class, 'generate'])->name('generate');
+        });
+
+        /*
         | ── SYSTEM SETTINGS ────────────────────────────────────────
         */
         Route::prefix('settings')->name('settings.')->group(function () {
