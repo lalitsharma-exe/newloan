@@ -113,8 +113,8 @@ class LoanController extends Controller
             'disbursement_method'    => $method,
             'disbursement_phone'     => $phone,
             'disbursement_provider'  => $cpayTxnId ? "CPay:{$cpayTxnId}" : $provider,
-            'first_payment_date'     => $disbDate->copy()->addMonth()->startOfMonth()->toDateString(),
-            'maturity_date'          => $disbDate->copy()->addMonths($loan->term_months)->toDateString(),
+            'first_payment_date'     => $disbDate->copy()->addMonth()->setDay($loan->salary_payday ?? $loan->application?->salary_payday ?? 25)->toDateString(),
+            'maturity_date'          => $disbDate->copy()->addMonths($loan->term_months)->setDay($loan->salary_payday ?? $loan->application?->salary_payday ?? 25)->toDateString(),
         ]);
 
         if ($loan->installments()->count() === 0) {

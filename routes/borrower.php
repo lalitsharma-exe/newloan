@@ -36,7 +36,11 @@ Route::prefix('portal')->name('borrower.')->group(function () {
     | PUBLIC — Landing, Register, Login, Reset
     |------------------------------------------------------------------
     */
-    Route::get('/',                 fn() => view('borrower.welcome'))->name('welcome');
+    Route::get('/', function() {
+        if (Auth::guard('borrower')->check()) return redirect()->route('borrower.dashboard');
+        return view('borrower.welcome');
+    })->name('welcome');
+
 
     Route::middleware('guest:borrower')->group(function () {
 
@@ -118,6 +122,10 @@ Route::prefix('portal')->name('borrower.')->group(function () {
 
             // Loan product terms AJAX (fetches rate, monthly payment preview)
             Route::get('/product-terms/{product}',      [ApplicationController::class, 'productTerms'])->name('product-terms');
+
+            // Card Verification (Step 9)
+            Route::get('/{application}/verify-card',    [ApplicationController::class, 'initiateCardVerification'])->name('verify-card');
+            Route::get('/{application}/card-success',   [ApplicationController::class, 'cardVerificationSuccess'])->name('card-success');
         });
 
         /*
@@ -202,7 +210,6 @@ Route::prefix('portal')->name('borrower.')->group(function () {
             Route::get('/upload',                   [DocumentController::class, 'showUpload'])->name('upload');
             Route::post('/upload',                  [DocumentController::class, 'upload'])->name('upload.post');
             Route::post('/upload/{application}',    [DocumentController::class, 'uploadForApplication'])->name('upload.application');
-
             // View / download
             Route::get('/{document}',               [DocumentController::class, 'show'])->name('show');
             Route::get('/{document}/download',      [DocumentController::class, 'download'])->name('download');
@@ -257,6 +264,9 @@ Route::prefix('portal')->name('borrower.')->group(function () {
 
             // Photo
             Route::post('/photo',                   [ProfileController::class, 'updatePhoto'])->name('photo');
+
+            // Request Change
+            Route::post('/request-change',          [ProfileController::class, 'requestChange'])->name('request-change');
         });
 
     }); // end auth:borrower

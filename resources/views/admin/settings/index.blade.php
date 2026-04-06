@@ -320,7 +320,30 @@
           </div>
         </div>
 
-        {{-- Banking --}}
+        {{-- QR Code Authentication --}}
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-hdr">
+            <span class="card-title"><i class="bi bi-qr-code" style="color:var(--p);margin-right:7px"></i>System Authentication QR</span>
+            <span style="font-size:12px;color:var(--muted)">Replaced physical stamps on all documents</span>
+          </div>
+          <div class="card-body">
+            @php $qr = \App\Models\SystemSetting::get('system_qr'); @endphp
+            @if($qr)
+            <div style="display:flex;align-items:center;gap:16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:18px">
+              <div>
+                <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Current QR Code</div>
+                <img src="{{ Storage::url($qr) }}" style="width:80px;height:80px;background:#fff;border:1px solid var(--border);border-radius:6px;padding:5px">
+              </div>
+              <div style="font-size:12px;color:var(--muted)">This QR code will be used as a digital seal of authentication on all generated documents.</div>
+            </div>
+            @endif
+            <div class="fg">
+              <label class="fl">Upload QR Image</label>
+              <input type="file" name="system_qr_upload" accept="image/*" class="fc" style="padding:8px 12px">
+              <div class="ft">Square image / PNG/JPG recommended</div>
+            </div>
+          </div>
+        </div>
         <div class="card" style="margin-bottom:16px">
           <div class="card-hdr"><span class="card-title"><i class="bi bi-bank2" style="color:var(--p);margin-right:7px"></i>Banking Details <span style="font-size:12px;font-weight:400;color:var(--muted)">— used on settlement quotations</span></span></div>
           <div class="card-body">

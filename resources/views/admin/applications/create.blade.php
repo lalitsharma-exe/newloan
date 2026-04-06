@@ -45,7 +45,7 @@
         <select name="user_id" class="fc" id="borrowerSelect" required onchange="fetchBorrowerInfo(this.value)">
           <option value="">— Select Borrower —</option>
           @foreach($borrowers as $b)
-          <option value="{{ $b->id }}" data-name="{{ $b->name }}" data-email="{{ $b->email }}" data-phone="{{ $b->phone }}"
+          <option value="{{ $b->id }}" data-name="{{ $b->name }}" data-email="{{ $b->email }}" data-phone="{{ $b->phone }}" data-maiden="{{ $b->maiden_name }}"
             {{ old('user_id')==$b->id?'selected':'' }}>
             {{ $b->name }} ({{ $b->email }})
           </option>
@@ -78,6 +78,10 @@
         <div class="fg" style="margin-bottom:0">
           <label class="fl">Surname *</label>
           <input type="text" name="surname" id="fieldSurname" class="fc" value="{{ old('surname') }}" required readonly style="background:#f1f5f9;cursor:not-allowed">
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label class="fl">Maiden Name</label>
+          <input type="text" name="maiden_name" id="fieldMaidenName" class="fc" value="{{ old('maiden_name') }}" readonly style="background:#f1f5f9;cursor:not-allowed">
         </div>
         <div class="fg" style="margin-bottom:0">
           <label class="fl">Cell Number</label>
@@ -384,17 +388,19 @@ function fetchBorrowerInfo(userId) {
     document.getElementById('borrowerInfoBox').style.display = 'none';
     return;
   }
-  const name  = opt.dataset.name  || '';
-  const email = opt.dataset.email || '';
-  const phone = opt.dataset.phone || '';
-  const parts = name.trim().split(' ');
-  const first = parts[0] || '';
-  const last  = parts.slice(1).join(' ') || '';
+  const name   = opt.dataset.name   || '';
+  const email  = opt.dataset.email  || '';
+  const phone  = opt.dataset.phone  || '';
+  const maiden = opt.dataset.maiden || '';
+  const parts  = name.trim().split(' ');
+  const first  = parts[0] || '';
+  const last   = parts.slice(1).join(' ') || '';
 
-  document.getElementById('fieldFirstName').value = first;
-  document.getElementById('fieldSurname').value   = last;
-  document.getElementById('fieldCell').value      = phone;
-  document.getElementById('fieldEmail').value     = email;
+  document.getElementById('fieldFirstName').value  = first;
+  document.getElementById('fieldSurname').value    = last;
+  document.getElementById('fieldMaidenName').value = maiden;
+  document.getElementById('fieldCell').value       = phone;
+  document.getElementById('fieldEmail').value      = email;
   document.getElementById('borrowerInfoBox').style.display = 'block';
 }
 

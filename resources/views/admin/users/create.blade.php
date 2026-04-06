@@ -84,6 +84,13 @@
           @error('national_id')<span class="iv">{{ $message }}</span>@enderror
         </div>
 
+        {{-- Maiden Name (shown for borrowers) --}}
+        <div class="fg" id="maidenNameField" style="display:none">
+          <label class="fl">Maiden Name <span style="color:var(--muted);font-weight:400;font-size:11px">(Name before marriage)</span></label>
+          <input type="text" name="maiden_name" class="fc @error('maiden_name') err @enderror" value="{{ old('maiden_name') }}" placeholder="Optional">
+          @error('maiden_name')<span class="iv">{{ $message }}</span>@enderror
+        </div>
+
         {{-- Assigned Officer (shown for borrowers) --}}
         <div class="fg" id="officerField" style="display:none">
           <label class="fl">Assigned Loan Officer *</label>
@@ -168,6 +175,7 @@ function onRoleChange(role) {
   const isBorrower = role === 'borrower';
   document.getElementById('officerField').style.display   = isBorrower ? '' : 'none';
   document.getElementById('nationalIdField').style.display = isBorrower ? '' : 'none';
+  document.getElementById('maidenNameField').style.display = isBorrower ? '' : 'none';
   document.getElementById('borrowerNote').style.display    = isBorrower ? '' : 'none';
 
   // Make assigned_officer_id required only for borrower

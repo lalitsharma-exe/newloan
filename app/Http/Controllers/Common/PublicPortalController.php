@@ -6,7 +6,19 @@ use Illuminate\Http\Request;
 
 class PublicPortalController extends Controller
 {
-    public function index()    { return view('borrower.welcome', ['products' => LoanProduct::active()->get()]); }
+    public function index() {
+        if (\Illuminate\Support\Facades\Auth::guard('admin')->check()) {
+            return redirect()->route('admin.dashboard');
+        }
+        if (\Illuminate\Support\Facades\Auth::guard('officer')->check()) {
+            return redirect()->route('officer.dashboard');
+        }
+        if (\Illuminate\Support\Facades\Auth::guard('borrower')->check()) {
+            return redirect()->route('borrower.dashboard');
+        }
+        return view('borrower.welcome', ['products' => LoanProduct::active()->get()]);
+    }
+
     public function about()    { return view('borrower.public.about'); }
     public function products() { return view('borrower.public.products', ['products' => LoanProduct::active()->get()]); }
     public function faq()      { return view('borrower.public.faq'); }

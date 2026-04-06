@@ -92,7 +92,7 @@ class CPayService
      *
      * @param  string $method  'mobile_money' | 'card' | 'cpay_wallet'
      */
-    public function initiateRepayment(Payment $payment, string $phone, string $method = 'mobile_money'): array
+    public function initiateRepayment(Payment $payment, string $phone, string $method = 'mobile_money', ?string $customRedirectUrl = null): array
     {
         $txnId  = $payment->payment_reference;
         $amount = number_format((float) $payment->amount, 2, '.', '');
@@ -113,7 +113,7 @@ class CPayService
             'currency'         => 'LSL',
             'otpMedium'        => 'sms',
             'additionalData'   => null,
-            'redirectUrl'      => url(route('webhooks.payment')),
+            'redirectUrl'      => $customRedirectUrl ?? url(route('webhooks.payment')),
         ];
 
         // Card: append query params to same endpoint

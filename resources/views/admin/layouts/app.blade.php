@@ -157,7 +157,8 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     <div class="nav-lbl">Reports</div>
     <div class="nav-item"><a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*')?'active':'' }}"><i class="bi bi-bar-chart-fill"></i> Reports</a></div>
     <div class="nav-lbl">Config</div>
-    <div class="nav-item"><a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*')?'active':'' }}"><i class="bi bi-people-fill"></i> Users</a></div>
+    <div class="nav-item"><a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.index')?'active':'' }}"><i class="bi bi-people-fill"></i> Users</a></div>
+    <div class="nav-item"><a href="{{ route('admin.users.profile-requests') }}" class="{{ request()->routeIs('admin.users.profile-requests')?'active':'' }}"><i class="bi bi-person-gear"></i> Profile Requests</a></div>
     <div class="nav-item"><a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*')?'active':'' }}"><i class="bi bi-box-fill"></i> Loan Products</a></div>
     <div class="nav-item"><a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*')?'active':'' }}"><i class="bi bi-gear-fill"></i> Settings</a></div>
     <div class="nav-lbl">System</div>

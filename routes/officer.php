@@ -28,6 +28,8 @@ use App\Http\Controllers\LoanOfficer\NotificationController;
 */
 
 Route::prefix('officer')->name('officer.')->group(function () {
+    Route::get('/', function() { return redirect()->route('officer.dashboard'); });
+
     /*
     |------------------------------------------------------------------
     | PUBLIC (guest) — Login / Forgot / Reset

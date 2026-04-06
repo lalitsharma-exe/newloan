@@ -226,6 +226,7 @@ class LoanService
                 $term       = (int) ($row['term_months'] ?? $row['term'] ?? 1);
                 $rate       = (float) ($row['interest_rate'] ?? 15);
                 $disbDate   = $row['disbursement_date'] ?? now()->format('Y-m-d');
+                $payday     = (int) ($row['salary_payday'] ?? 25);
 
                 if (!$userEmail || $principal <= 0) {
                     $results['failed']++;
@@ -268,8 +269,9 @@ class LoanService
                     'processing_fee'      => $totalInitiation,
                     'status'              => 'active',
                     'disbursement_date'   => $disbDate,
-                    'first_payment_date'  => \Carbon\Carbon::parse($disbDate)->addMonth()->startOfMonth()->toDateString(),
-                    'maturity_date'       => \Carbon\Carbon::parse($disbDate)->addMonths($term)->toDateString(),
+                    'salary_payday'       => $payday,
+                    'first_payment_date'  => \Carbon\Carbon::parse($disbDate)->addMonth()->setDay($payday)->toDateString(),
+                    'maturity_date'       => \Carbon\Carbon::parse($disbDate)->addMonths($term)->setDay($payday)->toDateString(),
                     'collection_method'   => $row['collection_method'] ?? 'payroll',
                     'payout_method'       => $row['payout_method'] ?? 'bank_transfer',
                 ]);
@@ -278,7 +280,7 @@ class LoanService
                 $principalPerMonth  = round($principal / $term, 2);
                 $interestPerMonth   = round($principal * ($rate / 100), 2);
                 $initiationPerMonth = round($totalInitiation / $term, 2);
-                $payDate = \Carbon\Carbon::parse($disbDate)->addMonth()->startOfMonth();
+                $payDate = \Carbon\Carbon::parse($disbDate)->addMonth()->setDay($payday);
 
                 for ($m = 1; $m <= $term; $m++) {
                     $isLast = ($m === $term);

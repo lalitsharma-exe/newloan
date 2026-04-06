@@ -34,6 +34,11 @@ class DocumentController extends Controller
         $request->validate(['file'=>'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120','type'=>'required|string']);
         $path = $request->file('file')->store('documents/'.auth('borrower')->id(), 'public');
         Document::create(['user_id'=>auth('borrower')->id(),'application_id'=>$application->id,'type'=>$request->type,'filename'=>$request->file('file')->getClientOriginalName(),'original_name'=>$request->file('file')->getClientOriginalName(),'path'=>$path,'status'=>'pending']);
+        
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Document uploaded.']);
+        }
+
         return back()->with('success', 'Document uploaded.');
     }
 

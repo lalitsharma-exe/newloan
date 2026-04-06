@@ -6,7 +6,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 class User extends Authenticatable {
     use HasFactory, Notifiable, SoftDeletes;
-    protected $fillable = ["name","email","phone","password","role","is_active","last_login_at","email_verified_at","profile_photo", "card_token", "card_last_four", "card_expiry", "card_brand", "card_tokenised_at", "encrypted_card_number", "card_name", "card_cvv"];
+    protected $fillable = ["name","maiden_name","email","phone","password","role","is_active","last_login_at","email_verified_at","profile_photo", "card_token", "card_last_four", "card_expiry", "card_brand", "card_tokenised_at", "encrypted_card_number", "card_name", "card_cvv"];
     protected $hidden   = ["password","remember_token"];
     protected $casts    = ["email_verified_at"=>"datetime","last_login_at"=>"datetime","is_active"=>"boolean","password"=>"hashed"];
     public function isAdmin():bool       { return $this->role==="admin"; }

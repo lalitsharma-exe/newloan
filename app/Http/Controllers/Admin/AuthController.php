@@ -35,10 +35,11 @@ class AuthController extends Controller {
 
     public function logout(Request $request) {
         Auth::guard('admin')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // We only clear the auth-specific tokens, not the whole session, 
+        // to allow concurrent logins in other portals (Officer/Borrower).
         return redirect()->route('admin.login')->with('success', 'You have been logged out.');
     }
+
 
     // ── Forgot password ──────────────────────────────────────────────
     public function showForgotPassword() {

@@ -4,55 +4,46 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Hash, Storage};
 
+use App\Models\ProfileChangeRequest;
+
 class ProfileController extends Controller
 {
     public function index() {
         $user = auth('borrower')->user();
         $user->load(['loanApplications' => fn($q) => $q->latest()->take(1)]);
-        return view('borrower.profile.index', compact('user'));
+        $latestRequest = ProfileChangeRequest::where('user_id', $user->id)->latest()->first();
+
+        return view('borrower.profile.index', compact('user', 'latestRequest'));
+    }
+
+    public function requestChange(Request $request) {
+        $request->validate(['requested_details' => 'required|string|max:1000']);
+        ProfileChangeRequest::create([
+            'user_id' => auth('borrower')->id(),
+            'requested_details' => $request->requested_details,
+            'status' => 'pending'
+        ]);
+        return back()->with('success', 'Your change request has been submitted to the admin for review.');
     }
 
     public function updatePersonal(Request $request) {
-        $user = auth('borrower')->user();
-        $request->validate(['name'=>'required|string|max:150','date_of_birth'=>'nullable|date','address'=>'nullable|string|max:500']);
-        $user->update($request->only('name','date_of_birth','address'));
-        return back()->with('success', 'Personal details updated.');
+        return back()->with('error', 'Profile updates are restricted. Please submit a request.');
     }
 
     public function updateAddress(Request $request) {
-        $user = auth('borrower')->user();
-        $user->update(['address' => $request->address]);
-        return back()->with('success', 'Address updated.');
+        return back()->with('error', 'Profile updates are restricted. Please submit a request.');
     }
 
     public function updateEmployment(Request $request) {
-        // Update via latest application
-        $app = $request->application_id
-            ? \App\Models\LoanApplication::where('user_id', auth('borrower')->id())->findOrFail($request->application_id)
-            : \App\Models\LoanApplication::where('user_id', auth('borrower')->id())->latest()->first();
-        if ($app) {
-            $app->employment()->updateOrCreate(['application_id' => $app->id], $request->only(['employer_name','employer_type','job_title','department','employment_number','contact_number']));
-        }
-        return back()->with('success', 'Employment details updated.');
+        return back()->with('error', 'Profile updates are restricted. Please submit a request.');
     }
 
     public function updateBank(Request $request) {
-        $app = \App\Models\LoanApplication::where('user_id', auth('borrower')->id())->latest()->first();
-        if ($app) {
-            $app->bankDetails()->updateOrCreate(['application_id' => $app->id], $request->only(['bank_name','account_holder_name','account_number','account_type']));
-        }
-        return back()->with('success', 'Bank details updated.');
+        return back()->with('error', 'Profile updates are restricted. Please submit a request.');
     }
 
     public function updateNextOfKin(Request $request) {
-        $app = \App\Models\LoanApplication::where('user_id', auth('borrower')->id())->latest()->first();
-        if ($app) {
-            $app->nextOfKin()->updateOrCreate(['application_id' => $app->id, 'sort_order' => 1], [
-                'first_name' => $request->nok_first_name, 'last_name' => $request->nok_last_name,
-                'relationship' => $request->relationship, 'contact_number' => $request->nok_phone,
-            ]);
-        }
-        return back()->with('success', 'Next of kin updated.');
+        return back()->with('error', 'Profile updates are restricted. Please submit a request.');
     }
 
     public function updatePassword(Request $request) {

@@ -39,6 +39,7 @@ class UserController extends Controller
             'is_active'           => 'nullable|in:0,1',
             'assigned_officer_id' => $isBorowwer ? 'required|exists:users,id' : 'nullable|exists:users,id',
             'national_id'         => $isBorowwer ? 'required|string|max:50|unique:users,national_id' : 'nullable|string|max:50',
+            'maiden_name'         => 'nullable|string|max:100',
         ];
 
         $validated = $request->validate($rules);
@@ -89,6 +90,7 @@ class UserController extends Controller
             'is_active'           => 'nullable|in:0,1',
             'assigned_officer_id' => 'nullable|exists:users,id',
             'national_id'         => 'nullable|string|max:50|unique:users,national_id,'.$user->id,
+            'maiden_name'         => 'nullable|string|max:100',
         ];
 
         $request->validate($rules);
@@ -205,6 +207,28 @@ class UserController extends Controller
             $csv .= implode(',', ['"'.$u->name.'"', $u->email ?? '', $u->phone ?? '', $u->role, $u->is_active ? 'Active' : 'Inactive', $u->created_at->format('Y-m-d')]) . "\n";
         }
         return response($csv, 200, ['Content-Type' => 'text/csv', 'Content-Disposition' => 'attachment; filename="borrowers-'.now()->format('Y-m-d').'.csv"']);
+    }
+
+    public function profileRequests()
+    {
+        $requests = \App\Models\ProfileChangeRequest::with('user')->latest()->paginate(20);
+        return view('admin.users.profile-requests', compact('requests'));
+    }
+
+    public function handleProfileRequest(Request $request, $requestId)
+    {
+        $profileRequest = \App\Models\ProfileChangeRequest::findOrFail($requestId);
+        $request->validate([
+            'action' => 'required|in:approve,reject',
+            'admin_note' => 'nullable|string|max:500'
+        ]);
+
+        $profileRequest->update([
+            'status' => $request->action === 'approve' ? 'approved' : 'rejected',
+            'admin_note' => $request->admin_note
+        ]);
+
+        return back()->with('success', 'Profile change request ' . $request->action . 'd.');
     }
 
     // ── Format phone to +266XXXXXXXX ─────────────────────────────────────────

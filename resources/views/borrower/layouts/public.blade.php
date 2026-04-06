@@ -87,16 +87,16 @@ section { padding: 90px 0; }
 .header-pill {
   width: 100%; max-width: 1160px; margin: 0 auto;
   display: flex; align-items: center;
-  background: rgba(5,11,26,.72);
-  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.2);
+  border: 1px solid rgba(255,255,255,.4);
   border-radius: 99px;
   padding: 7px 7px 7px 18px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  transition: background .35s;
+  transition: all .35s ease;
   gap: 4px;
 }
-#header.scrolled .header-pill { background: rgba(5,11,26,.92); }
+#header.scrolled .header-pill { background: rgba(255,255,255,.75); border-color: rgba(255,255,255,.6); box-shadow: 0 4px 20px rgba(0,0,0,.05); }
 
 .header-logo {
   display: flex; align-items: center; text-decoration: none;
@@ -106,13 +106,13 @@ section { padding: 90px 0; }
 
 .header-nav-links { display: flex; align-items: center; gap: 2px; }
 .header-home {
-  font-family: 'Outfit', sans-serif; font-size: 13.5px; font-weight: 400;
-  color: rgba(255,255,255,.6); text-decoration: none;
+  font-family: 'Outfit', sans-serif; font-size: 13.5px; font-weight: 500;
+  color: rgba(13,27,62,.7); text-decoration: none;
   padding: 6px 13px; border-radius: 99px; transition: all .2s;
   white-space: nowrap;
 }
-.header-home:hover { color: #fff; background: rgba(255,255,255,.08); }
-.header-home.active { color: #fff; }
+.header-home:hover { color: var(--navy); background: rgba(13,27,62,.05); }
+.header-home.active { color: var(--navy); font-weight: 700; }
 
 .header-sp { flex: 1; min-width: 8px; }
 
@@ -120,13 +120,13 @@ section { padding: 90px 0; }
 
 .header-signin {
   font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500;
-  color: rgba(255,255,255,.7); text-decoration: none;
+  color: rgba(13,27,62,.8); text-decoration: none;
   padding: 7px 16px; border-radius: 99px;
-  border: 1px solid rgba(255,255,255,.2);
+  border: 1px solid rgba(13,27,62,.2);
   transition: all .2s; display: flex; align-items: center; gap: 6px;
   white-space: nowrap;
 }
-.header-signin:hover { color: #fff; border-color: rgba(255,255,255,.45); background: rgba(255,255,255,.06); }
+.header-signin:hover { color: var(--navy); border-color: var(--navy); background: rgba(13,27,62,.04); }
 .header-signin i { font-size: 13px; }
 
 .header-apply {
@@ -142,13 +142,13 @@ section { padding: 90px 0; }
 
 /* Hamburger — hidden on desktop */
 .nav-mobile-btn {
-  display: none; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
-  color: #fff; font-size: 18px; cursor: pointer;
+  display: none; background: rgba(13,27,62,.06); border: 1px solid rgba(13,27,62,.1);
+  color: var(--navy); font-size: 18px; cursor: pointer;
   padding: 0; width: 36px; height: 36px; border-radius: 50%;
   align-items: center; justify-content: center; flex-shrink: 0;
   transition: background .2s;
 }
-.nav-mobile-btn:hover { background: rgba(255,255,255,.18); }
+.nav-mobile-btn:hover { background: rgba(13,27,62,.12); }
 
 /* ── Mobile nav overlay ─────────────────────────────── */
 #mobile-nav {
@@ -327,7 +327,7 @@ footer {
 
     <!-- Left: contact -->
     <div class="footer-left">
-      <a href="tel:+26658478799"><i class="bi bi-telephone-fill"></i>(+266) 58 478 799</a>
+      <a href="tel:+26659229149"><i class="bi bi-telephone-fill"></i>(+266) 59 229 149</a>
       <a href="mailto:info@myloan.co.ls"><i class="bi bi-envelope-fill"></i>info@myloan.co.ls</a>
       <p><i class="bi bi-geo-alt-fill"></i>L&amp;M Complex, Ha Thamae, Maseru</p>
     </div>

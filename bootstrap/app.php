@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [
+            \App\Http\Middleware\SessionTimeout::class,
+        ]);
+
         $middleware->alias([
             'admin.active'      => \App\Http\Middleware\AdminActive::class,
             'officer.active'    => \App\Http\Middleware\OfficerActive::class,
@@ -47,5 +51,16 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             return redirect()->guest(route('borrower.login'));
         });
+
+        // Graceful handling of 419 — Page Expired (Session token mismatch)
+        $exceptions->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            $path = $request->path();
+            $targetRoute = 'borrower.login';
+            if (str_starts_with($path, 'admin'))   $targetRoute = 'admin.login';
+            if (str_starts_with($path, 'officer')) $targetRoute = 'officer.login';
+
+            return redirect()->route($targetRoute)->with('error', 'Your security token or session has expired. Please sign in again.');
+        });
     })
+
     ->create();

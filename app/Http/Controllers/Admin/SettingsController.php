@@ -58,6 +58,11 @@ class SettingsController extends Controller {
             }
         }
 
+        if ($r->hasFile('system_qr_upload')) {
+            $path = $r->file('system_qr_upload')->store('system_qrs', 'public');
+            \App\Models\SystemSetting::set('system_qr', $path, 'company');
+        }
+
         return back()->with("success", "Company and banking details saved.");
     }
 

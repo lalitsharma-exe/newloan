@@ -11,7 +11,8 @@ class LoanApplication extends Model {
     'application_number', 'user_id', 'loan_product_id', 'status', 'step',
  
     // Personal
-    'title', 'first_name', 'surname', 'national_id', 'date_of_birth',
+    'title', 'first_name', 'surname', 'maiden_name', 'national_id', 'date_of_birth',
+
     'gender', 'marital_status', 'cell_number', 'email',
  
     // Address

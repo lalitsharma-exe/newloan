@@ -117,8 +117,24 @@ body{background:#f3f4f6;padding:30px}
                 <div style="margin-top:2px">{{ $companyName }}</div>
             </div>
             <div class="sig-block" style="text-align:right">
-                <div style="margin-top:32px;margin-bottom:6px;font-size:13px;color:#374151">Official Stamp</div>
-                <div style="width:80px;height:80px;border:2px dashed #d1d5db;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9ca3af;margin-left:auto">STAMP</div>
+                @php
+                    $qrVal = \App\Models\SystemSetting::get('system_qr');
+                    $qrDataUrl = null;
+                    if ($qrVal && \Illuminate\Support\Facades\Storage::disk('public')->exists($qrVal)) {
+                        try {
+                            $qrDataUrl = 'data:image/png;base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($qrVal));
+                        } catch (\Exception $e) {}
+                    }
+                @endphp
+                @if($qrDataUrl)
+                    <div style="text-align:center">
+                        <img src="{{ $qrDataUrl }}" style="width:80px;height:80px;object-fit:contain;" alt="System QR">
+                        <div style="font-size:7px;color:#9ca3af;margin-top:4px;text-transform:uppercase;letter-spacing:0.5px">Digital Authentication</div>
+                    </div>
+                @else
+                    <div style="margin-top:32px;margin-bottom:6px;font-size:13px;color:#374151">Official Stamp</div>
+                    <div style="width:80px;height:80px;border:2px dashed #d1d5db;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9ca3af;margin-left:auto">STAMP</div>
+                @endif
             </div>
         </div>
     </div>

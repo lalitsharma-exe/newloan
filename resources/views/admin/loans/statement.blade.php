@@ -170,8 +170,7 @@
   border-top: 2px solid var(--border);
 }
 
-/* ── Footer ── */
-.stmt-footer {
+  .stmt-footer {
   margin-top: 8px;
   padding: 16px 36px;
   background: #f5f7fd;
@@ -182,6 +181,27 @@
   font-size: 11px;
   color: var(--muted);
   border-radius: 0 0 14px 14px;
+}
+
+/* Authentication QR */
+.stmt-auth-qr {
+  text-align: right;
+  margin-top: 20px;
+  padding: 0 36px 20px;
+}
+.stmt-auth-qr img {
+  width: 85px;
+  height: 85px;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  display: inline-block;
+}
+.stmt-auth-qr .lbl {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
 }
 
 /* ── Print ──────────────────────────────────────────────── */
@@ -444,6 +464,15 @@
       </table>
 
     </div>
+
+    {{-- Authentication: replaced stamp with system QR code --}}
+    @php $qr = \App\Models\SystemSetting::get('system_qr'); @endphp
+    @if($qr)
+    <div class="stmt-auth-qr">
+      <img src="{{ asset('storage/' . $qr) }}" alt="Verified">
+      <div class="lbl">Document Verified</div>
+    </div>
+    @endif
 
     {{-- Footer --}}
     <div class="stmt-footer">

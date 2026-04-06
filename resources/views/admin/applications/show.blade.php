@@ -92,7 +92,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
       <div class="card-hdr"><span class="card-title">Personal Information</span></div>
       <div class="card-body">
         <div class="info-grid">
-          @foreach(['Title'=>$application->title,'First Name'=>$application->first_name,'Surname'=>$application->surname,'National ID'=>$application->national_id,'Date of Birth'=>$application->date_of_birth?->format('d M Y'),'Gender'=>ucfirst($application->gender??''),'Marital Status'=>ucfirst($application->marital_status??''),'Cell'=>$application->cell_number,'Email'=>$application->email??'—'] as $l=>$v)
+          @foreach(['Title'=>$application->title,'First Name'=>$application->first_name,'Surname'=>$application->surname,'Maiden Name'=>$application->maiden_name,'National ID'=>$application->national_id,'Date of Birth'=>$application->date_of_birth?->format('d M Y'),'Gender'=>ucfirst($application->gender??''),'Marital Status'=>ucfirst($application->marital_status??''),'Cell'=>$application->cell_number,'Email'=>$application->email??'—'] as $l=>$v)
           <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
           @endforeach
         </div>

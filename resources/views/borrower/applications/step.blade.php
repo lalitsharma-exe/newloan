@@ -46,6 +46,8 @@ $totalSteps = 10;
         <div class="fg"><label class="fl">Title</label><select name="title" class="fc"><option value="">—</option>@foreach(['Mr','Mrs','Ms','Dr','Prof'] as $t)<option {{ $application->title===$t?'selected':'' }}>{{ $t }}</option>@endforeach</select></div>
         <div class="fg"><label class="fl">First Name *</label><input type="text" name="first_name" class="fc" value="{{ old('first_name',$application->first_name) }}" required></div>
         <div class="fg"><label class="fl">Surname *</label><input type="text" name="surname" class="fc" value="{{ old('surname',$application->surname) }}" required></div>
+        <div class="fg"><label class="fl">Maiden Name <span style="font-size:11px;color:var(--muted);font-weight:400">(if any)</span></label><input type="text" name="maiden_name" class="fc" value="{{ old('maiden_name',$application->maiden_name) }}" placeholder="Name before marriage"></div>
+
         <div class="fg"><label class="fl">National ID *</label><input type="text" name="national_id" class="fc" value="{{ old('national_id',$application->national_id) }}" required></div>
         <div class="fg"><label class="fl">Date of Birth *</label><input type="date" name="date_of_birth" class="fc" value="{{ old('date_of_birth',$application->date_of_birth?->format('Y-m-d')) }}" required></div>
         <div class="fg"><label class="fl">Gender *</label><select name="gender" class="fc" required><option value="">—</option><option value="male" {{ $application->gender==='male'?'selected':'' }}>Male</option><option value="female" {{ $application->gender==='female'?'selected':'' }}>Female</option></select></div>
@@ -312,7 +314,7 @@ $totalSteps = 10;
 
       {{-- STEP 9: Card Tokenization --}}
       @elseif($step === 9)
-      <div class="alert a-i"><i class="bi bi-shield-lock-fill"></i><div><strong>Secure Card Setup</strong><br>Your card details are sent directly to our payment processor. We store only a secure token — no raw card data is kept on our servers.</div></div>
+      <div class="alert a-i"><i class="bi bi-shield-lock-fill"></i><div><strong>Secure Card Verification</strong><br>To verify your card, a small payment of <strong>M10.00</strong> is required. You will be redirected to our secure payment processor (CPay) to complete this. No raw card data is stored on our servers.</div></div>
       <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Bank Card</div>
       <div style="background:linear-gradient(135deg,var(--navy),var(--navy3));border-radius:14px;padding:28px;color:#fff;margin-bottom:20px">
         <div style="font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Bank Card Preview</div>
@@ -344,7 +346,7 @@ $totalSteps = 10;
       </div>
       <div style="background:rgba(43,75,173,.06);border:1px solid rgba(43,75,173,.15);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--slate)">
         <i class="bi bi-info-circle-fill" style="color:var(--blue);margin-right:6px"></i>
-        No payment is charged at this stage. Your card is tokenised for future loan repayments. A small pre-authorisation of M10 may be applied to verify the card.
+        A one-time verification payment of <strong>M10.00</strong> will be applied. After a successful payment, you will be returned here to finish your application.
       </div>
 
       {{-- STEP 10: Review & Submit --}}

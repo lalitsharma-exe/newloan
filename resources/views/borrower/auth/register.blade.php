@@ -101,13 +101,22 @@ body{background:linear-gradient(160deg,#070e24 0%,#0d1b3e 40%,#162552 70%,#0d1b3
           @error('name')<span class="iv">{{ $message }}</span>@enderror
         </div>
         <div class="fg">
-          <label class="fl">National ID *</label>
+          <label class="fl">Maiden Name <span style="color:#9aaccf;text-transform:none;letter-spacing:0">(if any)</span></label>
           <div class="field-wrap">
-            <i class="bi bi-card-text field-icon"></i>
-            <input type="text" name="national_id" class="fc" value="{{ old('national_id') }}" placeholder="ID number" required>
+            <i class="bi bi-person-heart field-icon"></i>
+            <input type="text" name="maiden_name" class="fc" value="{{ old('maiden_name') }}" placeholder="Name before marriage">
           </div>
-          @error('national_id')<span class="iv">{{ $message }}</span>@enderror
+          @error('maiden_name')<span class="iv">{{ $message }}</span>@enderror
         </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">National ID *</label>
+        <div class="field-wrap">
+          <i class="bi bi-card-text field-icon"></i>
+          <input type="text" name="national_id" class="fc" value="{{ old('national_id') }}" placeholder="ID number" required>
+        </div>
+        @error('national_id')<span class="iv">{{ $message }}</span>@enderror
       </div>
 
       <div class="fg">

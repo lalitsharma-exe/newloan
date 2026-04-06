@@ -114,6 +114,16 @@ class PaymentWebhookController extends Controller
         ]);
 
         $loan = $payment->loan;
+        $application = $payment->application;
+
+        if ($application && !$application->card_tokenised) {
+            $application->update([
+                'card_tokenised' => true,
+                'step'           => 10
+            ]);
+            Log::info('CPay webhook: marked application card as tokenised', ['app_id' => $application->id]);
+        }
+
         if (!$loan) return;
 
         // Apply to installments in order (oldest first, penalty → fees → interest → principal)

@@ -36,11 +36,12 @@ class AuthController extends Controller
    
     public function register(Request $request) {
         $request->validate([
-            'name'       => 'required|string|max:150',
-            'phone'      => 'required|string|max:30|unique:users,phone',
-            'national_id'=> 'required|string|max:50|unique:users,national_id',
-            'email'      => 'nullable|email|unique:users,email',
-            'password'   => 'required|string|min:8|confirmed',
+            'name'        => 'required|string|max:150',
+            'maiden_name' => 'nullable|string|max:150',
+            'phone'       => 'required|string|max:30|unique:users,phone',
+            'national_id' => 'required|string|max:50|unique:users,national_id',
+            'email'       => 'nullable|email|unique:users,email',
+            'password'    => 'required|string|min:8|confirmed',
         ]);
         $phone = $this->formatPhone($request->phone);
         if (\App\Models\User::where('phone', $phone)->exists()) {
@@ -48,6 +49,7 @@ class AuthController extends Controller
         }
         $user = \App\Models\User::create([
             'name'              => $request->name,
+            'maiden_name'       => $request->maiden_name,
             'phone'             => $phone,
             'email'             => $request->filled('email') ? $request->email : null,
             'national_id'       => $request->national_id,
@@ -67,6 +69,7 @@ class AuthController extends Controller
             'surname'            => $nameParts[1] ?? '',
             'cell_number'        => $user->phone,
             'national_id'        => $user->national_id,
+            'maiden_name'        => $user->maiden_name,
             'email'              => $user->email,
         ]);
 
@@ -91,9 +94,9 @@ class AuthController extends Controller
 
     public function logout(Request $request) {
         Auth::guard('borrower')->logout();
-        $request->session()->invalidate(); $request->session()->regenerateToken();
         return redirect()->route('borrower.login');
     }
+
 
     public function showForgotPassword() { return view('borrower.auth.forgot-password'); }
 

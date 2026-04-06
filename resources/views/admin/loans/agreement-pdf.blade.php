@@ -316,19 +316,37 @@
         $directorName = \App\Models\SystemSetting::get('director_name', 'Tjale Maila');
         $directorTitle = \App\Models\SystemSetting::get('director_title', 'Managing Director');
         $companyName = \App\Models\SystemSetting::get('app_name', 'MyLoan Limited');
+
+        $qrVal = \App\Models\SystemSetting::get('system_qr');
+        $qrDataUrl = null;
+        if ($qrVal && \Illuminate\Support\Facades\Storage::disk('public')->exists($qrVal)) {
+            try {
+                $qrDataUrl = 'data:image/png;base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($qrVal));
+            } catch (\Exception $e) {}
+        }
     @endphp
     <div style="font-weight:700;margin-bottom:12px">FOR {{ strtoupper($companyName) }} (LENDER)</div>
     <div style="margin-bottom:4px;font-size:12px">Authorised Representative: <strong>{{ $directorName }} ({{ $directorTitle }})</strong></div>
     
-    @if($dirSigDataUrl)
-      <div style="height:70px;display:flex;align-items:center;padding:4px 0">
-         <img src="{{ $dirSigDataUrl }}" style="max-height:70px;max-width:200px" alt="Signature">
-      </div>
-    @else
-      <div style="height:70px;display:flex;align-items:center;padding:4px 0">
-        <div style="font-family:'Brush Script MT', cursive; font-size:32px; color:#1a5c2e; transform:rotate(-5deg)">{{ $directorName }}</div>
-      </div>
-    @endif
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:15px">
+        <div style="flex:1">
+            @if($dirSigDataUrl)
+              <div style="height:70px;display:flex;align-items:center;padding:4px 0">
+                 <img src="{{ $dirSigDataUrl }}" style="max-height:70px;max-width:200px" alt="Signature">
+              </div>
+            @else
+              <div style="height:70px;display:flex;align-items:center;padding:4px 0">
+                <div style="font-family:'Brush Script MT', cursive; font-size:32px; color:#1a5c2e; transform:rotate(-5deg)">{{ $directorName }}</div>
+              </div>
+            @endif
+        </div>
+        @if($qrDataUrl)
+        <div style="text-align:right">
+            <img src="{{ $qrDataUrl }}" style="height:80px;width:80px;object-fit:contain" alt="QR">
+            <div style="font-size:6px;color:#64748b;text-transform:uppercase;text-align:center">Digital Auth</div>
+        </div>
+        @endif
+    </div>
     
     <div style="font-size:10px;color:#64748b;margin-top:2px">Signature — {{ $directorName }} ({{ $directorTitle }})</div>
     <div style="margin-top:10px;font-size:12px">Date: {{ now()->format('d F Y') }}</div>

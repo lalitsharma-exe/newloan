@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payment extends Model {
     protected $fillable = [
-        "payment_reference","loan_id","installment_id","user_id",
+        "payment_reference","loan_id","installment_id","user_id","application_id",
         "amount","method","gateway_reference","reference",
         "status","notes","is_manual",
         "verified_by","verified_at",
@@ -15,6 +15,7 @@ class Payment extends Model {
         "is_manual"   => "boolean",
     ];
 
+    public function application() { return $this->belongsTo(LoanApplication::class, "application_id"); }
     public function loan()       { return $this->belongsTo(Loan::class); }
     public function user()       { return $this->belongsTo(User::class); }
     public function installment(){ return $this->belongsTo(LoanInstallment::class); }

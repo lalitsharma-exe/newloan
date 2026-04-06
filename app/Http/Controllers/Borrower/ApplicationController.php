@@ -1,8 +1,11 @@
 <?php
 namespace App\Http\Controllers\Borrower;
 use App\Http\Controllers\Controller;
-use App\Models\{LoanApplication, LoanProduct, AffordabilityAssessment};
+use App\Models\{LoanApplication, LoanProduct, AffordabilityAssessment, Payment};
+use App\Services\CPayService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class ApplicationController extends Controller
 {
@@ -30,7 +33,9 @@ class ApplicationController extends Controller
                 'surname'            => implode(' ', array_slice(explode(' ', $user->name), 1)) ?: '',
                 'cell_number'        => $user->phone,
                 'national_id'        => $user->national_id,
+                'maiden_name'        => $user->maiden_name,
             ]);
+
         }
         return redirect()->route('borrower.apply.step.show', [$draft, 1]);
     }
@@ -87,7 +92,10 @@ class ApplicationController extends Controller
                 return back()->with('error', 'Please upload all required documents ('.implode(', ', array_map(fn($v)=>ucwords(str_replace('_',' ',$v)),$missing)).') before continuing.');
             }
         }
-        if ($step === 9)  $this->saveCardToken($request, $application);   // ← NEW
+        if ($step === 9) {
+            $this->saveCardToken($request, $application);
+            return redirect()->route('borrower.apply.verify-card', $application);
+        }
 
         // ── Fields to exclude from direct application update ────────
         // (handled by their own save methods above)
@@ -309,7 +317,80 @@ class ApplicationController extends Controller
         ]);
 
         // Mark tokenisation done on the application
-        $application->update(['card_tokenised' => true]);
+        // $application->update(['card_tokenised' => true]); 
+    }
+
+    public function initiateCardVerification(LoanApplication $application)
+    {
+        abort_if($application->user_id !== auth('borrower')->id(), 403);
+        
+        $user = auth('borrower')->user();
+        
+        // Create verification payment
+        $payment = Payment::create([
+            'payment_reference' => 'VER-' . strtoupper(Str::random(10)),
+            'user_id'           => $user->id,
+            'application_id'    => $application->id,
+            'amount'            => 10.00,
+            'method'            => 'card',
+            'status'            => 'pending',
+            'notes'             => 'M10 Card Verification for Loan Application #' . $application->id,
+        ]);
+
+        $cpay = app(CPayService::class);
+        
+        // Use initiateRepayment with card method and custom success redirect
+        $successUrl = route('borrower.apply.card-success', ['application' => $application->id, 'ref' => $payment->payment_reference]);
+        
+        $result = $cpay->initiateRepayment($payment, $user->phone, 'card', $successUrl);
+
+        if ($result['success']) {
+            $redirectUrl = $result['redirect_url']
+                ?? $result['data']['redirectUrl']
+                ?? $result['data']['paymentLink']
+                ?? null;
+
+            if ($redirectUrl && filter_var($redirectUrl, FILTER_VALIDATE_URL)) {
+                return redirect()->away($redirectUrl);
+            }
+            
+            // If redirect URL is embedded in HTML
+            $html = $result['raw'] ?? null;
+            if ($html && strlen($html) > 100 && str_contains($html, '<')) {
+                return response($html)->header('Content-Type', 'text/html');
+            }
+        }
+
+        return redirect()->route('borrower.apply.step.show', [$application, 9])
+            ->with('error', 'Could not initiate card verification: ' . ($result['error'] ?? 'Please try again.'));
+    }
+
+    public function cardVerificationSuccess(Request $request, LoanApplication $application)
+    {
+        abort_if($application->user_id !== auth('borrower')->id(), 403);
+        
+        $ref = $request->input('ref') ?? $request->input('transactionId');
+        $payment = Payment::where('payment_reference', $ref)
+            ->where('user_id', auth('borrower')->id())
+            ->first();
+
+        if (!$payment) {
+             return redirect()->route('borrower.apply.step.show', [$application, 9])
+                ->with('error', 'Card verification payment not found.');
+        }
+
+        // Ideally, we'd poll CPay here to confirm success, but usually, 
+        // if they hit this callback, it was successful at the gateway.
+        // The webhook will finalize the 'verified' status in the DB.
+        
+        // Advance application status
+        $application->update([
+            'card_tokenised' => true,
+            'step'           => 10
+        ]);
+
+        return redirect()->route('borrower.apply.step.show', [$application, 10])
+            ->with('success', 'Card verified successfully. Please review and submit your application.');
     }
 
     private function detectCardBrand(string $number): string

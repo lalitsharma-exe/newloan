@@ -67,6 +67,7 @@
           <div style="display:grid;grid-template-columns:1fr 1fr">
             @foreach([
               'Full Name'      => $user->name,
+              'Maiden Name'    => $user->maiden_name ?? '—',
               'Email'          => $user->email,
               'Phone'          => $user->phone ?? '—',
               'Role'           => ucfirst(str_replace('_',' ',$user->role)),

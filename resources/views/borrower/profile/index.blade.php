@@ -11,15 +11,31 @@
   </div>
 </div>
 
+@if(session('success'))
+<div style="padding:12px;background:#e1f5fe;color:#01579b;border-radius:8px;margin-bottom:16px;font-size:14px;font-weight:600">{{ session('success') }}</div>
+@endif
+
 <div class="card" style="margin-bottom:16px">
   <div class="card-hdr"><span class="card-title">Personal Information</span></div>
-  <form method="POST" action="{{ route('borrower.profile.personal') }}" class="card-body">@csrf @method('PUT')
+  <div class="card-body">
     <div class="g2">
-      <div class="fg"><label class="fl">Full Name</label><input type="text" name="name" class="fc" value="{{ old('name',$user->name) }}" required></div>
-      <div class="fg"><label class="fl">Date of Birth</label><input type="date" name="date_of_birth" class="fc" value="{{ old('date_of_birth',$user->date_of_birth?->format('Y-m-d')) }}"></div>
-      <div class="fg" style="grid-column:span 2"><label class="fl">Address</label><input type="text" name="address" class="fc" value="{{ old('address',$user->address) }}"></div>
+      <div class="fg"><label class="fl">Full Name</label><input type="text" class="fc" value="{{ $user->name }}" readonly disabled></div>
+      <div class="fg"><label class="fl">Maiden Name</label><input type="text" class="fc" value="{{ $user->maiden_name ?? '—' }}" readonly disabled></div>
+      <div class="fg"><label class="fl">Date of Birth</label><input type="text" class="fc" value="{{ $user->date_of_birth?->format('d M Y') ?? 'Not set' }}" readonly disabled></div>
+      <div class="fg" style="grid-column:span 2"><label class="fl">Address</label><input type="text" class="fc" value="{{ $user->address ?? 'Not set' }}" readonly disabled></div>
     </div>
-    <div style="text-align:right"><button type="submit" class="btn btn-p btn-sm">Save</button></div>
+    <div style="margin-top:10px;font-size:12px;color:var(--muted);"><i class="bi bi-info-circle"></i> Profile updates are restricted. Please submit a request below for any changes.</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <div class="card-hdr"><span class="card-title">Request Profile Change</span></div>
+  <form method="POST" action="{{ route('borrower.profile.request-change') }}" class="card-body">@csrf
+    <div class="fg">
+        <label class="fl">Details of change</label>
+        <textarea name="requested_details" class="fc" rows="3" placeholder="Describe the changes you want to make to your profile (e.g. Change address to...)" required></textarea>
+    </div>
+    <div style="text-align:right"><button type="submit" class="btn btn-p btn-sm">Submit Request</button></div>
   </form>
 </div>
 
@@ -27,10 +43,46 @@
   <div class="card-hdr"><span class="card-title">Account Details</span></div>
   <div class="card-body">
     <div class="g2">
-      @foreach(['Phone'=>$user->phone??'—','Email'=>$user->email??'Not set','ID Number'=>$user->national_id??'—','Member Since'=>$user->created_at->format('d M Y'),'Last Login'=>$user->last_login_at?->diffForHumans()??'—','Status'=>$user->is_active?'Active':'Inactive'] as $l=>$v)
+      @foreach(['Phone'=>$user->phone??'—','Email'=>$user->email??'Not set','ID Number'=>$user->national_id??'—','Maiden Name'=>$user->maiden_name??'—','Member Since'=>$user->created_at->format('d M Y'),'Last Login'=>$user->last_login_at?->diffForHumans()??'—','Status'=>$user->is_active?'Active':'Inactive'] as $l=>$v)
       <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v }}</div></div>
       @endforeach
     </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:20px">
+  <div class="card-hdr">
+    <span class="card-title"><i class="bi bi-pencil-square" style="color:var(--p)"></i> Request Profile Update</span>
+  </div>
+  <div class="card-body">
+    @if($latestRequest && $latestRequest->status === 'pending')
+      <div class="alert bi mb-4" style="background:rgba(59,130,246,.08);color:#1e40af;border:1px solid rgba(59,130,246,.2);padding:12px;border-radius:10px;font-size:13px">
+        <i class="bi bi-clock-history"></i> You have a pending change request submitted on {{ $latestRequest->created_at->format('d M Y') }}.
+      </div>
+    @elseif($latestRequest && $latestRequest->status === 'approved')
+       <div class="alert bs mb-4" style="background:rgba(16,185,129,.08);color:#065f46;border:1px solid rgba(16,185,129,.2);padding:12px;border-radius:10px;font-size:13px">
+        <i class="bi bi-check-circle"></i> Your last request was approved. @if($latestRequest->admin_note) <strong>Note:</strong> {{ $latestRequest->admin_note }} @endif
+      </div>
+    @elseif($latestRequest && $latestRequest->status === 'rejected')
+       <div class="alert be mb-4" style="background:rgba(239,68,68,.08);color:#991b1b;border:1px solid rgba(239,68,68,.2);padding:12px;border-radius:10px;font-size:13px">
+        <i class="bi bi-x-circle"></i> Your last request was rejected. @if($latestRequest->admin_note) <strong>Note:</strong> {{ $latestRequest->admin_note }} @endif
+      </div>
+    @endif
+
+    <p style="font-size:13px; color:var(--muted); margin-bottom:16px">
+      Direct profile editing is disabled. If you need to update your personal details, address, or banking information, please describe the changes below. An administrator will review and update your profile for you.
+    </p>
+
+    <form method="POST" action="{{ route('borrower.profile.request-change') }}">
+      @csrf
+      <div class="fg">
+        <label class="fl">Describe requested changes</label>
+        <textarea name="requested_details" class="fc" style="height:120px" placeholder="e.g. Please change my phone number to +266 1234 5678 and update my bank account number to..." required></textarea>
+      </div>
+      <button type="submit" class="btn btn-p" @if($latestRequest && $latestRequest->status==='pending') disabled @endif>
+        <i class="bi bi-send"></i> Submit Request
+      </button>
+    </form>
   </div>
 </div>
 

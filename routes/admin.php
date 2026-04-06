@@ -23,6 +23,8 @@ use App\Http\Controllers\Admin\DocumentController;
 */
 
 Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', function() { return redirect()->route('admin.dashboard'); });
+
 
     /*
     |------------------------------------------------------------------
@@ -221,6 +223,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/',                        [UserController::class, 'store'])->name('store');
             Route::get('/export',                   [UserController::class, 'export'])->name('export');
             Route::post('/import',                  [UserController::class, 'import'])->name('import');
+
+            // Profile Change Requests (Moved above {user} to prevent misrouting)
+            Route::get('/profile-requests',         [UserController::class, 'profileRequests'])->name('profile-requests');
+            Route::post('/profile-requests/{request}', [UserController::class, 'handleProfileRequest'])->name('profile-requests.action');
+
             Route::get('/{user}',                   [UserController::class, 'show'])->name('show');
             Route::get('/{user}/edit',              [UserController::class, 'edit'])->name('edit');
             Route::put('/{user}',                   [UserController::class, 'update'])->name('update');
