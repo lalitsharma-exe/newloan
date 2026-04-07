@@ -250,24 +250,24 @@ class CPayService
     //   ?destinationOperator={OP}&destinationWalletNumber={8-digit}
     // Body: double-wrapped with recipientKyc in additionalData
     //
-    // FIX: msisdn field in body uses 8-digit per CPay wallet-topup-advance docs,
-    //      BUT the checksum salt MUST still use the +266 normalised format.
-    //      Previously both body msisdn AND checksum salt used msisdn8, causing
-    //      a mismatch if CPay validates checksum against the +266 canonical form.
+    // wallet-topup-advance: body msisdn = 8-digit. checksum salt = SAME 8-digit.
+    // CPay recomputes the checksum server-side using the msisdn from the body,
+    // so the salt must match exactly. Using +266 format caused "Checksum is invalid".
     // =========================================================================
 
     public function disburseToWallet(Loan $loan, string $phone, string $reference): array
     {
         $txnId   = $this->generateTxnId($reference);
         $amount  = number_format((float) $loan->principal_amount, 2, '.', '');
-        $msisdn  = $this->normalisePhone($phone);  // +266 — used for checksum salt
-        $msisdn8 = $this->msisdn($phone);          // 8-digit — used in body per wallet-topup-advance spec
+        $msisdn8 = $this->msisdn($phone);          // 8-digit — used in body AND checksum salt for wallet-topup-advance
+        // NOTE: wallet-topup-advance body uses 8-digit msisdn8.
+        // CPay validates checksum using the msisdn value from the body, so checksum salt MUST also use msisdn8.
+        // Using +266 format here caused "Transaction Checksum is invalid" — confirmed by log mismatch.
         $app     = $loan->application;
 
         Log::info('CPay::disburseToWallet', [
             'loan'    => $loan->loan_number,
             'amount'  => $amount,
-            'msisdn'  => $msisdn,
             'msisdn8' => $msisdn8,
         ]);
 
@@ -282,10 +282,7 @@ class CPayService
                         'msisdn'           => $msisdn8,  // 8-digit per wallet-topup-advance example
                         'amount'           => $amount,
                         'shortDescription' => 'Wallet top-up',
-                        // FIX: checksum salt uses +266 format (normalisePhone), NOT msisdn8.
-                        // The rule is: salt msisdn = whatever format the endpoint treats as canonical.
-                        // If CPay still rejects, try swapping to $msisdn8 here and test both.
-                        'checksum'         => $this->checksumInitiate($txnId, $amount, $msisdn),
+                        'checksum'         => $this->checksumInitiate($txnId, $amount, $msisdn8), // MUST match body msisdn format (8-digit)
                         'currency'         => 'LSL',
                         'redirectUrl'      => url(route('webhooks.payment')),
                         'additionalData'   => [

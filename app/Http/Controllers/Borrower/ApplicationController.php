@@ -109,6 +109,7 @@ class ApplicationController extends Controller
             'nok_1_first_name','nok_1_last_name','nok_1_relationship','nok_1_phone',
             // Affordability (step 6)
             'monthly_earnings','tax_deduction','existing_loans_deduction',
+            'pension_deduction','insurance_deduction','subscriptions_deduction',
             'other_deductions','rent','groceries','transport','utilities',
             'education','communication','other_insurance','medical',
             'other_loan_repayments','family_support','entertainment','other_expenses',
@@ -412,6 +413,9 @@ class ApplicationController extends Controller
                 'monthly_earnings'         => $request->monthly_earnings ?? 0,
                 'tax_deduction'            => $request->tax_deduction ?? 0,
                 'existing_loans_deduction' => $request->existing_loans_deduction ?? 0,
+                'pension_deduction'        => $request->pension_deduction ?? 0,
+                'insurance_deduction'      => $request->insurance_deduction ?? 0,
+                'subscriptions_deduction'  => $request->subscriptions_deduction ?? 0,
                 'other_deductions'         => $request->other_deductions ?? 0,
                 'transport'                => $request->transport ?? 0,
                 'groceries'                => $request->groceries ?? 0,

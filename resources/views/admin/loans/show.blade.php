@@ -2,6 +2,44 @@
 @section('title','Loan '.$loan->loan_number)@section('page-title','Loan '.$loan->loan_number)
 @section('bc')
 <a href="{{ route('admin.loans.index') }}">Loans</a> / Detail
+{{-- EDIT LOAN DETAILS MODAL --}}
+<div class="mo" id="editLoanModal"><div class="mb" style="max-width:560px">
+  <div class="mh"><span class="mt"><i class="bi bi-pencil-square" style="color:var(--info)"></i> Edit Loan Details</span><button class="mc" onclick="closeModal('editLoanModal')">&times;</button></div>
+  <form method="POST" action="{{ route('admin.loans.update-details',$loan) }}">@csrf @method('PATCH')
+    <div class="mbody">
+      <div class="alert a-w"><i class="bi bi-exclamation-triangle-fill"></i> Changes to payday will recalculate instalment due dates from the next unpaid instalment. Verify before saving.</div>
+      <div class="g2" style="gap:16px">
+        <div class="fg">
+          <label class="fl">Salary Pay Day (1–31)</label>
+          <input type="number" name="salary_payday" class="fc" min="1" max="31" value="{{ $loan->salary_payday ?? $loan->application?->salary_payday ?? 25 }}" required>
+          <div class="ft">The day of the month salary is received</div>
+        </div>
+        <div class="fg">
+          <label class="fl">Payout Method</label>
+          <select name="payout_method" class="fc">
+            @foreach(['bank_transfer'=>'Bank Transfer','mobile_money'=>'Mobile Money','cash'=>'Cash','cpay_wallet'=>'CPay Wallet'] as $v=>$l)
+            <option value="{{ $v }}" {{ ($loan->payout_method??'bank_transfer')===$v?'selected':'' }}>{{ $l }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Collection Method</label>
+          <select name="collection_method" class="fc">
+            @foreach(['salary_deduction'=>'Salary Deduction','card_payment'=>'Card Payment','debit_order'=>'Debit Order','mobile_money'=>'Mobile Money','cash'=>'Cash'] as $v=>$l)
+            <option value="{{ $v }}" {{ ($loan->collection_method??'')===$v?'selected':'' }}>{{ $l }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Notes / Reason for Change</label>
+          <textarea name="edit_reason" class="fc" rows="2" placeholder="e.g. Client requested payday change" required></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="mf"><button type="button" class="btn btn-o" onclick="closeModal('editLoanModal')">Cancel</button><button type="submit" class="btn btn-i"><i class="bi bi-save"></i> Save Changes</button></div>
+  </form>
+</div></div>
+
 @endsection
 @section('content')
 <div style="display:flex;gap:18px;align-items:flex-start">
@@ -16,6 +54,9 @@
       <a href="{{ route('admin.loans.agreement',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-file-pdf"></i> Agreement</a>
       <a href="{{ route('admin.loans.statement',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-file-earmark-text"></i> Statement</a>
       <a href="{{ route('admin.loans.settlement-quotation',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-receipt"></i> Quotation</a>
+      @if(in_array($loan->status,['active','overdue','pending']))
+      <button onclick="openModal('editLoanModal')" class="btn btn-sm btn-i"><i class="bi bi-pencil-square"></i> Edit Loan</button>
+      @endif
       @if(in_array($loan->status,['paid_off','closed']))
       <a href="{{ route('admin.loans.settlement-letter',$loan) }}" class="btn btn-sm btn-ok"><i class="bi bi-patch-check"></i> Settlement Letter</a>
       @endif
@@ -113,9 +154,9 @@
     @if($loan->user && optional($loan->user)->encrypted_card_number)
       <div style="margin-top:12px;background:#f8fafc;padding:10px;border-radius:8px">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Authorized Card</div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span class="muted">Card No.</span><code style="color:var(--navy);font-weight:700">{{ \Illuminate\Support\Facades\Crypt::decryptString($loan->user->encrypted_card_number) }}</code></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span class="muted">Card No.</span><code style="color:var(--navy);font-weight:700">{{ $loan->user->encrypted_card_number ? (function(){ try { $n = \Illuminate\Support\Facades\Crypt::decryptString($loan->user->encrypted_card_number); return "•••• •••• •••• " . substr($n,-4); } catch(\Exception $e){ return "•••• •••• •••• " . ($loan->user->card_last_four ?? "????"); } })() : "—" }}</code></div>
         <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span class="muted">Expiry</span><span style="font-weight:600">{{ $loan->user->card_expiry }}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:12px"><span class="muted">CVV</span><code style="color:var(--err);font-weight:700">{{ \Illuminate\Support\Facades\Crypt::decryptString($loan->user->card_cvv) }}</code></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span class="muted">CVV</span><code style="color:var(--err);font-weight:700">{{ $loan->user->card_cvv ? (function(){ try { return str_repeat("•", strlen(\Illuminate\Support\Facades\Crypt::decryptString($loan->user->card_cvv))); } catch(\Exception $e){ return "•••"; } })() : "—" }}</code></div>
       </div>
     @elseif($loan->application->card_tokenised)
       <div style="margin-top:12px;background:#ecfdf5;padding:10px;border-radius:8px;text-align:center;color:#059669;font-weight:600;font-size:12px">
@@ -185,6 +226,44 @@
       <button type="button" class="btn btn-o" onclick="closeModal('defaultModal')">Cancel</button>
       <button type="submit" class="btn btn-w"><i class="bi bi-exclamation-triangle"></i> Confirm Default</button>
     </div>
+  </form>
+</div></div>
+
+{{-- EDIT LOAN DETAILS MODAL --}}
+<div class="mo" id="editLoanModal"><div class="mb" style="max-width:560px">
+  <div class="mh"><span class="mt"><i class="bi bi-pencil-square" style="color:var(--info)"></i> Edit Loan Details</span><button class="mc" onclick="closeModal('editLoanModal')">&times;</button></div>
+  <form method="POST" action="{{ route('admin.loans.update-details',$loan) }}">@csrf @method('PATCH')
+    <div class="mbody">
+      <div class="alert a-w"><i class="bi bi-exclamation-triangle-fill"></i> Changes to payday will recalculate instalment due dates from the next unpaid instalment. Verify before saving.</div>
+      <div class="g2" style="gap:16px">
+        <div class="fg">
+          <label class="fl">Salary Pay Day (1–31)</label>
+          <input type="number" name="salary_payday" class="fc" min="1" max="31" value="{{ $loan->salary_payday ?? $loan->application?->salary_payday ?? 25 }}" required>
+          <div class="ft">The day of the month salary is received</div>
+        </div>
+        <div class="fg">
+          <label class="fl">Payout Method</label>
+          <select name="payout_method" class="fc">
+            @foreach(['bank_transfer'=>'Bank Transfer','mobile_money'=>'Mobile Money','cash'=>'Cash','cpay_wallet'=>'CPay Wallet'] as $v=>$l)
+            <option value="{{ $v }}" {{ ($loan->payout_method??'bank_transfer')===$v?'selected':'' }}>{{ $l }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Collection Method</label>
+          <select name="collection_method" class="fc">
+            @foreach(['salary_deduction'=>'Salary Deduction','card_payment'=>'Card Payment','debit_order'=>'Debit Order','mobile_money'=>'Mobile Money','cash'=>'Cash'] as $v=>$l)
+            <option value="{{ $v }}" {{ ($loan->collection_method??'')===$v?'selected':'' }}>{{ $l }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Notes / Reason for Change</label>
+          <textarea name="edit_reason" class="fc" rows="2" placeholder="e.g. Client requested payday change" required></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="mf"><button type="button" class="btn btn-o" onclick="closeModal('editLoanModal')">Cancel</button><button type="submit" class="btn btn-i"><i class="bi bi-save"></i> Save Changes</button></div>
   </form>
 </div></div>
 

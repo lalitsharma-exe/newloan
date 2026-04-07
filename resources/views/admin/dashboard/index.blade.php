@@ -61,12 +61,13 @@ $months12 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','
 </div>
 
 {{-- PRIMARY KPIs --}}
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px">
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px">
   @foreach([
-    ['Total Portfolio',     'M '.number_format($totalPortfolio,0),                    'pie-chart-fill',    '#4f46e5','rgba(79,70,229,.1)',   route('admin.loans.index')],
-    ['Disbursed This Month','M '.number_format($yearData[$now->month-1]['disbursed'],0),'arrow-up-circle-fill','#8b5cf6','rgba(139,92,246,.1)',route('admin.loans.index')],
-    ['Collected This Month','M '.number_format($monthCollected,0),                    'cash-stack',        '#10b981','rgba(16,185,129,.1)',  route('admin.payments.index')],
-    ['Pending Applications',LoanApplication::whereIn('status',['submitted','under_review','info_requested','on_hold'])->count(),'hourglass-split','#f59e0b','rgba(245,158,11,.1)',route('admin.applications.index')],
+    ['Total Portfolio',             'M '.number_format($totalPortfolio,0),                    'pie-chart-fill',    '#4f46e5','rgba(79,70,229,.1)',   route('admin.loans.index')],
+    ['Expected Collection (Month)', 'M '.number_format($monthExpected,0),                     'arrow-down-circle-fill','#06b6d4','rgba(6,182,212,.1)', route('admin.payments.index')],
+    ['Disbursed This Month',        'M '.number_format($yearData[$now->month-1]['disbursed'],0),'arrow-up-circle-fill','#8b5cf6','rgba(139,92,246,.1)',route('admin.loans.index')],
+    ['Collected This Month',        'M '.number_format($monthCollected,0),                    'cash-stack',        '#10b981','rgba(16,185,129,.1)',  route('admin.payments.index')],
+    ['Pending Applications',        LoanApplication::whereIn('status',['submitted','under_review','info_requested','on_hold'])->count(),'hourglass-split','#f59e0b','rgba(245,158,11,.1)',route('admin.applications.index')],
   ] as [$lbl,$val,$icon,$color,$bg,$link])
   <a href="{{ $link }}" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;text-decoration:none;transition:all .2s" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow='none'">
     <div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">{{ $lbl }}</div><div style="font-size:28px;font-weight:800;color:var(--dark);line-height:1">{{ $val }}</div></div>

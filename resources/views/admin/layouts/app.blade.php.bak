@@ -266,31 +266,6 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
   </div>
 </div>
 
-{{-- ── IDLE SESSION WARNING MODAL ──────────────────────────────────── --}}
-<div id="idleModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(6px)">
-  <div style="background:#fff;border-radius:20px;width:100%;max-width:420px;margin:20px;box-shadow:0 30px 70px rgba(0,0,0,.25);overflow:hidden;text-align:center">
-    <div style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:28px 26px 20px">
-      <div style="font-size:44px;margin-bottom:8px">&#9200;</div>
-      <div style="font-size:19px;font-weight:800;color:#fff;margin-bottom:4px">Session Expiring Soon</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.85)">You've been inactive for a while</div>
-    </div>
-    <div style="padding:28px 26px">
-      <div style="font-size:13.5px;color:#475569;margin-bottom:20px">You will be automatically logged out in</div>
-      <div style="font-size:60px;font-weight:900;color:#d97706;line-height:1;margin-bottom:4px" id="idleCounter">60</div>
-      <div style="font-size:12px;color:#94a3b8;margin-bottom:28px">seconds</div>
-      <div style="display:flex;gap:10px;justify-content:center">
-        <form method="POST" action="{{ route('admin.logout') }}" style="flex:1">
-          @csrf
-          <button type="submit" class="btn btn-o" style="width:100%;justify-content:center">Log Out Now</button>
-        </form>
-        <button type="button" onclick="stayLoggedIn()" class="btn btn-ok" style="flex:1;justify-content:center">
-          <i class="bi bi-shield-check"></i> Stay Logged In
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
 const sbToggle=document.getElementById('sbToggle'),sb=document.getElementById('sb');
 sbToggle.addEventListener('click',()=>sb.classList.toggle('open'));
@@ -300,54 +275,6 @@ function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
 document.getElementById('logoutModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
 function switchTab(g,id){document.querySelectorAll('[data-tg="'+g+'"]').forEach(e=>e.classList.remove('active'));document.querySelectorAll('[data-pg="'+g+'"]').forEach(e=>e.classList.remove('active'));document.querySelector('[data-tg="'+g+'"][data-t="'+id+'"]').classList.add('active');document.querySelector('[data-pg="'+g+'"][data-p="'+id+'"]').classList.add('active')}
-
-// ── IDLE AUTO-LOGOUT (3 min idle → 60 s warning → logout) ────────────
-(function(){
-  const IDLE_MS    = 3 * 60 * 1000; // 3 minutes
-  const WARN_SECS  = 60;             // 60-second countdown
-  const CSRF       = document.querySelector('meta[name="csrf-token"]')?.content || '';
-  const LOGOUT_URL = document.querySelector('#idleModal form')?.action || '/admin/logout';
-
-  let idleTimer, countdownTimer, warnActive = false, secs = WARN_SECS;
-  const modal   = document.getElementById('idleModal');
-  const counter = document.getElementById('idleCounter');
-
-  function doLogout() {
-    const f = document.createElement('form');
-    f.method = 'POST'; f.action = LOGOUT_URL;
-    const t = document.createElement('input');
-    t.type = 'hidden'; t.name = '_token'; t.value = CSRF;
-    f.appendChild(t); document.body.appendChild(f); f.submit();
-  }
-
-  function showWarning() {
-    warnActive = true; secs = WARN_SECS; counter.textContent = secs;
-    modal.style.display = 'flex';
-    countdownTimer = setInterval(() => {
-      secs--; counter.textContent = secs;
-      if (secs <= 0) { clearInterval(countdownTimer); doLogout(); }
-    }, 1000);
-  }
-
-  window.stayLoggedIn = function() {
-    clearInterval(countdownTimer);
-    modal.style.display = 'none';
-    warnActive = false;
-    resetIdle();
-  };
-
-  function resetIdle() {
-    if (warnActive) return;
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(showWarning, IDLE_MS);
-  }
-
-  ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev =>
-    document.addEventListener(ev, resetIdle, { passive: true })
-  );
-
-  resetIdle();
-})();
 </script>
 @stack('scripts')
 </body>

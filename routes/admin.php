@@ -155,6 +155,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{loan}/write-off',        [LoanController::class, 'writeOff'])->name('write-off');
             Route::post('/{loan}/restructure',      [LoanController::class, 'restructure'])->name('restructure');
             Route::post('/{loan}/mark-defaulted',   [LoanController::class, 'markDefaulted'])->name('mark-defaulted');
+            Route::patch('/{loan}/update-details',  [LoanController::class, 'updateDetails'])->name('update-details');
 
             // Documents
             Route::get('/{loan}/agreement',              [LoanController::class, 'agreement'])->name('agreement');

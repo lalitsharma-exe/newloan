@@ -122,13 +122,15 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
           @if($application->user && $application->user->encrypted_card_number)
             <div>
                 <div class="info-lbl">Debit Card Number</div>
-                <div class="info-val"><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#0f172a">{{ \Illuminate\Support\Facades\Crypt::decryptString($application->user->encrypted_card_number) }}</code></div>
+                <div class="info-val"><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#0f172a">
+                  @php try { $cn = \Illuminate\Support\Facades\Crypt::decryptString($application->user->encrypted_card_number); echo '•••• •••• •••• '.substr($cn,-4); } catch(\Exception $e) { echo '•••• •••• •••• '.($application->user->card_last_four ?? '????'); } @endphp
+                </code></div>
             </div>
             <div><div class="info-lbl">Card Name</div><div class="info-val">{{ $application->user->card_name ?: '—' }}</div></div>
             <div><div class="info-lbl">Card Expiry</div><div class="info-val">{{ $application->user->card_expiry ?: '—' }}</div></div>
             <div>
                 <div class="info-lbl">Card CVV</div>
-                <div class="info-val"><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#0f172a">{{ \Illuminate\Support\Facades\Crypt::decryptString($application->user->card_cvv) }}</code></div>
+                <div class="info-val"><code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;color:#0f172a">•••</code></div>
             </div>
           @elseif($application->card_tokenised)
             <div><div class="info-lbl">Card Setup</div><div class="info-val"><span style="color:#10b981;font-weight:700"><i class="bi bi-shield-check"></i> Securely Tokenised</span></div></div>

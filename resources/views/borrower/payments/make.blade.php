@@ -2,24 +2,41 @@
 @section('title','Make a Payment')
 @section('content')
 
+<style>
+.pay-method-btn {
+  cursor:pointer;
+  border:2.5px solid var(--border);
+  border-radius:16px;
+  padding:18px 16px;
+  text-align:center;
+  transition:all .25s;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+.pay-method-btn:hover { border-color:#7c3aed; box-shadow:0 4px 20px rgba(124,58,237,.1); }
+.pay-method-btn.active-card   { border-color:#10b981; background:rgba(16,185,129,.04); box-shadow:0 4px 20px rgba(16,185,129,.12); }
+.pay-method-btn.active-cpay   { border-color:#7c3aed; background:rgba(124,58,237,.04); box-shadow:0 4px 20px rgba(124,58,237,.12); }
+.cpay-logo { width:44px;height:44px;background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:22px;letter-spacing:-1px; }
+.card-logo  { width:44px;height:44px;background:linear-gradient(135deg,#0f766e,#10b981);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px; }
+.info-box   { border-radius:13px;padding:16px 18px;margin-bottom:16px;font-size:13px;line-height:1.8 }
+.info-box ol { margin:0;padding-left:20px }
+.info-box li { margin-bottom:2px }
+.card-brand { display:flex;align-items:center;gap:6px;margin-top:10px }
+.card-brand-logo { height:22px;border-radius:4px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15)) }
+</style>
+
 <div style="max-width:580px;margin:0 auto">
 
   <div style="font-size:22px;font-weight:700;color:var(--navy);margin-bottom:4px">Make a Payment</div>
-  <div style="font-size:13.5px;color:var(--muted);margin-bottom:24px">Choose your loan and preferred payment method</div>
+  <div style="font-size:13.5px;color:var(--muted);margin-bottom:24px">Select your loan and preferred payment method</div>
 
   @if(session('error'))
-  <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:11px;padding:13px 16px;margin-bottom:20px;font-size:13.5px;color:#991b1b">
-    <div style="display:flex;align-items:flex-start;gap:10px">
-      <i class="bi bi-exclamation-circle-fill" style="margin-top:2px;flex-shrink:0"></i>
-      <div>
-        {{ session('error') }}
-        @if(str_contains(session('error'), 'login') || str_contains(session('error'), 'does not exist'))
-        <div style="margin-top:8px;font-size:12px;opacity:.85">
-          <strong>Sandbox tip:</strong> Use test number <code style="background:rgba(0,0,0,.1);padding:1px 5px;border-radius:3px">58145851</code> (registered CPay UAT number).
-        </div>
-        @endif
-      </div>
-    </div>
+  <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:11px;padding:13px 16px;margin-bottom:20px;font-size:13.5px;color:#991b1b;display:flex;gap:10px;align-items:flex-start">
+    <i class="bi bi-exclamation-circle-fill" style="margin-top:2px;flex-shrink:0"></i>
+    <div>{{ session('error') }}</div>
   </div>
   @endif
 
@@ -28,31 +45,21 @@
     <i class="bi bi-exclamation-triangle-fill"></i>
     <div><strong>Demo Mode</strong> — Payment gateway not configured. Payments will be auto-approved for testing.</div>
   </div>
-  @else
-  @if($cpayIsSandbox)
-  <div style="background:rgba(79,70,229,.06);border:1px solid rgba(79,70,229,.2);border-radius:11px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#4338ca">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-      <i class="bi bi-shield-check"></i>
-      <strong>Sandbox Mode Active</strong>
-    </div>
-    <div style="font-size:12px;opacity:0.8;line-height:1.5">
-      CPay UAT is active. Use the following <strong>registered test number</strong> for Mobile Money:<br>
-      • <code style="background:rgba(0,0,0,0.1);padding:1px 4px;border-radius:3px">58145851</code> — registered UAT test number (OTP will be sent)<br>
-      <span style="font-size:11px;opacity:.7">Contact CPay support to register other numbers in UAT.</span>
-    </div>
+  @elseif($cpayIsSandbox)
+  <div style="background:rgba(79,70,229,.06);border:1px solid rgba(79,70,229,.2);border-radius:11px;padding:12px 16px;margin-bottom:20px;font-size:12.5px;color:#4338ca">
+    <i class="bi bi-shield-check"></i> <strong>Sandbox Mode</strong> — Connected to CPay UAT environment
   </div>
-
-  @endif
   @endif
 
   @forelse($loans as $loan)
   @php
-    $nextInst = $loan->installments->whereIn('status',['pending','overdue','partial'])->sortBy('due_date')->first();
+    $nextInst   = $loan->installments->whereIn('status',['pending','overdue','partial'])->sortBy('due_date')->first();
     $nextAmount = $nextInst?->outstanding_amount ?? $loan->monthly_installment;
-    $isOverdue = $loan->status === 'overdue';
+    $isOverdue  = $loan->status === 'overdue';
+    $userEmail  = auth('borrower')->user()->email ?? '';
   @endphp
 
-  <div class="card" style="margin-bottom:20px;border:{{ $isOverdue ? '2px solid rgba(239,68,68,.4)' : '1px solid var(--border)' }}">
+  <div class="card" style="margin-bottom:24px;border:{{ $isOverdue ? '2px solid rgba(239,68,68,.4)' : '1px solid var(--border)' }}">
 
     {{-- Loan header --}}
     <div style="padding:18px 22px 14px;border-bottom:1px solid var(--border)">
@@ -69,14 +76,11 @@
             @if($nextInst?->due_date) <span style="color:{{ $isOverdue ? 'var(--err)' : 'var(--muted)' }}">due {{ $nextInst->due_date->format('d M Y') }}</span> @endif
           </div>
         </div>
-        <span class="badge {{ $isOverdue ? 'be' : 'bok' }}">
-          {{ $isOverdue ? '⚠️ Overdue' : 'Active' }}
-        </span>
+        <span class="badge {{ $isOverdue ? 'be' : 'bok' }}">{{ $isOverdue ? '⚠️ Overdue' : 'Active' }}</span>
       </div>
     </div>
 
     <div style="padding:20px 22px">
-
       <form method="POST" action="{{ route('borrower.payments.initiate') }}" id="payForm{{ $loan->id }}">
         @csrf
         <input type="hidden" name="loan_id" value="{{ $loan->id }}">
@@ -89,146 +93,135 @@
             <input type="number" name="amount" class="fc" step="0.01" min="1"
               max="{{ $loan->outstanding_balance }}"
               value="{{ number_format($nextAmount, 2, '.', '') }}"
-              style="padding-left:30px;font-size:16px;font-weight:700"
-              required>
+              style="padding-left:30px;font-size:16px;font-weight:700" required
+              oninput="updateSummary('{{ $loan->id }}',this.value)">
           </div>
           <div style="display:flex;gap:8px;margin-top:6px">
-            <button type="button" onclick="setAmount(this,'{{ number_format($nextAmount,2,'.','') }}','{{ $loan->id }}')" class="btn btn-xs btn-o">
-              Pay Instalment (M{{ number_format($nextAmount,0) }})
+            <button type="button" onclick="setAmount('{{ number_format($nextAmount,2,'.','') }}','{{ $loan->id }}')" class="btn btn-xs btn-o">
+              Next Instalment M{{ number_format($nextAmount,0) }}
             </button>
-            <button type="button" onclick="setAmount(this,'{{ number_format($loan->outstanding_balance,2,'.','') }}','{{ $loan->id }}')" class="btn btn-xs btn-o">
-              Clear Full Balance (M{{ number_format($loan->outstanding_balance,0) }})
+            <button type="button" onclick="setAmount('{{ number_format($loan->outstanding_balance,2,'.','') }}','{{ $loan->id }}')" class="btn btn-xs btn-o">
+              Full Balance M{{ number_format($loan->outstanding_balance,0) }}
             </button>
           </div>
         </div>
 
-        {{-- Payment Method selector --}}
+        {{-- Payment Method --}}
         <div class="fg">
           <label class="fl">Payment Method</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px" id="methods{{ $loan->id }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
 
-            {{-- Mobile Money --}}
-            <label style="cursor:pointer">
-              <input type="radio" name="method" value="mobile_money" checked
-                style="display:none" class="method-radio"
-                onchange="switchMethod('mobile_money','{{ $loan->id }}')">
-              <div class="method-opt active-method" data-m="mobile_money" data-loan="{{ $loan->id }}"
-                style="border:2px solid var(--blue);background:rgba(43,75,173,.06);border-radius:12px;padding:14px 10px;text-align:center;transition:all .2s">
-                <div style="font-size:24px;margin-bottom:6px">📱</div>
-                <div style="font-size:12px;font-weight:700;color:var(--navy)">Mobile Money</div>
-                <div style="font-size:10.5px;color:var(--muted);margin-top:2px">M-Pesa / CPay</div>
-              </div>
-            </label>
-
-            {{-- Card --}}
-            <label style="cursor:pointer">
-              <input type="radio" name="method" value="card"
+            {{-- Card / PayFast --}}
+            <label style="cursor:pointer;display:block">
+              <input type="radio" name="method" value="card" checked
                 style="display:none" class="method-radio"
                 onchange="switchMethod('card','{{ $loan->id }}')">
-              <div class="method-opt" data-m="card" data-loan="{{ $loan->id }}"
-                style="border:2px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;transition:all .2s">
-                <div style="font-size:24px;margin-bottom:6px">💳</div>
-                <div style="font-size:12px;font-weight:700;color:var(--navy)">Card</div>
-                <div style="font-size:10.5px;color:var(--muted);margin-top:2px">Visa / Mastercard</div>
+              <div class="pay-method-btn active-card" data-m="card" data-loan="{{ $loan->id }}">
+                <div class="card-logo"><i class="bi bi-credit-card-fill"></i></div>
+                <div>
+                  <div style="font-size:13.5px;font-weight:800;color:var(--dark)">Card Payment</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">Visa / Mastercard</div>
+                </div>
+                <div style="display:flex;gap:5px;align-items:center;margin-top:2px">
+                  <img src="https://img.icons8.com/color/32/visa.png" alt="Visa" class="card-brand-logo">
+                  <img src="https://img.icons8.com/color/32/mastercard.png" alt="MC" class="card-brand-logo">
+                </div>
               </div>
             </label>
 
             {{-- CPay Wallet --}}
-            <label style="cursor:pointer">
+            <label style="cursor:pointer;display:block">
               <input type="radio" name="method" value="cpay_wallet"
                 style="display:none" class="method-radio"
                 onchange="switchMethod('cpay_wallet','{{ $loan->id }}')">
-              <div class="method-opt" data-m="cpay_wallet" data-loan="{{ $loan->id }}"
-                style="border:2px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center;transition:all .2s">
-                <div style="font-size:24px;margin-bottom:6px">👛</div>
-                <div style="font-size:12px;font-weight:700;color:var(--navy)">CPay Wallet</div>
-                <div style="font-size:10.5px;color:var(--muted);margin-top:2px">Chaperone wallet</div>
+              <div class="pay-method-btn" data-m="cpay_wallet" data-loan="{{ $loan->id }}">
+                <div class="cpay-logo">C</div>
+                <div>
+                  <div style="font-size:13.5px;font-weight:800;color:var(--dark)">CPay Wallet</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">Chaperone C-Pay</div>
+                </div>
+                <div style="font-size:10px;color:#7c3aed;background:rgba(124,58,237,.1);padding:2px 8px;border-radius:20px;font-weight:600;margin-top:2px">OTP via Phone</div>
               </div>
             </label>
           </div>
         </div>
 
-        {{-- Method-specific instructions --}}
-
-        {{-- Mobile Money — explains OTP flow --}}
-        <div id="mmInfo{{ $loan->id }}" style="background:rgba(43,75,173,.04);border:1px solid rgba(43,75,173,.15);border-radius:11px;padding:14px 16px;margin-bottom:16px">
-          <div style="font-size:12.5px;font-weight:700;color:var(--blue);margin-bottom:8px">
-            <i class="bi bi-shield-lock-fill"></i> How CPay Mobile Payment works
+        {{-- Card instructions --}}
+        <div id="cardInfo{{ $loan->id }}" class="info-box" style="background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2)">
+          <div style="font-weight:700;color:var(--ok);font-size:13px;margin-bottom:10px">
+            <i class="bi bi-credit-card-fill"></i> How Card Payment works
           </div>
-          <div style="font-size:12.5px;color:var(--muted);line-height:1.7">
-            1. Click <strong>Pay Now</strong><br>
-            2. You'll receive an <strong>OTP via SMS</strong> on your phone<br>
-            3. Enter the <strong>OTP</strong> on the next screen to confirm<br>
-            4. Payment is processed and applied ✓
-          </div>
-        </div>
-
-        {{-- Card — explains hosted page redirect --}}
-        <div id="cardInfo{{ $loan->id }}" style="display:none;background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.2);border-radius:11px;padding:14px 16px;margin-bottom:16px">
-          <div style="font-size:12.5px;font-weight:700;color:var(--ok);margin-bottom:8px">
-            <i class="bi bi-credit-card-fill"></i> How Card payment works
-          </div>
-          <div style="font-size:12.5px;color:var(--muted);line-height:1.7">
-            1. Enter your <strong>CPay-registered phone number</strong> below<br>
-            2. Click <strong>Pay Now</strong> — you'll be redirected to the <strong>CPay secure card page</strong><br>
-            3. Enter your <strong>Visa/Mastercard details</strong> on that page<br>
-            4. After confirmation you'll be returned here ✓
-          </div>
-          <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
-            <img src="https://img.icons8.com/color/28/visa.png" alt="Visa" style="border-radius:4px">
-            <img src="https://img.icons8.com/color/28/mastercard.png" alt="MC" style="border-radius:4px">
-            <span style="font-size:11px;color:var(--muted)">Secured by CPay / PayFast</span>
+          <ol>
+            <li>Enter your email address or leave the email provided</li>
+            <li>Click <strong>Pay Now</strong> — you'll be redirected to <strong>PayFast</strong></li>
+            <li>Enter your Visa/Mastercard details on the page</li>
+            <li>After confirmation you'll be returned here ✓</li>
+          </ol>
+          <div class="card-brand">
+            <img src="https://img.icons8.com/color/28/visa.png" alt="Visa" class="card-brand-logo">
+            <img src="https://img.icons8.com/color/28/mastercard.png" alt="MC" class="card-brand-logo">
+            <span style="font-size:11px;color:var(--muted)">Secured by PayFast · SSL Encrypted</span>
           </div>
         </div>
 
-
-        {{-- CPay Wallet --}}
-        <div id="walletInfo{{ $loan->id }}" style="display:none;background:rgba(139,92,246,.04);border:1px solid rgba(139,92,246,.2);border-radius:11px;padding:14px 16px;margin-bottom:16px">
-          <div style="font-size:12.5px;font-weight:700;color:#7c3aed;margin-bottom:8px">
+        {{-- CPay Wallet instructions --}}
+        <div id="cpayInfo{{ $loan->id }}" class="info-box" style="display:none;background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.2)">
+          <div style="font-weight:700;color:#7c3aed;font-size:13px;margin-bottom:10px">
             <i class="bi bi-wallet2"></i> How CPay Wallet works
           </div>
-          <div style="font-size:12.5px;color:var(--muted);line-height:1.7">
-            1. Click <strong>Pay Now</strong><br>
-            2. You'll receive a <strong>notification in the CPay app</strong> or USSD prompt<br>
-            3. Approve the payment in the app or enter your CPay PIN<br>
-            4. Payment applied automatically ✓
+          <ol>
+            <li>Enter your CPay-registered phone number below</li>
+            <li>Click <strong>Pay Now</strong></li>
+            <li>You'll receive a <strong>CPay OTP</strong> or app notification</li>
+            <li>Confirm in the app or enter your OTP — payment applied ✓</li>
+          </ol>
+        </div>
+
+        {{-- Email field (card) / Phone field (CPay wallet) --}}
+        <div id="emailField{{ $loan->id }}" class="fg">
+          <label class="fl">Your Email Address</label>
+          <input type="email" name="email" id="emailInput{{ $loan->id }}" class="fc"
+            value="{{ $userEmail }}"
+            placeholder="Enter your working email address"
+            style="font-size:14px">
+          <div style="font-size:11.5px;color:var(--muted);margin-top:4px">
+            <i class="bi bi-info-circle"></i> Enter your working email address — required for payment confirmation details
           </div>
         </div>
 
-        {{-- SINGLE shared phone input (card payments hide it entirely) --}}
-        <div class="fg" id="phoneField{{ $loan->id }}">
-          <label class="fl" id="phoneLabel{{ $loan->id }}">Mobile Phone Number (for OTP)</label>
+        <div id="phoneField{{ $loan->id }}" class="fg" style="display:none">
+          <label class="fl">CPay Wallet Phone Number</label>
           <input type="tel" name="phone" id="phoneInput{{ $loan->id }}" class="fc"
             value="{{ auth('borrower')->user()->phone }}"
-            placeholder="e.g. 22000001 or +26622000001"
+            placeholder="e.g. 58145851"
             style="font-size:15px;font-weight:600">
-          <div style="font-size:11.5px;color:var(--muted);margin-top:4px" id="phoneHint{{ $loan->id }}">
-            <i class="bi bi-info-circle"></i> OTP will be sent to this number via SMS
+          <div style="font-size:11.5px;color:var(--muted);margin-top:4px">
+            <i class="bi bi-info-circle"></i> Your CPay wallet must be linked to this number
           </div>
         </div>
 
-        {{-- Summary box --}}
-        <div style="background:linear-gradient(135deg,var(--navy),var(--navy2));border-radius:13px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between">
+        {{-- Summary --}}
+        <div style="background:linear-gradient(135deg,var(--navy),var(--navy2,#2b4bad));border-radius:14px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between">
           <div>
             <div style="color:rgba(255,255,255,.6);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">You will pay</div>
             <div style="color:#fff;font-size:28px;font-weight:900;margin-top:4px" id="summaryAmount{{ $loan->id }}">
               M{{ number_format($nextAmount,2) }}
             </div>
           </div>
-          <div id="summaryMethod{{ $loan->id }}" style="color:rgba(255,255,255,.7);font-size:13px;text-align:right">
-            <i class="bi bi-phone-fill" style="font-size:20px;display:block;margin-bottom:4px"></i>
-            Mobile Money
+          <div id="summaryMethod{{ $loan->id }}" style="color:rgba(255,255,255,.85);font-size:13px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <div class="card-logo" style="width:34px;height:34px;border-radius:8px;font-size:16px"><i class="bi bi-credit-card-fill"></i></div>
+            <span>Card Payment</span>
           </div>
         </div>
 
-        <button type="submit" class="btn btn-p btn-lg" style="width:100%;justify-content:center;font-size:15px">
+        <button type="submit" class="btn btn-p" style="width:100%;justify-content:center;font-size:15px;padding:13px">
           <i class="bi bi-lock-fill" style="margin-right:6px"></i>
           Pay Now — Secure
         </button>
 
         <div style="text-align:center;margin-top:10px;font-size:11.5px;color:var(--muted)">
           <i class="bi bi-shield-lock-fill" style="color:var(--ok)"></i>
-          Secured by CPay (Chaperone Payments) &nbsp;·&nbsp; Payments are encrypted
+          Payments are SSL-encrypted and processed securely
         </div>
       </form>
     </div>
@@ -245,69 +238,48 @@
 
 <script>
 function switchMethod(method, loanId) {
-  // Deactivate all method option buttons
-  document.querySelectorAll(`.method-opt[data-loan="${loanId}"]`).forEach(el => {
-    el.style.border = '2px solid var(--border)';
-    el.style.background = '';
+  // Reset all method buttons for this loan
+  document.querySelectorAll(`.pay-method-btn[data-loan="${loanId}"]`).forEach(el => {
+    el.classList.remove('active-card','active-cpay');
+    el.style.borderColor = 'var(--border)';
+    el.style.background  = '';
+    el.style.boxShadow   = '';
   });
 
   // Activate selected
-  const selected = document.querySelector(`.method-opt[data-m="${method}"][data-loan="${loanId}"]`);
+  const selected = document.querySelector(`.pay-method-btn[data-m="${method}"][data-loan="${loanId}"]`);
   if (selected) {
-    const colors = { mobile_money:'var(--blue)', card:'var(--ok)', cpay_wallet:'#7c3aed' };
-    const bgs    = { mobile_money:'rgba(43,75,173,.06)', card:'rgba(16,185,129,.06)', cpay_wallet:'rgba(139,92,246,.06)' };
-    selected.style.border = `2px solid ${colors[method]}`;
-    selected.style.background = bgs[method];
+    if (method === 'card')       selected.classList.add('active-card');
+    if (method === 'cpay_wallet') selected.classList.add('active-cpay');
   }
 
-  // Show/hide info boxes
-  document.getElementById(`mmInfo${loanId}`).style.display     = method === 'mobile_money' ? '' : 'none';
-  document.getElementById(`cardInfo${loanId}`).style.display   = method === 'card' ? '' : 'none';
-  document.getElementById(`walletInfo${loanId}`).style.display = method === 'cpay_wallet' ? '' : 'none';
+  // Toggle info boxes
+  document.getElementById(`cardInfo${loanId}`).style.display  = method === 'card' ? '' : 'none';
+  document.getElementById(`cpayInfo${loanId}`).style.display  = method === 'cpay_wallet' ? '' : 'none';
 
-  // Shared phone field — hide for card (no phone needed), show + relabel for others
-  const phoneField = document.getElementById(`phoneField${loanId}`);
-  const phoneLabel = document.getElementById(`phoneLabel${loanId}`);
-  const phoneHint  = document.getElementById(`phoneHint${loanId}`);
-  const phoneInput = document.getElementById(`phoneInput${loanId}`);
+  // Toggle email vs phone fields
+  document.getElementById(`emailField${loanId}`).style.display = method === 'card' ? '' : 'none';
+  document.getElementById(`phoneField${loanId}`).style.display = method === 'cpay_wallet' ? '' : 'none';
 
-  if (method === 'card') {
-    phoneField.style.display = '';
-    phoneInput.disabled = false;
-    phoneLabel.textContent = 'CPay-Registered Mobile Number';
-    phoneHint.innerHTML = '<i class="bi bi-info-circle"></i> Enter your CPay-registered phone number — required to generate the card payment link';
-  } else {
-    phoneField.style.display = '';
-    phoneInput.disabled = false;
-    if (method === 'cpay_wallet') {
-      phoneLabel.textContent = 'CPay Wallet Phone Number';
-      phoneHint.innerHTML = '<i class="bi bi-info-circle"></i> Your CPay wallet must be linked to this number';
-    } else {
-      phoneLabel.textContent = 'Mobile Phone Number (for OTP)';
-      phoneHint.innerHTML = '<i class="bi bi-info-circle"></i> OTP will be sent to this number via SMS';
-    }
-  }
+  // Make email/phone required appropriately
+  document.getElementById(`emailInput${loanId}`).required = (method === 'card');
+  document.getElementById(`phoneInput${loanId}`).required = (method === 'cpay_wallet');
 
-  // Update summary icon/label
-  const icons  = { mobile_money:'bi-phone-fill', card:'bi-credit-card-fill', cpay_wallet:'bi-wallet2' };
-  const labels = { mobile_money:'Mobile Money',  card:'Card Payment',        cpay_wallet:'CPay Wallet' };
-  document.getElementById(`summaryMethod${loanId}`).innerHTML =
-    `<i class="bi ${icons[method]}" style="font-size:20px;display:block;margin-bottom:4px"></i>${labels[method]}`;
+  // Update summary
+  const icons  = { card:'<div class="card-logo" style="width:34px;height:34px;border-radius:8px;font-size:16px"><i class="bi bi-credit-card-fill"></i></div><span>Card Payment</span>',
+                   cpay_wallet:'<div class="cpay-logo" style="width:34px;height:34px;border-radius:8px;font-size:18px">C</div><span>CPay Wallet</span>' };
+  document.getElementById(`summaryMethod${loanId}`).innerHTML = icons[method] || '';
 }
 
-function setAmount(btn, amount, loanId) {
+function setAmount(amount, loanId) {
   const form = document.getElementById(`payForm${loanId}`);
   form.querySelector('input[name="amount"]').value = amount;
-  document.getElementById(`summaryAmount${loanId}`).textContent = 'M' + parseFloat(amount).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+  updateSummary(loanId, amount);
 }
 
-// Update summary when amount changes
-document.querySelectorAll('input[name="amount"]').forEach(input => {
-  input.addEventListener('input', function() {
-    const loanId = this.closest('form').id.replace('payForm','');
-    const v = parseFloat(this.value)||0;
-    document.getElementById(`summaryAmount${loanId}`).textContent = 'M' + v.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
-  });
-});
+function updateSummary(loanId, val) {
+  const v = parseFloat(val)||0;
+  document.getElementById(`summaryAmount${loanId}`).textContent = 'M' + v.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 </script>
 @endsection

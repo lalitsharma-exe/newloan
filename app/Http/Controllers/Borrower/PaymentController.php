@@ -49,14 +49,14 @@ class PaymentController extends Controller
             'loan_id' => 'required|exists:loans,id',
             'amount'  => 'required|numeric|min:1',
             'phone'   => 'nullable|string|max:30',
-            'method'  => 'nullable|in:mobile_money,card,cpay_wallet',
+            'method'  => 'nullable|in:card,cpay_wallet',
         ]);
 
         $loan   = Loan::where('user_id', auth('borrower')->id())->findOrFail($request->loan_id);
         $user   = auth('borrower')->user();
         $phone  = $request->phone ?? $user->phone;
         $amount = (float) $request->amount;
-        $method = $request->input('method', 'mobile_money');
+        $method = $request->input('method', 'card'); // card or cpay_wallet only
 
         // Create pending payment record before any API call
         $payment = Payment::create([

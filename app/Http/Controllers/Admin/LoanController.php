@@ -56,7 +56,7 @@ class LoanController extends Controller
         $request->validate([
             'disbursement_date'      => 'required|date',
             'disbursement_reference' => 'required|string|max:80',
-            'disbursement_method'    => 'required|in:mobile_money,bank_transfer,cash,cpay_wallet',
+            'disbursement_method'    => 'required|in:bank_transfer,cash,cpay_wallet',
             'disbursement_phone'     => 'nullable|string|max:30',
             'disbursement_provider'  => 'nullable|string|max:50',
             'confirm'                => 'required|accepted',
@@ -79,13 +79,10 @@ class LoanController extends Controller
         $cpayStatus = 'manual';
         $cpayError  = null;
 
-        if ($method !== 'cash' && $this->cpay->isConfigured()) {
-            $result = match ($method) {
-                'mobile_money'  => $this->cpay->disburseExternal($loan, $phone, $provider, $reference),
-                'bank_transfer' => $this->cpay->disburseExternal($loan, $phone, 'EFT', $reference),
-                'cpay_wallet'   => $this->cpay->disburseToWallet($loan, $phone, $reference),
-                default         => ['success' => false, 'error' => 'Unknown method'],
-            };
+        // bank_transfer is always recorded manually (EFT/bank processing happens outside system)
+        // cpay_wallet uses the CPay wallet-topup-advance API
+        if ($method === 'cpay_wallet' && $this->cpay->isConfigured()) {
+            $result = $this->cpay->disburseToWallet($loan, $phone, $reference);
 
             if ($result['success']) {
                 $cpayTxnId  = $result['cpay_txn_id'];
@@ -303,4 +300,55 @@ class LoanController extends Controller
     {
         return view('admin.loans.repayment-chart', ['data' => $this->svc->getRepaymentChartData()]);
     }
+
+    // ── Edit loan details (payday, payout, collection) ────────────────────────
+    public function updateDetails(Request $request, Loan $loan)
+    {
+        $request->validate([
+            'salary_payday'    => 'required|integer|min:1|max:31',
+            'payout_method'    => 'required|string',
+            'collection_method'=> 'required|string',
+            'edit_reason'      => 'required|string|max:500',
+        ]);
+
+        $oldPayday = $loan->salary_payday;
+        $loan->update([
+            'salary_payday'     => $request->salary_payday,
+            'payout_method'     => $request->payout_method,
+            'collection_method' => $request->collection_method,
+        ]);
+
+        // Sync application too
+        if ($loan->application) {
+            $loan->application->update([
+                'salary_payday'     => $request->salary_payday,
+                'payout_method'     => $request->payout_method,
+                'collection_method' => $request->collection_method,
+            ]);
+        }
+
+        // If payday changed, update future (unpaid) instalment due dates
+        if ($oldPayday != $request->salary_payday) {
+            $loan->installments()
+                ->whereNotIn('status', ['paid', 'waived'])
+                ->get()
+                ->each(function ($inst) use ($request) {
+                    $inst->update([
+                        'due_date' => $inst->due_date->setDay(
+                            min($request->salary_payday, $inst->due_date->daysInMonth)
+                        ),
+                    ]);
+                });
+        }
+
+        AuditLog::record(
+            'loan.edit_details',
+            "Loan {$loan->loan_number} details edited. Reason: {$request->edit_reason}",
+            $loan, [],
+            ['payday' => $request->salary_payday, 'payout' => $request->payout_method, 'collection' => $request->collection_method]
+        );
+
+        return redirect()->route('admin.loans.show', $loan)->with('success', 'Loan details updated successfully.');
+    }
+
 }

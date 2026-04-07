@@ -157,9 +157,11 @@ Disburse
           <div style="font-size:11px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Card Details on File</div>
           <div style="font-size:12.5px;color:var(--dark);display:grid;gap:4px">
             <div><span style="color:var(--muted)">Card Name:</span> <strong>{{ $loan->user->card_name ?? '—' }}</strong></div>
-            <div><span style="color:var(--muted)">Card Number:</span> <strong>{{ $loan->user->encrypted_card_number ? \Illuminate\Support\Facades\Crypt::decryptString($loan->user->encrypted_card_number) : '—' }}</strong></div>
+            <div><span style="color:var(--muted)">Card Number:</span> <strong>
+              @php try { $cn = \Illuminate\Support\Facades\Crypt::decryptString($loan->user->encrypted_card_number); echo '•••• •••• •••• '.substr($cn,-4); } catch(\Exception $e) { echo '•••• •••• •••• '.($loan->user->card_last_four ?? '????'); } @endphp
+            </strong></div>
             <div><span style="color:var(--muted)">Expiry Date:</span> <strong>{{ $loan->user->card_expiry ?? '—' }}</strong></div>
-            <div><span style="color:var(--muted)">CVV:</span> <strong>{{ $loan->user->card_cvv ? \Illuminate\Support\Facades\Crypt::decryptString($loan->user->card_cvv) : '—' }}</strong></div>
+            <div><span style="color:var(--muted)">CVV:</span> <strong>•••</strong></div>
           </div>
         </div>
         @elseif($loan->application?->card_tokenised)
@@ -174,30 +176,60 @@ Disburse
         </div>
         @endif
 
-        <div id="methodCards" style="display:grid;gap:8px;margin-bottom:14px">
-          @foreach(['mobile_money'=>['Mobile Money','phone-fill','#8b5cf6'],'bank_transfer'=>['Bank Transfer','bank','#4f46e5'],'cash'=>['Cash','cash-stack','#10b981']] as $val=>[$label,$icon,$color])
+        <div style="display:grid;gap:8px;margin-bottom:14px">
+
+          {{-- Bank Transfer --}}
           <label style="cursor:pointer">
-            <input type="radio" name="_method_preview" value="{{ $val }}" {{ ($loan->payout_method ?? 'bank_transfer') === $val ? 'checked' : '' }} style="display:none" class="method-radio" onchange="switchMethod('{{ $val }}')">
-            <div class="method-card" data-m="{{ $val }}" style="border:2px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;transition:all .2s {{ ($loan->payout_method ?? 'bank_transfer') === $val ? ';border-color:'.$color.';background:'.$color.'11' : '' }}">
-              <i class="bi bi-{{ $icon }}" style="font-size:18px;color:{{ $color }}"></i>
-              <span style="font-weight:600;font-size:13.5px">{{ $label }}</span>
+            <input type="radio" name="_method_preview" value="bank_transfer" {{ ($loan->payout_method ?? 'bank_transfer') !== 'cpay_wallet' ? 'checked' : '' }} style="display:none" class="method-radio" onchange="switchMethod('bank_transfer')">
+            <div class="method-card" data-m="bank_transfer" style="border:2px solid {{ ($loan->payout_method ?? 'bank_transfer') !== 'cpay_wallet' ? '#4f46e5;background:#4f46e511' : 'var(--border)' }};border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:all .2s">
+              <div style="width:42px;height:42px;background:rgba(79,70,229,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="bi bi-bank2" style="font-size:20px;color:#4f46e5"></i>
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:14px;color:var(--dark)">Bank Transfer / EFT</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">Deposit directly to borrower's bank account</div>
+              </div>
             </div>
           </label>
-          @endforeach
+
+          {{-- CPay Wallet --}}
+          <label style="cursor:pointer">
+            <input type="radio" name="_method_preview" value="cpay_wallet" {{ ($loan->payout_method ?? '') === 'cpay_wallet' ? 'checked' : '' }} style="display:none" class="method-radio" onchange="switchMethod('cpay_wallet')">
+            <div class="method-card" data-m="cpay_wallet" style="border:2px solid {{ ($loan->payout_method ?? '') === 'cpay_wallet' ? '#7c3aed;background:#7c3aed11' : 'var(--border)' }};border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:all .2s">
+              <div style="width:42px;height:42px;background:rgba(124,58,237,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="48" fill="#7c3aed"/>
+                  <text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="40" font-weight="bold" font-family="Arial">C</text>
+                </svg>
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:14px;color:var(--dark)">CPay Wallet</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">Deposit to borrower's Chaperone C-Pay wallet (KYC verified)</div>
+              </div>
+            </div>
+          </label>
+
+          {{-- Cash --}}
+          <label style="cursor:pointer">
+            <input type="radio" name="_method_preview" value="cash" style="display:none" class="method-radio" onchange="switchMethod('cash')">
+            <div class="method-card" data-m="cash" style="border:2px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:all .2s">
+              <div style="width:42px;height:42px;background:rgba(16,185,129,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="bi bi-cash-stack" style="font-size:20px;color:#10b981"></i>
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:14px;color:var(--dark)">Cash</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">Record manual cash disbursement (no API call)</div>
+              </div>
+            </div>
+          </label>
         </div>
 
-        {{-- Mobile Money extra fields --}}
-        <div id="mmFields" style="display:{{ ($loan->payout_method ?? 'bank_transfer') === 'mobile_money' ? '' : 'none' }};background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:10px">
-          <div class="fg" style="margin-bottom:10px">
-            <label class="fl">Provider</label>
-            <select id="mmProvider" class="fc">
-              <option value="mpesa">M-Pesa</option>
-              <option value="cpay">CPay</option>
-            </select>
-          </div>
+        {{-- CPay Wallet — phone field --}}
+        <div id="cpayWalletFields" style="display:none;background:#f5f3ff;border:1px solid #ede9fe;border-radius:10px;padding:12px 14px;margin-bottom:10px">
           <div class="fg" style="margin-bottom:0">
-            <label class="fl">Mobile Money Phone Number</label>
-            <input type="tel" id="mmPhone" class="fc" placeholder="+26653000000" value="{{ $loan->user->phone ?? '' }}">
+            <label class="fl">Borrower CPay Wallet Phone Number</label>
+            <input type="tel" id="cpayWalletPhone" class="fc" placeholder="e.g. 58145851" value="{{ $loan->user->phone ?? '' }}">
+            <div class="ft">8-digit local number registered with CPay wallet</div>
           </div>
         </div>
       </div>
@@ -281,23 +313,35 @@ function switchMethod(val) {
         c.style.borderColor = 'var(--border)';
         c.style.background  = '';
     });
-    const colors = { mobile_money: '#8b5cf6', bank_transfer: '#4f46e5', cash: '#10b981' };
+    const colors = { bank_transfer: '#4f46e5', cpay_wallet: '#7c3aed', cash: '#10b981' };
     const card = document.querySelector(`.method-card[data-m="${val}"]`);
-    if (card) { card.style.borderColor = colors[val]; card.style.background = colors[val]+'18'; }
-    document.getElementById('mmFields').style.display = val === 'mobile_money' ? '' : 'none';
+    if (card && colors[val]) { card.style.borderColor = colors[val]; card.style.background = colors[val]+'18'; }
+    // Show/hide extra fields
+    const cpayF = document.getElementById('cpayWalletFields');
+    if (cpayF) cpayF.style.display = val === 'cpay_wallet' ? '' : 'none';
     document.getElementById('finalMethod').value = val;
+    // Update provider hint
+    const prov = document.getElementById('finalProvider');
+    if (prov) {
+        if (val === 'bank_transfer') prov.value = 'EFT';
+        else if (val === 'cpay_wallet') prov.value = 'CPAY';
+        else prov.value = 'CASH';
+    }
 }
 
 document.getElementById('disburseForm')?.addEventListener('submit', function(e) {
     const method = document.getElementById('finalMethod').value;
-    if (method === 'mobile_money') {
-        document.getElementById('finalPhone').value    = document.getElementById('mmPhone').value;
-        document.getElementById('finalProvider').value = document.getElementById('mmProvider').value;
+    const phoneEl = document.getElementById('cpayWalletPhone');
+    if (method === 'cpay_wallet' && phoneEl) {
+        document.getElementById('finalPhone').value = phoneEl.value;
+    } else {
+        document.getElementById('finalPhone').value = '{{ $loan->user->phone ?? '' }}';
     }
 });
 
-// Init
-switchMethod(document.getElementById('finalMethod').value);
+// Init — default to bank_transfer unless loan.payout_method says cpay_wallet
+const initMethod = '{{ ($loan->payout_method ?? 'bank_transfer') }}';
+switchMethod(['bank_transfer','cpay_wallet','cash'].includes(initMethod) ? initMethod : 'bank_transfer');
 </script>
 @endpush
 @endsection

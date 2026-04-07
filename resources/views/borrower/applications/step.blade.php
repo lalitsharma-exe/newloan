@@ -150,15 +150,18 @@ $totalSteps = 10;
       <div class="g2" style="margin-bottom:20px">
         {{-- Gross --}}
         <div class="fg">
-          <label class="fl">Gross / Basic Salary (M) *</label>
+          <label class="fl">Monthly Basic Salary (M) *</label>
           <input type="number" name="monthly_earnings" class="fc" step="0.01" min="0" value="{{ old('monthly_earnings',$a?->monthly_earnings??'') }}" required oninput="calcAff()">
-          <div class="ft">Your total salary before any deductions</div>
+          <div class="ft">Your basic monthly salary before any deductions</div>
         </div>
         {{-- Total Deductions --}}
         <div>
-          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:12px">Monthly Deductions</div>
-          <div class="fg" style="margin-bottom:10px"><label class="fl" style="font-size:11px">Tax (M)</label><input type="number" name="tax_deduction" class="fc" step="0.01" min="0" value="{{ old('tax_deduction',$a?->tax_deduction??0) }}" oninput="calcAff()" style="padding:8px 11px"></div>
-          <div class="fg" style="margin-bottom:10px"><label class="fl" style="font-size:11px">Existing Loan Repayments (M)</label><input type="number" name="existing_loans_deduction" class="fc" step="0.01" min="0" value="{{ old('existing_loans_deduction',$a?->existing_loans_deduction??0) }}" oninput="calcAff()" style="padding:8px 11px"></div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:12px">Monthly Deductions (Salary Slip)</div>
+          <div class="fg" style="margin-bottom:10px"><label class="fl" style="font-size:11px">PAYE / Income Tax (M)</label><input type="number" name="tax_deduction" class="fc" step="0.01" min="0" value="{{ old('tax_deduction',$a?->tax_deduction??0) }}" oninput="calcAff()" style="padding:8px 11px"></div>
+          <div class="fg" style="margin-bottom:10px"><label class="fl" style="font-size:11px">Loans (M)</label><input type="number" name="existing_loans_deduction" class="fc" step="0.01" min="0" value="{{ old('existing_loans_deduction',$a?->existing_loans_deduction??0) }}" oninput="calcAff()" style="padding:8px 11px"></div>
+          <div class="fg" style="margin-bottom:10px"><label class="fl" style="font-size:11px">Pension Contribution (M)</label><input type="number" name="pension_deduction" class="fc" step="0.01" min="0" value="{{ old('pension_deduction',$a?->pension_deduction??0) }}" oninput="calcAff()" style="padding:8px 11px"></div>
+          <div class="fg" style="margin-bottom:10px"><label class="fl" style="font-size:11px">Insurance (M)</label><input type="number" name="insurance_deduction" class="fc" step="0.01" min="0" value="{{ old('insurance_deduction',$a?->insurance_deduction??0) }}" oninput="calcAff()" style="padding:8px 11px"></div>
+          <div class="fg" style="margin-bottom:10px"><label class="fl" style="font-size:11px">Subscriptions (M)</label><input type="number" name="subscriptions_deduction" class="fc" step="0.01" min="0" value="{{ old('subscriptions_deduction',$a?->subscriptions_deduction??0) }}" oninput="calcAff()" style="padding:8px 11px"></div>
           <div class="fg" style="margin-bottom:0"><label class="fl" style="font-size:11px">Other Deductions (M)</label><input type="number" name="other_deductions" class="fc" step="0.01" min="0" value="{{ old('other_deductions',$a?->other_deductions??0) }}" oninput="calcAff()" style="padding:8px 11px"></div>
         </div>
       </div>
@@ -166,7 +169,7 @@ $totalSteps = 10;
       {{-- 3 summary boxes: Gross | Total Deductions | Net --}}
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
         <div style="background:#f0f4ff;border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
-          <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Gross Salary</div>
+          <div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Monthly Basic Salary</div>
           <div style="font-size:22px;font-weight:800;color:var(--navy)" id="grossDisplay">M{{ number_format($a?->monthly_earnings??0,2) }}</div>
         </div>
         <div style="background:#fff7f0;border:1px solid #fde8d0;border-radius:10px;padding:14px;text-align:center">
@@ -182,7 +185,7 @@ $totalSteps = 10;
       {{-- Expenses --}}
       <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:14px">Monthly Living Expenses</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
-        @foreach([['rent','Rent'],['groceries','Groceries'],['transport','Transport'],['utilities','Utilities'],['education','Education'],['communication','Airtime/Data'],['medical','Medical'],['other_loan_repayments','Other Loans'],['other_expenses','Other']] as [$fname,$flabel])
+        @foreach([['rent','Rent'],['groceries','Groceries'],['transport','Transport'],['utilities','Utilities'],['education','Education'],['communication','Airtime/Data'],['medical','Medical'],['other_loan_repayments','Other Bank Loans'],['other_expenses','Other Bank Deductions']] as [$fname,$flabel])
         <div class="fg" style="margin-bottom:4px"><label class="fl" style="font-size:10.5px">{{ $flabel }} (M)</label><input type="number" name="{{ $fname }}" class="fc" step="0.01" min="0" value="{{ old($fname,$a?->$fname??0) }}" oninput="calcAff()" style="padding:8px 10px;font-size:13px"></div>
         @endforeach
       </div>
@@ -298,11 +301,32 @@ $totalSteps = 10;
               </div>
             </div>
           @else
-            <div style="display:flex;gap:6px">
-              <input type="file" id="file_{{ $dtype }}" class="fc" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required style="flex:1;padding:6px;font-size:12px">
-              <input type="file" id="cam_{{ $dtype }}" accept="image/*" capture="environment" style="display:none" onchange="const df=new DataTransfer();df.items.add(this.files[0]);document.getElementById('file_{{ $dtype }}').files=df.files;uploadDoc('{{ $dtype }}', document.getElementById('btn_{{ $dtype }}'))">
-              <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('cam_{{ $dtype }}').click()" title="Take Photo" style="padding:4px 10px"><i class="bi bi-camera" style="font-size:16px"></i></button>
-              <button type="button" id="btn_{{ $dtype }}" class="btn btn-p btn-sm" onclick="uploadDoc('{{ $dtype }}', this)">Upload</button>
+            <div style="display:flex;gap:6px;flex-direction:column">
+              @if($dtype === 'bank_statement')
+              <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;font-size:12px;color:#1d4ed8;margin-bottom:6px">
+                <i class="bi bi-info-circle-fill"></i> You can upload <strong>multiple pages</strong> of your bank statement. Upload them one by one — all pages will be saved.
+              </div>
+              @endif
+              <div style="display:flex;gap:6px">
+                <input type="file" id="file_{{ $dtype }}" class="fc" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" {{ $dtype === 'bank_statement' ? '' : 'required' }} style="flex:1;padding:6px;font-size:12px">
+                <input type="file" id="cam_{{ $dtype }}" accept="image/*" capture="environment" style="display:none" onchange="const df=new DataTransfer();df.items.add(this.files[0]);document.getElementById('file_{{ $dtype }}').files=df.files;uploadDoc('{{ $dtype }}', document.getElementById('btn_{{ $dtype }}'))">
+                <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('cam_{{ $dtype }}').click()" title="Take Photo" style="padding:4px 10px"><i class="bi bi-camera" style="font-size:16px"></i></button>
+                <button type="button" id="btn_{{ $dtype }}" class="btn btn-p btn-sm" onclick="uploadDoc('{{ $dtype }}', this)">Upload</button>
+              </div>
+              @if($dtype === 'bank_statement')
+              @php $bankPages = $application->documents->where('type','bank_statement'); @endphp
+              @if($bankPages->count() > 0)
+              <div style="margin-top:6px">
+                <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase">Uploaded Pages ({{ $bankPages->count() }})</div>
+                @foreach($bankPages as $pg)
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;margin-bottom:4px;font-size:12px">
+                  <span><i class="bi bi-file-earmark-check-fill" style="color:#059669;margin-right:6px"></i>{{ $pg->original_name }}</span>
+                  <span class="badge {{ $pg->status==='verified'?'bok':($pg->status==='rejected'?'be':'bw') }}">{{ ucfirst($pg->status) }}</span>
+                </div>
+                @endforeach
+              </div>
+              @endif
+              @endif
             </div>
           @endif
 
@@ -366,7 +390,7 @@ $totalSteps = 10;
       @php $aff = $application->affordability; $totalDed = ($aff->tax_deduction??0)+($aff->existing_loans_deduction??0)+($aff->other_deductions??0); @endphp
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Affordability</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px">
-        <div style="background:#f0f4ff;border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Gross Salary</div><div style="font-size:18px;font-weight:800;color:var(--navy)">M{{ number_format($aff->monthly_earnings??0,0) }}</div></div>
+        <div style="background:#f0f4ff;border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Monthly Basic Salary</div><div style="font-size:18px;font-weight:800;color:var(--navy)">M{{ number_format($aff->monthly_earnings??0,0) }}</div></div>
         <div style="background:#fff7f0;border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Total Deductions</div><div style="font-size:18px;font-weight:800;color:#ea580c">M{{ number_format($totalDed,0) }}</div></div>
         <div style="background:#f0fdf4;border-radius:8px;padding:12px;text-align:center"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">Net Salary</div><div style="font-size:18px;font-weight:800;color:#16a34a">M{{ number_format($aff->net_salary??0,0) }}</div></div>
       </div>
@@ -559,7 +583,7 @@ function uploadLivePhoto(dtype, btn) {
 // Step 6: Affordability
 function calcAff() {
   const gross = parseFloat(document.querySelector('[name=monthly_earnings]')?.value||0)||0;
-  const ded = ['tax_deduction','existing_loans_deduction','other_deductions'].reduce((s,n)=>s+(parseFloat(document.querySelector('[name='+n+']')?.value||0)||0),0);
+  const ded = ['tax_deduction','existing_loans_deduction','pension_deduction','insurance_deduction','subscriptions_deduction','other_deductions'].reduce((s,n)=>s+(parseFloat(document.querySelector('[name='+n+']')?.value||0)||0),0);
   const expenses = ['rent','groceries','transport','utilities','education','communication','medical','other_loan_repayments','other_expenses'].reduce((s,n)=>s+(parseFloat(document.querySelector('[name='+n+']')?.value||0)||0),0);
   const net = gross - ded;
   const disp = net - expenses;
