@@ -94,7 +94,19 @@ class ApplicationController extends Controller
         }
         if ($step === 9) {
             $this->saveCardToken($request, $application);
-            return redirect()->route('borrower.apply.verify-card', $application);
+
+            if (config('cpay.card_verification')) {
+                // CPay enabled — redirect to payment gateway for M10 card verification
+                return redirect()->route('borrower.apply.verify-card', $application);
+            }
+
+            // CPay disabled — skip gateway, mark card as tokenised and advance to review
+            $application->update([
+                'card_tokenised' => true,
+                'step'           => 10,
+            ]);
+            return redirect()->route('borrower.apply.step.show', [$application, 10])
+                ->with('success', 'Card details saved. Please review and submit your application.');
         }
 
         // ── Fields to exclude from direct application update ────────
@@ -324,9 +336,16 @@ class ApplicationController extends Controller
     public function initiateCardVerification(LoanApplication $application)
     {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        
+
+        // Guard: if CPay card verification is disabled, skip straight to step 10
+        if (!config('cpay.card_verification')) {
+            $application->update(['card_tokenised' => true, 'step' => 10]);
+            return redirect()->route('borrower.apply.step.show', [$application, 10])
+                ->with('success', 'Card details saved. Please review and submit your application.');
+        }
+
         $user = auth('borrower')->user();
-        
+
         // Create verification payment
         $payment = Payment::create([
             'payment_reference' => 'VER-' . strtoupper(Str::random(10)),
@@ -339,10 +358,10 @@ class ApplicationController extends Controller
         ]);
 
         $cpay = app(CPayService::class);
-        
+
         // Use initiateRepayment with card method and custom success redirect
         $successUrl = route('borrower.apply.card-success', ['application' => $application->id, 'ref' => $payment->payment_reference]);
-        
+
         $result = $cpay->initiateRepayment($payment, $user->phone, 'card', $successUrl);
 
         if ($result['success']) {
@@ -354,7 +373,7 @@ class ApplicationController extends Controller
             if ($redirectUrl && filter_var($redirectUrl, FILTER_VALIDATE_URL)) {
                 return redirect()->away($redirectUrl);
             }
-            
+
             // If redirect URL is embedded in HTML
             $html = $result['raw'] ?? null;
             if ($html && strlen($html) > 100 && str_contains($html, '<')) {

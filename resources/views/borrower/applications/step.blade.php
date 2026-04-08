@@ -338,7 +338,11 @@ $totalSteps = 10;
 
       {{-- STEP 9: Card Tokenization --}}
       @elseif($step === 9)
+      @if(config('cpay.card_verification'))
       <div class="alert a-i"><i class="bi bi-shield-lock-fill"></i><div><strong>Secure Card Verification</strong><br>To verify your card, a small payment of <strong>M10.00</strong> is required. You will be redirected to our secure payment processor (CPay) to complete this. No raw card data is stored on our servers.</div></div>
+      @else
+      <div class="alert a-ok"><i class="bi bi-credit-card-fill"></i><div><strong>Card Details</strong><br>Enter your card details below. Your information is encrypted and stored securely — no payment will be taken at this step.</div></div>
+      @endif
       <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Bank Card</div>
       <div style="background:linear-gradient(135deg,var(--navy),var(--navy3));border-radius:14px;padding:28px;color:#fff;margin-bottom:20px">
         <div style="font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Bank Card Preview</div>
@@ -368,10 +372,17 @@ $totalSteps = 10;
           <input type="password" name="card_cvv" class="fc" placeholder="•••" maxlength="4" required>
         </div>
       </div>
+      @if(config('cpay.card_verification'))
       <div style="background:rgba(43,75,173,.06);border:1px solid rgba(43,75,173,.15);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--slate)">
         <i class="bi bi-info-circle-fill" style="color:var(--blue);margin-right:6px"></i>
         A one-time verification payment of <strong>M10.00</strong> will be applied. After a successful payment, you will be returned here to finish your application.
       </div>
+      @else
+      <div style="background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.2);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--slate)">
+        <i class="bi bi-lock-fill" style="color:#16a34a;margin-right:6px"></i>
+        Your card details are encrypted end-to-end. No charge will be made at this step — your card will only be used for loan repayments as per your agreement.
+      </div>
+      @endif
 
       {{-- STEP 10: Review & Submit --}}
       @elseif($step === 10)
