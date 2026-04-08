@@ -37,6 +37,9 @@ class AffordabilityAssessment extends Model
         'monthly_earnings'         => 'decimal:2',
         'tax_deduction'            => 'decimal:2',
         'existing_loans_deduction' => 'decimal:2',
+        'pension_deduction'        => 'decimal:2',
+        'insurance_deduction'      => 'decimal:2',
+        'subscriptions_deduction'  => 'decimal:2',
         'other_deductions'         => 'decimal:2',
         'net_salary'               => 'decimal:2',
         'transport'                => 'decimal:2',
@@ -66,6 +69,9 @@ class AffordabilityAssessment extends Model
     {
         $totalDeductions = (float)$this->tax_deduction
             + (float)$this->existing_loans_deduction
+            + (float)$this->pension_deduction
+            + (float)$this->insurance_deduction
+            + (float)$this->subscriptions_deduction
             + (float)$this->other_deductions;
 
         $netSalary = (float)$this->monthly_earnings - $totalDeductions;
@@ -83,8 +89,8 @@ class AffordabilityAssessment extends Model
             + (float)$this->family_support
             + (float)$this->entertainment;
 
-        $this->net_salary            = round($netSalary, 2);
-        $this->total_living_expenses = round($totalExpenses, 2);
-        $this->disposable_income     = round($netSalary - $totalExpenses, 2);
+        $this->net_salary            = (string)round($netSalary, 2);
+        $this->total_living_expenses = (string)round($totalExpenses, 2);
+        $this->disposable_income     = (string)round($netSalary - $totalExpenses, 2);
     }
 }

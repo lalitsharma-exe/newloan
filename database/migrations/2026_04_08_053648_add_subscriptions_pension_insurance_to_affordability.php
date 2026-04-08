@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('affordability_assessments', function (Blueprint $table) {
@@ -24,13 +21,22 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('affordability_assessments', function (Blueprint $table) {
-            $table->dropColumn(['pension_deduction', 'insurance_deduction', 'subscriptions_deduction']);
+            $columns = [];
+            if (Schema::hasColumn('affordability_assessments', 'subscriptions_deduction')) {
+                $columns[] = 'subscriptions_deduction';
+            }
+            if (Schema::hasColumn('affordability_assessments', 'insurance_deduction')) {
+                $columns[] = 'insurance_deduction';
+            }
+            if (Schema::hasColumn('affordability_assessments', 'pension_deduction')) {
+                $columns[] = 'pension_deduction';
+            }
+            if ($columns) {
+                $table->dropColumn($columns);
+            }
         });
     }
 };
