@@ -185,7 +185,7 @@ $totalSteps = 10;
       {{-- Expenses --}}
       <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:14px">Monthly Living Expenses</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
-        @foreach([['rent','Rent'],['groceries','Groceries'],['transport','Transport'],['utilities','Utilities'],['education','Education'],['communication','Airtime/Data'],['medical','Medical'],['other_loan_repayments','Other Bank Loans'],['other_expenses','Other Bank Deductions']] as [$fname,$flabel])
+        @foreach([['rent','Rent'],['groceries','Groceries'],['transport','Transport'],['utilities','Utilities'],['education','Education'],['communication','Airtime/Data'],['medical','Medical'],['other_loan_repayments','Other Bank Loans'],['other_expenses','Other Expenses']] as [$fname,$flabel])
         <div class="fg" style="margin-bottom:4px"><label class="fl" style="font-size:10.5px">{{ $flabel }} (M)</label><input type="number" name="{{ $fname }}" class="fc" step="0.01" min="0" value="{{ old($fname,$a?->$fname??0) }}" oninput="calcAff()" style="padding:8px 10px;font-size:13px"></div>
         @endforeach
       </div>
@@ -248,7 +248,6 @@ $totalSteps = 10;
             <option value="salary_deduction" {{ old('collection_method',$application->collection_method)==='salary_deduction'?'selected':'' }}>Salary deduction</option>
             <option value="card_payment" {{ old('collection_method',$application->collection_method)==='card_payment'?'selected':'' }}>Card payment</option>
             <option value="debit_order" {{ old('collection_method',$application->collection_method)==='debit_order'?'selected':'' }}>Debit Order</option>
-            <option value="mobile_money" {{ old('collection_method',$application->collection_method)==='mobile_money'?'selected':'' }}>Mobile Money</option>
           </select>
         </div>
       </div>

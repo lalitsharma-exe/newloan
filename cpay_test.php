@@ -17,24 +17,43 @@
  */
 
 // ================================================================
-// CONFIG
+// CONFIG — reads live credentials from .env
 // ================================================================
-define('BASE_URL',      'https://cpay-uat-env.chaperone.co.ls:5100');
-define('API_KEY',       'bECUOonmbsAbJ6F8ZKd5Yo5/d251KKjV15kqb4zWI18=');
-define('CLIENT_CODE',   'MYLOAN18374');
-define('SECRET_KEY',    'TGq9jD');
-define('MERCHANT_CODE', '8374');
+function loadEnv(string $path): array {
+    $env = [];
+    foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) continue;
+        $pos = strpos($line, '=');
+        if ($pos === false) continue;
+        $key = trim(substr($line, 0, $pos));
+        $val = trim(substr($line, $pos + 1));
+        // Strip surrounding quotes
+        if (preg_match('/^"(.*)"$|^\'(.*)\'$/s', $val, $m)) {
+            $val = $m[1] !== '' ? $m[1] : ($m[2] ?? '');
+        }
+        $env[$key] = $val;
+    }
+    return $env;
+}
+$dotenv = loadEnv(__DIR__ . '/.env');
 
-// 8-digit local MSISDN — change to your CPay-registered test number
-define('TEST_MSISDN',  '58145851');  // Provided by CPay support (Titisi)
+define('BASE_URL',      rtrim($dotenv['CPAY_LIVE_URL'] ?? 'https://prod.chaperone.co.ls:5700/api', '/api'));
+define('API_KEY',       $dotenv['CPAY_API_KEY']       ?? '');
+define('CLIENT_CODE',   $dotenv['CPAY_CLIENT_CODE']   ?? '');
+define('SECRET_KEY',    $dotenv['CPAY_SECRET_KEY']    ?? '');
+define('MERCHANT_CODE', $dotenv['CPAY_MERCHANT_CODE'] ?? '');
+
+// 8-digit local MSISDN — real live registered number
+define('TEST_MSISDN',  '53797734');
 define('TEST_AMOUNT',  '10.00');
 
-// For confirm test: paste OTP CPay sent, and the extTransactionId from mobile
-define('TEST_OTP',     '123456');    // ← replace with OTP Titisi receives on his phone
-define('FIXED_TXN_ID', 'OTP-F3D52005-1775061593');  // ← from last mobile run
+// For confirm test: paste OTP received, and the extTransactionId from mobile run
+define('TEST_OTP',     '123456');
+define('FIXED_TXN_ID', 'AUTO');
 
-// Public HTTPS URL for card/async callbacks (use ngrok locally)
-define('REDIRECT_URL', 'https://your-ngrok-url.ngrok.io/webhooks/payment');
+// Public HTTPS callback URL
+define('REDIRECT_URL', rtrim($dotenv['APP_URL'] ?? 'http://localhost:8000', '/') . '/webhooks/payment');
 // ================================================================
 
 $test = $argv[1] ?? 'help';
