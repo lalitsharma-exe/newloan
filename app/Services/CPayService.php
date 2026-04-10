@@ -63,9 +63,13 @@ class CPayService
     public function __construct()
     {
         $this->sandbox    = SystemSetting::get('gateway_mode', 'sandbox') !== 'production';
-        $this->baseUrl    = $this->sandbox
+        $rawUrl = $this->sandbox
             ? 'https://cpay-uat-env.chaperone.co.ls:5100'
             : SystemSetting::get('gateway_live_url', config('services.cpay.live_url', 'https://api.chaperone.co.ls'));
+
+        // Strip trailing /api or / to avoid double /api/api in endpoint calls
+        $this->baseUrl = rtrim(rtrim($rawUrl, '/'), '/api');
+
         $this->apiKey     = SystemSetting::get('gateway_key',      config('services.cpay.api_key',     ''));
         $this->clientCode = SystemSetting::get('cpay_client_code', config('services.cpay.client_code', ''));
         $this->secretKey  = SystemSetting::get('gateway_secret',   config('services.cpay.secret_key',  ''));

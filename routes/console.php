@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Run daily: marks overdue installments + applies M20/10-day penalty
 Schedule::command('loans:apply-penalties')->dailyAt('01:00');
+
+// Send payment reminders 2 days before payday
+Schedule::command('loans:send-reminders')->dailyAt('09:00');

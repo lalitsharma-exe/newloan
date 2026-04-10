@@ -19,13 +19,16 @@
 // ================================================================
 // CONFIG — reads live credentials from .env
 // ================================================================
-function loadEnv(string $path): array {
+function loadEnv(string $path): array
+{
     $env = [];
     foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         $line = trim($line);
-        if ($line === '' || str_starts_with($line, '#')) continue;
+        if ($line === '' || str_starts_with($line, '#'))
+            continue;
         $pos = strpos($line, '=');
-        if ($pos === false) continue;
+        if ($pos === false)
+            continue;
         $key = trim(substr($line, 0, $pos));
         $val = trim(substr($line, $pos + 1));
         // Strip surrounding quotes
@@ -38,18 +41,18 @@ function loadEnv(string $path): array {
 }
 $dotenv = loadEnv(__DIR__ . '/.env');
 
-define('BASE_URL',      rtrim($dotenv['CPAY_LIVE_URL'] ?? 'https://prod.chaperone.co.ls:5700/api', '/api'));
-define('API_KEY',       $dotenv['CPAY_API_KEY']       ?? '');
-define('CLIENT_CODE',   $dotenv['CPAY_CLIENT_CODE']   ?? '');
-define('SECRET_KEY',    $dotenv['CPAY_SECRET_KEY']    ?? '');
+define('BASE_URL', rtrim($dotenv['CPAY_LIVE_URL'] ?? 'https://prod.chaperone.co.ls:5700/api', '/api'));
+define('API_KEY', $dotenv['CPAY_API_KEY'] ?? '');
+define('CLIENT_CODE', $dotenv['CPAY_CLIENT_CODE'] ?? '');
+define('SECRET_KEY', $dotenv['CPAY_SECRET_KEY'] ?? '');
 define('MERCHANT_CODE', $dotenv['CPAY_MERCHANT_CODE'] ?? '');
 
 // 8-digit local MSISDN — real live registered number
-define('TEST_MSISDN',  '53797734');
-define('TEST_AMOUNT',  '10.00');
+define('TEST_MSISDN', '58145851');
+define('TEST_AMOUNT', '1');
 
 // For confirm test: paste OTP received, and the extTransactionId from mobile run
-define('TEST_OTP',     '123456');
+define('TEST_OTP', '123456');
 define('FIXED_TXN_ID', 'AUTO');
 
 // Public HTTPS callback URL
@@ -62,11 +65,11 @@ echo "\n";
 echo "╔══════════════════════════════════════════════════╗\n";
 echo "║      CPay UAT Test — v2.0 (MYLOAN18374)         ║\n";
 echo "╚══════════════════════════════════════════════════╝\n";
-echo "  Client Code  : " . CLIENT_CODE   . "\n";
+echo "  Client Code  : " . CLIENT_CODE . "\n";
 echo "  Merchant Code: " . MERCHANT_CODE . "\n";
-echo "  MSISDN       : " . TEST_MSISDN   . "\n";
-echo "  Amount       : " . TEST_AMOUNT   . "\n";
-echo "  Test         : " . $test         . "\n\n";
+echo "  MSISDN       : " . TEST_MSISDN . "\n";
+echo "  Amount       : " . TEST_AMOUNT . "\n";
+echo "  Test         : " . $test . "\n\n";
 
 // ================================================================
 // HELPERS
@@ -117,12 +120,12 @@ function req(string $method, string $endpoint, array $body = [], array $query = 
 
     $ch = curl_init($url);
     curl_setopt_array($ch, [
-        CURLOPT_CUSTOMREQUEST  => $method,
+        CURLOPT_CUSTOMREQUEST => $method,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_TIMEOUT => 30,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_HTTPHEADER     => [
+        CURLOPT_HTTPHEADER => [
             'Authorization: ' . API_KEY,
             'Content-Type: application/json',
             'Accept: application/json',
@@ -130,8 +133,8 @@ function req(string $method, string $endpoint, array $body = [], array $query = 
         CURLOPT_POSTFIELDS => $bodyJson ?: null,
     ]);
 
-    $raw     = curl_exec($ch);
-    $http    = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $raw = curl_exec($ch);
+    $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlErr = curl_error($ch);
     curl_close($ch);
 
@@ -157,23 +160,24 @@ function req(string $method, string $endpoint, array $body = [], array $query = 
     }
 
     $decoded = json_decode($raw, true);
-    $pretty  = $decoded ? json_encode($decoded, JSON_PRETTY_PRINT) : $raw;
+    $pretty = $decoded ? json_encode($decoded, JSON_PRETTY_PRINT) : $raw;
     foreach (explode("\n", $pretty) as $line) {
         echo "  │ {$line}\n";
     }
 
-    $data   = $decoded['return'] ?? $decoded ?? [];
+    $data = $decoded['return'] ?? $decoded ?? [];
     $status = $data['paymentRequestStatus'] ?? $data['PaymentRequestStatus']
-           ?? $data['statusCode']           ?? $data['StatusCode']   ?? '—';
-    $desc   = $data['description'] ?? $data['Description'] ?? '—';
-    $reason = $data['reasonCode']  ?? $data['ReasonCode']  ?? '—';
-    $cid    = $data['cPayTransactionId']  ?? $data['CPayTransactionId']  ?? '—';
+        ?? $data['statusCode'] ?? $data['StatusCode'] ?? '—';
+    $desc = $data['description'] ?? $data['Description'] ?? '—';
+    $reason = $data['reasonCode'] ?? $data['ReasonCode'] ?? '—';
+    $cid = $data['cPayTransactionId'] ?? $data['CPayTransactionId'] ?? '—';
 
     echo "  ├─ PARSED ───────────────────────────────────────\n";
     echo "  │ Status:      {$status}\n";
     echo "  │ Description: {$desc}\n";
     echo "  │ ReasonCode:  {$reason}\n";
-    if ($cid !== '—') echo "  │ CPay TxnId:  {$cid}\n";
+    if ($cid !== '—')
+        echo "  │ CPay TxnId:  {$cid}\n";
 
     if ($http >= 200 && $http < 300) {
         echo "  │ ✅ SUCCESS\n";
@@ -209,16 +213,16 @@ function testChecksum(): void
     req('POST', '/api/cpaypayments/getchecksum', [
         'transactionRequest' => [
             'extTransactionId' => $id,
-            'clientCode'       => CLIENT_CODE,
-            'msisdn'           => TEST_MSISDN,
-            'otp'              => '',
-            'amount'           => TEST_AMOUNT,
+            'clientCode' => CLIENT_CODE,
+            'msisdn' => TEST_MSISDN,
+            'otp' => '',
+            'amount' => TEST_AMOUNT,
             'shortDescription' => '',
-            'checksum'         => '',
-            'currency'         => 'LSL',
-            'otpMedium'        => 'sms',
-            'additionalData'   => '',
-            'redirectUrl'      => '',
+            'checksum' => '',
+            'currency' => 'LSL',
+            'otpMedium' => 'sms',
+            'additionalData' => '',
+            'redirectUrl' => '',
         ],
     ]);
 
@@ -239,16 +243,16 @@ function testMobile(): void
     req('POST', '/api/cpaypayments/payment', [
         'transactionRequest' => [
             'extTransactionId' => $id,
-            'clientCode'       => CLIENT_CODE,
-            'msisdn'           => TEST_MSISDN,
-            'amount'           => TEST_AMOUNT,
-            'otp'              => '',
+            'clientCode' => CLIENT_CODE,
+            'msisdn' => TEST_MSISDN,
+            'amount' => TEST_AMOUNT,
+            'otp' => '',
             'shortDescription' => 'Loan repayment test',
-            'checksum'         => $cs,
-            'currency'         => 'LSL',
-            'otpMedium'        => 'sms',
-            'additionalData'   => null,
-            'redirectUrl'      => REDIRECT_URL,
+            'checksum' => $cs,
+            'currency' => 'LSL',
+            'otpMedium' => 'sms',
+            'additionalData' => null,
+            'redirectUrl' => REDIRECT_URL,
         ],
     ]);
 
@@ -261,7 +265,7 @@ function testMobile(): void
 function testConfirm(): void
 {
     echo "━━━ TEST: OTP Confirmation ━━━\n\n";
-    $id  = fixedOrNew('OTP');
+    $id = fixedOrNew('OTP');
     $otp = TEST_OTP;
 
     echo "  TxnId: {$id}\n";
@@ -277,13 +281,13 @@ function testConfirm(): void
     req('POST', '/api/cpaypayments/confirm', [
         'transactionRequest' => [
             'extTransactionId' => $id,
-            'clientCode'       => CLIENT_CODE,
-            'msisdn'           => TEST_MSISDN,
-            'amount'           => TEST_AMOUNT,
-            'otp'              => $otp,
-            'checksum'         => $cs,
-            'currency'         => 'LSL',
-            'redirectUrl'      => REDIRECT_URL,
+            'clientCode' => CLIENT_CODE,
+            'msisdn' => TEST_MSISDN,
+            'amount' => TEST_AMOUNT,
+            'otp' => $otp,
+            'checksum' => $cs,
+            'currency' => 'LSL',
+            'redirectUrl' => REDIRECT_URL,
         ],
     ]);
 }
@@ -303,16 +307,16 @@ function testAsync(): void
     req('POST', '/api/cpaypayments/paymentrequest/async/transactions', [
         'transactionRequest' => [
             'extTransactionId' => $id,
-            'clientCode'       => CLIENT_CODE,
-            'msisdn'           => TEST_MSISDN,
-            'amount'           => TEST_AMOUNT,
-            'otp'              => '',
+            'clientCode' => CLIENT_CODE,
+            'msisdn' => TEST_MSISDN,
+            'amount' => TEST_AMOUNT,
+            'otp' => '',
             'shortDescription' => 'Async loan repayment test',
-            'checksum'         => $cs,
-            'currency'         => 'LSL',
-            'otpMedium'        => 'sms',
-            'additionalData'   => null,
-            'redirectUrl'      => REDIRECT_URL,
+            'checksum' => $cs,
+            'currency' => 'LSL',
+            'otpMedium' => 'sms',
+            'additionalData' => null,
+            'redirectUrl' => REDIRECT_URL,
         ],
     ]);
 
@@ -336,16 +340,16 @@ function testCard(): void
     req('POST', '/api/cpaypayments/payment', [
         'transactionRequest' => [
             'extTransactionId' => $id,
-            'clientCode'       => CLIENT_CODE,
-            'msisdn'           => TEST_MSISDN,
-            'amount'           => TEST_AMOUNT,
-            'otp'              => '',
+            'clientCode' => CLIENT_CODE,
+            'msisdn' => TEST_MSISDN,
+            'amount' => TEST_AMOUNT,
+            'otp' => '',
             'shortDescription' => 'Card payment test',
-            'checksum'         => $cs,
-            'currency'         => 'LSL',
-            'otpMedium'        => 'sms',
-            'additionalData'   => null,
-            'redirectUrl'      => REDIRECT_URL,
+            'checksum' => $cs,
+            'currency' => 'LSL',
+            'otpMedium' => 'sms',
+            'additionalData' => null,
+            'redirectUrl' => REDIRECT_URL,
         ],
     ], ['cardPayment' => 'true', 'rememberMe' => 'false']);
 }
@@ -353,7 +357,7 @@ function testCard(): void
 function testStatus(): void
 {
     echo "━━━ TEST: Transaction Status ━━━\n\n";
-    $id   = fixedOrNew('QUERY');
+    $id = fixedOrNew('QUERY');
     $date = date('Y-m-d');
 
     echo "  TxnId: {$id}\n";
@@ -365,7 +369,7 @@ function testStatus(): void
 
     req('GET', '/api/cpaypayments/transaction-status', [], [
         'requestReference' => $id,
-        'dateTime'         => $date,
+        'dateTime' => $date,
     ]);
 }
 
@@ -374,17 +378,17 @@ function testList(): void
     echo "━━━ TEST: List Transactions ━━━\n\n";
     req('GET', '/api/cpaypayments/payment/request/transactions', [], [
         'merchantCode' => MERCHANT_CODE,
-        'pageSize'     => 10,
-        'page'         => 0,
-        'orderBy'      => 'dateDesc',
+        'pageSize' => 10,
+        'page' => 0,
+        'orderBy' => 'dateDesc',
     ]);
 }
 
 function testDisburse(): void
 {
     echo "━━━ TEST: External Disbursement (MPesa) ━━━\n\n";
-    $id      = txnId('DISB');
-    $msisdn  = '+266' . TEST_MSISDN;
+    $id = txnId('DISB');
+    $msisdn = '+266' . TEST_MSISDN;
     $msisdn8 = TEST_MSISDN;
 
     echo "  TxnId:   {$id}\n";
@@ -396,15 +400,15 @@ function testDisburse(): void
         'transactionRequest' => [
             'transactionRequest' => [
                 'extTransactionId' => $id,
-                'clientCode'       => CLIENT_CODE,
-                'msisdn'           => $msisdn,
-                'amount'           => TEST_AMOUNT,
+                'clientCode' => CLIENT_CODE,
+                'msisdn' => $msisdn,
+                'amount' => TEST_AMOUNT,
                 'shortDescription' => 'Test disbursement MPesa',
-                'checksum'         => $cs,
-                'currency'         => 'LSL',
-                'otp'              => '',
-                'redirectUrl'      => REDIRECT_URL,
-                'additionalData'   => 'loan:TEST-001',
+                'checksum' => $cs,
+                'currency' => 'LSL',
+                'otp' => '',
+                'redirectUrl' => REDIRECT_URL,
+                'additionalData' => 'loan:TEST-001',
             ],
         ],
     ], ['destinationOperator' => 'mpesa', 'destinationWalletNumber' => $msisdn8]);
@@ -413,8 +417,8 @@ function testDisburse(): void
 function testWallet(): void
 {
     echo "━━━ TEST: Wallet Top-Up Advance (CPay + KYC) ━━━\n\n";
-    $id      = txnId('WALLT');
-    $msisdn  = '+266' . TEST_MSISDN;
+    $id = txnId('WALLT');
+    $msisdn = '+266' . TEST_MSISDN;
     $msisdn8 = TEST_MSISDN;
 
     echo "  TxnId:   {$id}\n";
@@ -426,26 +430,28 @@ function testWallet(): void
         'transactionRequest' => [
             'transactionRequest' => [
                 'extTransactionId' => $id,
-                'clientCode'       => CLIENT_CODE,
-                'msisdn'           => $msisdn8,
-                'amount'           => TEST_AMOUNT,
+                'clientCode' => CLIENT_CODE,
+                'msisdn' => $msisdn8,
+                'amount' => TEST_AMOUNT,
                 'shortDescription' => 'Test wallet top-up',
-                'checksum'         => $cs,
-                'currency'         => 'LSL',
-                'redirectUrl'      => REDIRECT_URL,
-                'additionalData'   => [
+                'checksum' => $cs,
+                'currency' => 'LSL',
+                'redirectUrl' => REDIRECT_URL,
+                'additionalData' => [
                     'recipientKyc' => [
-                        'idDocument' => [[
-                            'idType'        => 'ID',
-                            'idNumber'      => 'TEST123456789',
-                            'expiryDate'    => '2030-12-31',
-                            'issuerCountry' => 'LS',
-                        ]],
-                        'firstName'     => 'Test',
-                        'middleName'    => '',
-                        'lastName'      => 'User',
-                        'fullName'      => 'Test User',
-                        'gender'        => '',
+                        'idDocument' => [
+                            [
+                                'idType' => 'ID',
+                                'idNumber' => 'TEST123456789',
+                                'expiryDate' => '2030-12-31',
+                                'issuerCountry' => 'LS',
+                            ]
+                        ],
+                        'firstName' => 'Test',
+                        'middleName' => '',
+                        'lastName' => 'User',
+                        'fullName' => 'Test User',
+                        'gender' => '',
                         'sourceOfFunds' => 'Loan Disbursement',
                     ],
                 ],
@@ -478,18 +484,18 @@ function showHelp(string $test): void
 // ================================================================
 match ($test) {
     'checksum' => testChecksum(),
-    'mobile'   => testMobile(),
-    'confirm'  => testConfirm(),
-    'async'    => testAsync(),
-    'card'     => testCard(),
-    'status'   => testStatus(),
-    'list'     => testList(),
+    'mobile' => testMobile(),
+    'confirm' => testConfirm(),
+    'async' => testAsync(),
+    'card' => testCard(),
+    'status' => testStatus(),
+    'list' => testList(),
     'disburse' => testDisburse(),
-    'wallet'   => testWallet(),
-    'all'      => (function () {
-        testChecksum();
-        testMobile();
-        testAsync();
-    })(),
-    default    => showHelp($test),
+    'wallet' => testWallet(),
+    'all' => (function () {
+            testChecksum();
+            testMobile();
+            testAsync();
+        })(),
+    default => showHelp($test),
 };

@@ -68,6 +68,16 @@ class UserController extends Controller
         $data['is_active'] = $request->input('is_active', '1') === '1';
 
         $user = $this->svc->create($data);
+
+        // Send welcome SMS to borrowers
+        if ($user->role === 'borrower') {
+            try {
+                $user->notify(new \App\Notifications\WelcomeBorrowerSms($request->password));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to send welcome SMS: " . $e->getMessage());
+            }
+        }
+
         return redirect()->route('admin.users.index')->with('success', "User {$user->name} created successfully.");
     }
 

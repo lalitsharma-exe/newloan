@@ -16,6 +16,7 @@ class ApplyLoanPenalties extends Command
         $applied = 0;
 
         // Find all overdue installments
+        /** @var \App\Models\LoanInstallment[] $overdue */
         $overdue = LoanInstallment::where('status', 'overdue')
             ->where('due_date', '<', $today)
             ->with('loan')
@@ -48,6 +49,17 @@ class ApplyLoanPenalties extends Command
 
         foreach ($nowOverdue as $inst) {
             $inst->update(['status' => 'overdue']);
+            
+            // Send Overdue SMS (only if not already notified)
+            if (!$inst->overdue_notified_at && $inst->loan && $inst->loan->user) {
+                try {
+                    $inst->loan->user->notify(new \App\Notifications\OverduePaymentSms($inst));
+                    $inst->update(['overdue_notified_at' => now()]);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to send overdue SMS for installment {$inst->id}: " . $e->getMessage());
+                }
+            }
+
             if ($inst->loan && !in_array($inst->loan->status, ['paid_off','closed','defaulted'])) {
                 $inst->loan->update(['status' => 'overdue']);
             }

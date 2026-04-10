@@ -20,4 +20,14 @@ class User extends Authenticatable {
     public function scopeLoanOfficers($q) { return $q->where("role","loan_officer"); }
     public function scopeBorrowers($q)    { return $q->where("role","borrower"); }
     public function scopeActive($q)       { return $q->where("is_active",true); }
+
+    /**
+     * Route notifications for the SMS channel.
+     *
+     * @return string
+     */
+    public function routeNotificationForSms()
+    {
+        return $this->phone;
+    }
 }

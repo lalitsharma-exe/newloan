@@ -284,6 +284,16 @@ class PaymentController extends Controller
         if ($loan->outstanding_balance <= 0 ||
             $loan->installments()->whereNotIn('status', ['paid','waived'])->count() === 0) {
             $loan->update(['status' => 'paid_off', 'last_payment_date' => now()]);
+            
+            // Trigger Fully Paid SMS
+            if (!$loan->fully_paid_notified_at && $loan->user) {
+                try {
+                    $loan->user->notify(new \App\Notifications\LoanFullyPaidSms($loan));
+                    $loan->update(['fully_paid_notified_at' => now()]);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to send fully paid SMS for loan {$loan->id}: " . $e->getMessage());
+                }
+            }
         }
     }
 }

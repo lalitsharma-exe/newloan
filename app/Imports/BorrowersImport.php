@@ -97,7 +97,7 @@ class BorrowersImport implements ToCollection, WithHeadingRow
             $password = strlen($password) > 8 ? substr($password, -8) : $password;
 
             try {
-                User::create([
+                $user = User::create([
                     'name'                => $name,
                     'email'               => $email ?: null,
                     'phone'               => $phone,
@@ -109,6 +109,14 @@ class BorrowersImport implements ToCollection, WithHeadingRow
                     'email_verified_at'   => now(),
                     'assigned_officer_id' => $assignedOfficerId,
                 ]);
+
+                // Send welcome SMS
+                try {
+                    $user->notify(new \App\Notifications\WelcomeBorrowerSms($password));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to send welcome SMS during import: " . $e->getMessage());
+                }
+
                 $this->imported++;
             } catch (\Throwable $e) {
                 $this->errors[] = "Row {$rowNum}: Failed to create — " . $e->getMessage();
