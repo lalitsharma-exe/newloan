@@ -224,6 +224,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/',                        [UserController::class, 'store'])->name('store');
             Route::get('/export',                   [UserController::class, 'export'])->name('export');
             Route::post('/import',                  [UserController::class, 'import'])->name('import');
+            Route::get('/import-template',          [UserController::class, 'importTemplate'])->name('import-template');
 
             // Profile Change Requests (Moved above {user} to prevent misrouting)
             Route::get('/profile-requests',         [UserController::class, 'profileRequests'])->name('profile-requests');
@@ -244,7 +245,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{user}/loans',             [UserController::class, 'loans'])->name('loans');
             Route::get('/{user}/applications',      [UserController::class, 'applications'])->name('applications');
 
-            Route::get('/import-template',          [UserController::class, 'importTemplate'])->name('import-template');
         });
 
         /*
