@@ -56,24 +56,70 @@
   </div>
 </form>
 
-{{-- Bulk Import CSV --}}
-<div class="card" style="margin-bottom:20px">
-  <div class="card-hdr">
-    <span class="card-title"><i class="bi bi-upload" style="color:var(--p)"></i> Bulk Import Borrowers</span>
-    <a href="{{ route('admin.users.export') }}" class="btn btn-sm btn-o"><i class="bi bi-download"></i> Export CSV</a>
+{{-- Flash messages --}}
+@if(session('import_success'))
+<div class="alert a-ok mb-4" style="flex-direction:column;align-items:flex-start;gap:6px">
+  <div style="display:flex;align-items:center;gap:9px"><i class="bi bi-check-circle-fill"></i><strong>{{ session('import_success') }}</strong></div>
+  @if(session('import_errors'))
+  <div style="margin-top:6px;width:100%">
+    <div style="font-size:12px;font-weight:700;color:#065f46;margin-bottom:4px">Row issues (skipped):</div>
+    <ul style="margin:0;padding-left:18px;font-size:12px;color:#065f46">
+      @foreach(session('import_errors') as $err)<li>{{ $err }}</li>@endforeach
+    </ul>
+    {{ session()->forget('import_errors') }}
   </div>
-  <div style="padding:16px 20px">
-    <form method="POST" action="{{ route('admin.users.import') }}" enctype="multipart/form-data" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
-      @csrf
-      <div class="form-group" style="margin-bottom:0;flex:1;min-width:240px">
-        <label class="form-label">CSV File (columns: name, email, phone, password)</label>
-        <input type="file" name="file" class="form-control" accept=".csv,.txt" required>
-      </div>
-      <button type="submit" class="btn btn-primary"><i class="bi bi-people-fill"></i> Import Borrowers</button>
-    </form>
-    <div style="margin-top:8px;font-size:12px;color:var(--muted)">
-      CSV must have headers: <code>name,email,phone,password</code> — password column is optional (defaults to Password@123)
+  @endif
+</div>
+@endif
+
+{{-- Bulk Import Excel --}}
+<div class="card" style="margin-bottom:20px;border:2px dashed rgba(43,75,173,.2)">
+  <div class="card-hdr" style="background:linear-gradient(135deg,rgba(43,75,173,.04),rgba(43,75,173,.08));border-bottom:1px solid rgba(43,75,173,.12)">
+    <span class="card-title"><i class="bi bi-file-earmark-spreadsheet-fill" style="color:#4f46e5"></i> &nbsp;Bulk Import Borrowers</span>
+    <div style="display:flex;gap:8px">
+      <a href="{{ route('admin.users.import-template') }}" class="btn btn-sm" style="background:rgba(79,70,229,.1);color:#4f46e5;border:1px solid rgba(79,70,229,.25);font-size:12px">
+        <i class="bi bi-download"></i> Download Template
+      </a>
+      <a href="{{ route('admin.users.export') }}" class="btn btn-sm btn-o">
+        <i class="bi bi-file-earmark-excel"></i> Export Borrowers (.xlsx)
+      </a>
     </div>
+  </div>
+  <div style="padding:20px">
+
+    {{-- Instructions --}}
+    <div style="background:rgba(79,70,229,.05);border:1px solid rgba(79,70,229,.15);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:12.5px;color:var(--navy)">
+      <div style="font-weight:700;margin-bottom:8px"><i class="bi bi-info-circle" style="color:#4f46e5"></i> &nbsp;How to import</div>
+      <ol style="margin:0;padding-left:18px;line-height:1.9">
+        <li>Download the <strong>Excel template</strong> above and fill in your borrowers.</li>
+        <li>Required columns: <code>name</code>, <code>phone</code></li>
+        <li>Optional columns: <code>email</code>, <code>national_id</code>, <code>maiden_name</code>, <code>officer_id</code></li>
+        <li><strong>Password</strong> is automatically set to the borrower's 8-digit phone number (e.g. <code>53797734</code>).</li>
+        <li>Duplicate phones, emails and national IDs are automatically skipped.</li>
+        <li>Accepted formats: <strong>.xlsx, .xls, .csv</strong> — max 10 MB</li>
+      </ol>
+    </div>
+
+    {{-- Upload Form --}}
+    <form method="POST" action="{{ route('admin.users.import') }}" enctype="multipart/form-data" id="importForm">
+      @csrf
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+        <div class="fg" style="margin-bottom:0;flex:1;min-width:260px">
+          <label class="fl">Select Excel / CSV file</label>
+          <div style="position:relative">
+            <input type="file" name="file" class="fc" id="importFile" accept=".xlsx,.xls,.csv,.txt" required
+              style="padding:9px 12px;cursor:pointer"
+              onchange="document.getElementById('importFileName').textContent = this.files[0]?.name ?? ''">
+          </div>
+          <div id="importFileName" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
+          @error('file')<div style="color:var(--err);font-size:12px;margin-top:4px">{{ $message }}</div>@enderror
+        </div>
+        <button type="submit" class="btn btn-p" id="importBtn" style="gap:8px" onclick="this.disabled=true;this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> Importing…';this.closest(\'form\').submit()">
+          <i class="bi bi-people-fill"></i> Import Borrowers
+        </button>
+      </div>
+    </form>
+
   </div>
 </div>
 

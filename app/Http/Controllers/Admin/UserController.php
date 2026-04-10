@@ -1,10 +1,14 @@
 <?php
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\BorrowersExport;
+use App\Exports\BorrowersImportTemplate;
 use App\Http\Controllers\Controller;
+use App\Imports\BorrowersImport;
 use App\Models\User;
 use App\Services\Admin\UserService;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
 {
@@ -168,45 +172,48 @@ class UserController extends Controller
 
     public function import(Request $request)
     {
-        $request->validate(['file' => 'required|file|mimes:csv,txt|max:2048']);
-        $path    = $request->file('file')->path();
-        $rows    = array_map('str_getcsv', file($path));
-        if (count($rows) < 2) return back()->with('error', 'CSV file is empty or has no data rows.');
-        $header   = array_map('trim', array_shift($rows));
-        $imported = 0;
-        $skipped  = 0;
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240',
+        ], [
+            'file.mimes' => 'Please upload an Excel (.xlsx, .xls) or CSV file.',
+        ]);
 
-        foreach ($rows as $row) {
-            if (count($row) < count($header)) { $skipped++; continue; }
-            $data  = array_combine($header, array_map('trim', $row));
-            $phone = $this->formatPhone($data['phone'] ?? '');
-            if (!$phone) { $skipped++; continue; }
-            if (User::where('phone', $phone)->exists()) { $skipped++; continue; }
-            User::create([
-                'name'      => $data['name'] ?? $phone,
-                'email'     => !empty($data['email']) ? $data['email'] : null,
-                'phone'     => $phone,
-                'role'      => 'borrower',
-                'password'  => \Illuminate\Support\Facades\Hash::make($data['password'] ?? 'Password@123'),
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]);
-            $imported++;
+        $import = new BorrowersImport();
+
+        try {
+            Excel::import($import, $request->file('file'));
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Import failed: ' . $e->getMessage());
         }
 
-        \App\Models\AuditLog::record('users.import', "Imported {$imported} borrowers via CSV");
-        return back()->with('success', "{$imported} borrowers imported.".($skipped ? " {$skipped} rows skipped." : ''));
+        \App\Models\AuditLog::record(
+            'users.import',
+            "Imported {$import->imported} borrowers via Excel/CSV. Skipped: {$import->skipped}."
+        );
+
+        $message = "{$import->imported} borrower(s) imported successfully.";
+        if ($import->skipped > 0) {
+            $message .= " {$import->skipped} row(s) skipped.";
+        }
+
+        // Store per-row errors in session for display
+        if (!empty($import->errors)) {
+            session(['import_errors' => $import->errors]);
+        }
+
+        return back()->with('import_success', $message);
     }
 
     public function export(Request $request)
     {
-        $filters = $request->only(['role','status','search']);
-        $users   = $this->svc->getPaginated($filters, 9999);
-        $csv     = "Name,Email,Phone,Role,Status,Created\n";
-        foreach ($users as $u) {
-            $csv .= implode(',', ['"'.$u->name.'"', $u->email ?? '', $u->phone ?? '', $u->role, $u->is_active ? 'Active' : 'Inactive', $u->created_at->format('Y-m-d')]) . "\n";
-        }
-        return response($csv, 200, ['Content-Type' => 'text/csv', 'Content-Disposition' => 'attachment; filename="borrowers-'.now()->format('Y-m-d').'.csv"']);
+        $filters = $request->only(['search', 'status']);
+        $filename = 'borrowers-' . now()->format('Y-m-d') . '.xlsx';
+        return Excel::download(new BorrowersExport($filters), $filename);
+    }
+
+    public function importTemplate()
+    {
+        return Excel::download(new BorrowersImportTemplate(), 'borrowers-import-template.xlsx');
     }
 
     public function profileRequests()

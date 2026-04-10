@@ -244,8 +244,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{user}/loans',             [UserController::class, 'loans'])->name('loans');
             Route::get('/{user}/applications',      [UserController::class, 'applications'])->name('applications');
 
-            // Export
-            Route::get('/export',                   [UserController::class, 'export'])->name('export');
+            Route::get('/import-template',          [UserController::class, 'importTemplate'])->name('import-template');
         });
 
         /*
