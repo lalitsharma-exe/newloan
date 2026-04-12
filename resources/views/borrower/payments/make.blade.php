@@ -5,29 +5,30 @@
 <style>
 .pay-method-btn {
   cursor:pointer;
-  border:2.5px solid var(--border);
-  border-radius:16px;
-  padding:18px 16px;
+  border:2px solid var(--border);
+  border-radius:20px;
+  padding:20px 16px;
   text-align:center;
-  transition:all .25s;
+  transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
   background:#fff;
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:10px;
+  gap:12px;
+  position:relative;
+  overflow:hidden;
 }
-.pay-method-btn:hover { border-color:#7c3aed; box-shadow:0 4px 20px rgba(124,58,237,.1); }
-.pay-method-btn.active-card   { border-color:#10b981; background:rgba(16,185,129,.04); box-shadow:0 4px 20px rgba(16,185,129,.12); }
-.pay-method-btn.active-cpay   { border-color:#7c3aed; background:rgba(124,58,237,.04); box-shadow:0 4px 20px rgba(124,58,237,.12); }
-.pay-method-btn.active-mpesa  { border-color:#38b2ac; background:rgba(56,178,172,.04); box-shadow:0 4px 20px rgba(56,178,172,.12); }
-.cpay-logo { width:44px;height:44px;background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:22px;letter-spacing:-1px; }
-.card-logo  { width:44px;height:44px;background:linear-gradient(135deg,#0f766e,#10b981);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px; }
-.mpesa-logo { width:44px;height:44px;background:#38b2ac;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px; }
-.info-box   { border-radius:13px;padding:16px 18px;margin-bottom:16px;font-size:13px;line-height:1.8 }
-.info-box ol { margin:0;padding-left:20px }
-.info-box li { margin-bottom:2px }
-.card-brand { display:flex;align-items:center;gap:6px;margin-top:10px }
-.card-brand-logo { height:22px;border-radius:4px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15)) }
+.pay-method-btn:hover { border-color:var(--blue); box-shadow:0 10px 25px rgba(0,0,0,.05); transform:translateY(-2px); }
+.pay-method-btn.active-card   { border-color:#10b981; background:rgba(16,185,129,.02); box-shadow:0 8px 20px rgba(16,185,129,.1); }
+.pay-method-btn.active-cpay   { border-color:#7c3aed; background:rgba(124,58,237,.02); box-shadow:0 8px 20px rgba(124,58,237,.1); }
+.pay-method-btn.active-mpesa  { border-color:#e11d48; background:rgba(225,29,72,.02); box-shadow:0 8px 20px rgba(225,29,72,.1); }
+
+.method-logo { width:56px; height:56px; border-radius:14px; object-fit:contain; }
+.info-box   { border-radius:16px;padding:18px 20px;margin-bottom:20px;font-size:13.5px;line-height:1.7 }
+.info-box ol { margin:0;padding-left:22px }
+.info-box li { margin-bottom:6px }
+.card-brand { display:flex;align-items:center;gap:8px;margin-top:12px }
+.card-brand-logo { height:24px;border-radius:4px; }
 </style>
 
 <div style="max-width:580px;margin:0 auto">
@@ -120,30 +121,25 @@
                 style="display:none" class="method-radio"
                 onchange="switchMethod('mpesa','{{ $loan->id }}')">
               <div class="pay-method-btn active-mpesa" data-m="mpesa" data-loan="{{ $loan->id }}">
-                <div class="mpesa-logo"><i class="bi bi-phone-fill"></i></div>
+                <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-04-12%20at%2011.19.20%20AM.jpeg" class="method-logo" alt="M-Pesa">
                 <div>
-                  <div style="font-size:13.5px;font-weight:800;color:var(--dark)">M-Pesa</div>
-                  <div style="font-size:11px;color:var(--muted);margin-top:2px">Safaricom</div>
+                  <div style="font-size:14px;font-weight:800;color:var(--dark)">M-Pesa</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">STK Push Payment</div>
                 </div>
-                <div style="font-size:10px;color:#319795;background:rgba(56,178,172,.1);padding:2px 8px;border-radius:20px;font-weight:600;margin-top:2px">STK Push</div>
               </div>
             </label>
             @endif
 
-            {{-- Card / PayFast --}}
+            {{-- Card --}}
             <label style="cursor:pointer;display:block">
               <input type="radio" name="method" value="card" {{ !$mpesaConfigured ? 'checked' : '' }}
                 style="display:none" class="method-radio"
                 onchange="switchMethod('card','{{ $loan->id }}')">
-              <div class="pay-method-btn active-card" data-m="card" data-loan="{{ $loan->id }}">
-                <div class="card-logo"><i class="bi bi-credit-card-fill"></i></div>
+              <div class="pay-method-btn" data-m="card" data-loan="{{ $loan->id }}">
+                <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-04-12%20at%2011.22.04%20AM.jpeg" class="method-logo" alt="Card">
                 <div>
-                  <div style="font-size:13.5px;font-weight:800;color:var(--dark)">Card Payment</div>
+                  <div style="font-size:14px;font-weight:800;color:var(--dark)">Credit/Debit</div>
                   <div style="font-size:11px;color:var(--muted);margin-top:2px">Visa / Mastercard</div>
-                </div>
-                <div style="display:flex;gap:5px;align-items:center;margin-top:2px">
-                  <img src="https://img.icons8.com/color/32/visa.png" alt="Visa" class="card-brand-logo">
-                  <img src="https://img.icons8.com/color/32/mastercard.png" alt="MC" class="card-brand-logo">
                 </div>
               </div>
             </label>
@@ -154,19 +150,18 @@
                 style="display:none" class="method-radio"
                 onchange="switchMethod('cpay_wallet','{{ $loan->id }}')">
               <div class="pay-method-btn" data-m="cpay_wallet" data-loan="{{ $loan->id }}">
-                <div class="cpay-logo">C</div>
+                <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-04-12%20at%2011.17.16%20AM.jpeg" class="method-logo" alt="CPay">
                 <div>
-                  <div style="font-size:13.5px;font-weight:800;color:var(--dark)">CPay Wallet</div>
-                  <div style="font-size:11px;color:var(--muted);margin-top:2px">Chaperone C-Pay</div>
+                  <div style="font-size:14px;font-weight:800;color:var(--dark)">CPay Wallet</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">Instant Checkout</div>
                 </div>
-                <div style="font-size:10px;color:#7c3aed;background:rgba(124,58,237,.1);padding:2px 8px;border-radius:20px;font-weight:600;margin-top:2px">OTP via Phone</div>
               </div>
             </label>
           </div>
         </div>
 
         {{-- Card instructions --}}
-        <div id="cardInfo{{ $loan->id }}" class="info-box" style="background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2)">
+        <div id="cardInfo{{ $loan->id }}" class="info-box" style="{{ $mpesaConfigured ? 'display:none;' : '' }}background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2)">
           <div style="font-weight:700;color:var(--ok);font-size:13px;margin-bottom:10px">
             <i class="bi bi-credit-card-fill"></i> How Card Payment works
           </div>
@@ -197,8 +192,8 @@
         </div>
 
         {{-- M-Pesa instructions --}}
-        <div id="mpesaInfo{{ $loan->id }}" class="info-box" style="background:rgba(56,178,172,.04);border:1px solid rgba(56,178,172,.2)">
-          <div style="font-weight:700;color:#319795;font-size:13px;margin-bottom:10px">
+        <div id="mpesaInfo{{ $loan->id }}" class="info-box" style="{{ $mpesaConfigured ? '' : 'display:none;' }}background:rgba(225,29,72,.04);border:1px solid rgba(225,29,72,.15)">
+          <div style="font-weight:700;color:#e11d48;font-size:13px;margin-bottom:10px">
             <i class="bi bi-phone-fill"></i> How M-Pesa works
           </div>
           <ol>
@@ -210,7 +205,7 @@
         </div>
 
         {{-- Email field (card) / Phone field (CPay wallet) --}}
-        <div id="emailField{{ $loan->id }}" class="fg">
+        <div id="emailField{{ $loan->id }}" class="fg" style="{{ $mpesaConfigured ? 'display:none;' : '' }}">
           <label class="fl">Your Email Address</label>
           <input type="email" name="email" id="emailInput{{ $loan->id }}" class="fc"
             value="{{ $userEmail }}"
@@ -221,7 +216,7 @@
           </div>
         </div>
 
-        <div id="phoneField{{ $loan->id }}" class="fg" style="display:none">
+        <div id="phoneField{{ $loan->id }}" class="fg" style="{{ $mpesaConfigured ? '' : 'display:none;' }}">
           <label class="fl">Phone Number (M-Pesa / CPay)</label>
           <input type="tel" name="phone" id="phoneInput{{ $loan->id }}" class="fc"
             value="{{ auth('borrower')->user()->phone }}"
@@ -240,12 +235,18 @@
               M{{ number_format($nextAmount,2) }}
             </div>
           </div>
-            <div class="card-logo" style="width:34px;height:34px;border-radius:8px;font-size:16px"><i class="bi bi-credit-card-fill"></i></div>
+          {{-- Summary Icons --}}
+          <div id="summaryMethodCard{{ $loan->id }}" style="color:rgba(255,255,255,.85);font-size:13px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;{{ !$mpesaConfigured ? '' : 'display:none' }}">
+            <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-04-12%20at%2011.22.04%20AM.jpeg" style="width:34px;height:34px;border-radius:8px;object-fit:cover" alt="Card">
             <span>Card Payment</span>
           </div>
-          <div id="summaryMethodMpesa{{ $loan->id }}" style="color:rgba(255,255,255,.85);font-size:13px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;display:none">
-            <div class="mpesa-logo" style="width:34px;height:34px;border-radius:8px;font-size:18px"><i class="bi bi-phone-fill"></i></div>
+          <div id="summaryMethodMpesa{{ $loan->id }}" style="color:rgba(255,255,255,.85);font-size:13px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;{{ $mpesaConfigured ? '' : 'display:none' }}">
+            <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-04-12%20at%2011.19.20%20AM.jpeg" style="width:34px;height:34px;border-radius:8px;object-fit:cover" alt="M-Pesa">
             <span>M-Pesa</span>
+          </div>
+          <div id="summaryMethodCpay{{ $loan->id }}" style="color:rgba(255,255,255,.85);font-size:13px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;display:none">
+            <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-04-12%20at%2011.17.16%20AM.jpeg" style="width:34px;height:34px;border-radius:8px;object-fit:cover" alt="CPay">
+            <span>CPay Wallet</span>
           </div>
         </div>
 
@@ -303,9 +304,9 @@ function switchMethod(method, loanId) {
   document.getElementById(`phoneInput${loanId}`).required = (method === 'cpay_wallet' || method === 'mpesa');
 
   // Update summary
-  document.getElementById(`summaryMethod${loanId}`).style.display = method === 'card' ? '' : 'none';
+  document.getElementById(`summaryMethodCard${loanId}`).style.display = method === 'card' ? '' : 'none';
   document.getElementById(`summaryMethodMpesa${loanId}`).style.display = method === 'mpesa' ? '' : 'none';
-  // (Assuming CPay summary method is handled similarly or I should add it)
+  document.getElementById(`summaryMethodCpay${loanId}`).style.display = method === 'cpay_wallet' ? '' : 'none';
 }
 
 function setAmount(amount, loanId) {

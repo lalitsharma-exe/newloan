@@ -15,7 +15,8 @@ class PaymentController extends Controller
         private CPayService $cpay,
         private MpesaService $mpesa,
         private LoanService $loanService
-    ) {}
+    ) {
+    }
 
     public function index()
     {
@@ -34,13 +35,13 @@ class PaymentController extends Controller
     public function showMakePayment()
     {
         $loans = Loan::where('user_id', auth('borrower')->id())
-            ->whereIn('status', ['active','overdue'])
-            ->with(['installments','loanProduct'])
+            ->whereIn('status', ['active', 'overdue'])
+            ->with(['installments', 'loanProduct'])
             ->get();
         $cpayConfigured = $this->cpay->isConfigured();
-        $cpayIsSandbox  = $this->cpay->isSandbox();
+        $cpayIsSandbox = $this->cpay->isSandbox();
         $mpesaConfigured = $this->mpesa->isConfigured();
-        return view('borrower.payments.make', compact('loans','cpayConfigured','cpayIsSandbox','mpesaConfigured'));
+        return view('borrower.payments.make', compact('loans', 'cpayConfigured', 'cpayIsSandbox', 'mpesaConfigured'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -50,26 +51,26 @@ class PaymentController extends Controller
     {
         $request->validate([
             'loan_id' => 'required|exists:loans,id',
-            'amount'  => 'required|numeric|min:1',
-            'phone'   => 'nullable|string|max:30',
-            'method'  => 'nullable|in:card,cpay_wallet,mpesa',
+            'amount' => 'required|numeric|min:1',
+            'phone' => 'nullable|string|max:30',
+            'method' => 'nullable|in:card,cpay_wallet,mpesa',
         ]);
 
-        $loan   = Loan::where('user_id', auth('borrower')->id())->findOrFail($request->loan_id);
-        $user   = auth('borrower')->user();
-        $phone  = $request->phone ?? $user->phone;
+        $loan = Loan::where('user_id', auth('borrower')->id())->findOrFail($request->loan_id);
+        $user = auth('borrower')->user();
+        $phone = $request->phone ?? $user->phone;
         $amount = (float) $request->amount;
         $method = $request->input('method', 'mpesa'); // default to mpesa if not specified or card
 
         // Create pending payment record before any API call
         $payment = Payment::create([
             'payment_reference' => 'PAY-' . strtoupper(\Illuminate\Support\Str::random(10)),
-            'loan_id'           => $loan->id,
-            'user_id'           => $user->id,
-            'amount'            => $amount,
-            'method'            => $method,
-            'status'            => 'pending',
-            'notes'             => 'CPay payment initiated via ' . $method,
+            'loan_id' => $loan->id,
+            'user_id' => $user->id,
+            'amount' => $amount,
+            'method' => $method,
+            'status' => 'pending',
+            'notes' => 'CPay payment initiated via ' . $method,
         ]);
 
 
@@ -79,77 +80,68 @@ class PaymentController extends Controller
             return redirect()->route('borrower.payments.callback.success', ['ref' => $payment->payment_reference]);
         }
 
-        // ── LIVE: Send payment initiation to CPay ─────────────────────────────
+        // ── M-PESA: Direct Lesotho Integration ────────────────────────────────
+        if ($method === 'mpesa' && $this->mpesa->isConfigured()) {
+            $result = $this->mpesa->initiateStkPush($payment, $phone);
+
+            if ($result['success']) {
+                $payment->update(['status' => 'pending', 'notes' => 'M-Pesa payment initiated. Conversation ID: ' . ($result['conversation_id'] ?? $result['transaction_id'] ?? 'N/A')]);
+
+                return view('borrower.payments.mpesa-pending', [
+                    'payment' => $payment,
+                    'phone'   => $this->mpesa->formatPhone($phone),
+                    'message' => 'An M-Pesa payment request has been sent to your phone. Please enter your PIN to complete the payment.',
+                ]);
+            }
+            
+            // If M-Pesa failed, catch it here
+            $errMsg = $result['error'] ?? 'M-Pesa initiation failed. Please try again.';
+            return back()->with('error', $errMsg)->withInput();
+        }
+
+        // ── LIVE: Send payment initiation to CPay (Card / CPay Wallet) ────────
         $result = $this->cpay->initiateRepayment($payment, $phone, $method);
 
         if ($result['success']) {
 
             // ── CARD: CPay returns "Payment Link Created" — redirect user there ─
-            // CPay card quirk: HTTP 400 body StatusCode=202 → parseResponse sets success=true + is_card_link=true
             if ($result['is_card'] ?? false) {
-                $redirectUrl = $result['redirect_url']
-                    ?? $result['data']['redirectUrl']
-                    ?? $result['data']['paymentLink']
-                    ?? null;
+                $redirectUrl = $result['redirect_url'] ?? $result['data']['redirectUrl'] ?? $result['data']['paymentLink'] ?? null;
 
-                // Case 1: Valid URL → redirect to CPay card payment page
                 if ($redirectUrl && filter_var($redirectUrl, FILTER_VALIDATE_URL)) {
                     Log::info('CPay card redirect', ['url' => $redirectUrl, 'ref' => $payment->payment_reference]);
                     return redirect()->away($redirectUrl);
                 }
 
-                // Case 2: Raw HTML (CPay renders 3DS page inline)
                 $html = $result['raw'] ?? null;
                 if ($html && strlen($html) > 100 && str_contains($html, '<')) {
                     return response($html)->header('Content-Type', 'text/html');
                 }
 
-                // Case 3: "Payment Link Created" but no URL/HTML.
-                // CPay sends link via SMS/email to the user's registered number.
-                // Show status-polling page — webhook marks payment verified when card is paid.
-                Log::info('CPay card: payment link created (no redirect URL), showing pending page', [
-                    'ref'  => $payment->payment_reference,
-                    'desc' => $result['description'] ?? $result['message'] ?? '',
-                ]);
                 return view('borrower.payments.cpay-pending', [
                     'payment' => $payment,
-                    'message' => 'Your card payment link has been created. CPay will send it to your registered number via SMS. Click "Check Status" below once you\'ve paid.',
+                    'message' => 'Your card payment link has been created. CPay will send it via SMS. Click "Check Status" once paid.',
                 ]);
             }
 
-            // ── MOBILE / WALLET: OTP was sent — show OTP confirmation form ────
+            // ── MOBILE / WALLET: OTP was sent ────
             session(['cpay_phone_' . $payment->payment_reference => $phone]);
 
             return view('borrower.payments.cpay-otp', [
                 'payment' => $payment,
-                'phone'   => $this->cpay->normalisePhone($phone),
+                'phone' => $this->cpay->normalisePhone($phone),
                 'message' => $result['description'] ?? $result['message'] ?? 'An OTP has been sent to your phone.',
             ]);
         }
 
-        // ── M-PESA: STK Push Flow ─────────────────────────────────────────────
-        if ($method === 'mpesa' && $this->mpesa->isConfigured()) {
-            $result = $this->mpesa->initiateStkPush($payment, $phone);
-
-            if ($result['success']) {
-                $payment->update(['status' => 'pending', 'notes' => 'M-Pesa STK Push initiated. Checkout ID: ' . $result['checkout_request_id']]);
-                
-                return view('borrower.payments.mpesa-pending', [
-                    'payment' => $payment,
-                    'phone'   => $this->mpesa->formatPhone($phone),
-                    'message' => 'An STK Push has been sent to your phone. Please enter your M-Pesa PIN to complete the payment.',
-                ]);
-            }
-        }
-
         // CPay rejected the initiation request
-        $errMsg     = $result['error'] ?? $result['description'] ?? 'Please try again.';
+        $errMsg = $result['error'] ?? $result['description'] ?? 'Please try again.';
         $reasonCode = $result['reason_code'] ?? null;
-        $fullErr    = $reasonCode ? "[{$reasonCode}] {$errMsg}" : $errMsg;
+        $fullErr = $reasonCode ? "[{$reasonCode}] {$errMsg}" : $errMsg;
 
         $payment->update(['status' => 'failed', 'notes' => 'CPay error: ' . $fullErr]);
         Log::error('CPay repayment initiation failed', [
-            'ref'   => $payment->payment_reference,
+            'ref' => $payment->payment_reference,
             'error' => $fullErr,
         ]);
 
@@ -164,7 +156,7 @@ class PaymentController extends Controller
     {
         $request->validate([
             'payment_reference' => 'required|string',
-            'otp'               => 'required|string|min:4|max:10',
+            'otp' => 'required|string|min:4|max:10',
         ]);
 
         $payment = Payment::where('payment_reference', $request->payment_reference)
@@ -173,7 +165,7 @@ class PaymentController extends Controller
             ->firstOrFail();
 
         $phone = session('cpay_phone_' . $payment->payment_reference)
-              ?? auth('borrower')->user()->phone;
+            ?? auth('borrower')->user()->phone;
 
         $result = $this->cpay->confirmPayment($payment, $phone, $request->otp);
 
@@ -191,7 +183,7 @@ class PaymentController extends Controller
 
         // OTP wrong or expired
         Log::warning('CPay OTP confirmation failed', [
-            'ref'   => $payment->payment_reference,
+            'ref' => $payment->payment_reference,
             'error' => $result['error'] ?? '',
         ]);
 
@@ -204,7 +196,7 @@ class PaymentController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     public function callbackSuccess(Request $request)
     {
-        $ref     = $request->input('ref') ?? $request->input('transactionId');
+        $ref = $request->input('ref') ?? $request->input('transactionId');
         $payment = Payment::where('payment_reference', $ref)
             ->where('user_id', auth('borrower')->id())
             ->first();
@@ -241,13 +233,14 @@ class PaymentController extends Controller
             ->where('user_id', auth('borrower')->id())
             ->first();
 
-        if (!$payment) return response()->json(['status' => 'not_found'], 404);
+        if (!$payment)
+            return response()->json(['status' => 'not_found'], 404);
 
         $payment->refresh();
         return response()->json([
-            'status'       => $payment->status,
-            'amount'       => 'M' . number_format($payment->amount, 2),
-            'reference'    => $payment->payment_reference,
+            'status' => $payment->status,
+            'amount' => 'M' . number_format($payment->amount, 2),
+            'reference' => $payment->payment_reference,
             'redirect_url' => $payment->status === 'verified'
                 ? route('borrower.payments.callback.success', ['ref' => $payment->payment_reference])
                 : null,
@@ -264,31 +257,35 @@ class PaymentController extends Controller
     // ─────────────────────────────────────────────────────────────────────────
     private function applyPaymentToLoan(Payment $payment): void
     {
-        if ($payment->status === 'verified') return;
+        if ($payment->status === 'verified')
+            return;
 
         $payment->update(['status' => 'verified', 'verified_at' => now()]);
 
         $loan = $payment->loan;
-        if (!$loan) return;
+        if (!$loan)
+            return;
 
-        $remaining    = (float) $payment->amount;
+        $remaining = (float) $payment->amount;
         $installments = $loan->installments()
-            ->whereIn('status', ['pending','overdue','partial'])
+            ->whereIn('status', ['pending', 'overdue', 'partial'])
             ->orderBy('due_date')
             ->get();
 
         foreach ($installments as $inst) {
-            if ($remaining <= 0) break;
-            $owed    = max(0, (float)$inst->total_amount - (float)$inst->paid_amount);
-            if ($owed <= 0) continue;
-            $apply   = min($remaining, $owed);
-            $newPaid = round((float)$inst->paid_amount + $apply, 2);
-            $newOut  = round(max(0, (float)$inst->total_amount - $newPaid), 2);
+            if ($remaining <= 0)
+                break;
+            $owed = max(0, (float) $inst->total_amount - (float) $inst->paid_amount);
+            if ($owed <= 0)
+                continue;
+            $apply = min($remaining, $owed);
+            $newPaid = round((float) $inst->paid_amount + $apply, 2);
+            $newOut = round(max(0, (float) $inst->total_amount - $newPaid), 2);
             $inst->update([
-                'paid_amount'        => $newPaid,
+                'paid_amount' => $newPaid,
                 'outstanding_amount' => $newOut,
-                'status'             => $newOut <= 0 ? 'paid' : 'partial',
-                'paid_at'            => $newOut <= 0 ? now() : $inst->paid_at,
+                'status' => $newOut <= 0 ? 'paid' : 'partial',
+                'paid_at' => $newOut <= 0 ? now() : $inst->paid_at,
             ]);
             if (!$payment->installment_id) {
                 $payment->update(['installment_id' => $inst->id]);
@@ -296,13 +293,15 @@ class PaymentController extends Controller
             $remaining -= $apply;
         }
 
-        $loan->decrement('outstanding_balance', (float)$payment->amount - $remaining);
+        $loan->decrement('outstanding_balance', (float) $payment->amount - $remaining);
         $loan->refresh();
 
-        if ($loan->outstanding_balance <= 0 ||
-            $loan->installments()->whereNotIn('status', ['paid','waived'])->count() === 0) {
+        if (
+            $loan->outstanding_balance <= 0 ||
+            $loan->installments()->whereNotIn('status', ['paid', 'waived'])->count() === 0
+        ) {
             $loan->update(['status' => 'paid_off', 'last_payment_date' => now()]);
-            
+
             // Trigger Fully Paid SMS
             if (!$loan->fully_paid_notified_at && $loan->user) {
                 try {

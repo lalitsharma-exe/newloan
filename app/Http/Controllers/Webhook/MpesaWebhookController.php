@@ -15,45 +15,43 @@ class MpesaWebhookController extends Controller
     ) {}
 
     /**
-     * Handle STK Push Repayment Callback
+     * Handle C2B/STK Callback (Repayment)
      */
     public function repaymentConfirmation(Request $request)
     {
         $payload = $request->json()->all();
-        Log::info('M-Pesa STK Callback Received', ['payload' => $payload]);
+        Log::info('Vodacom M-Pesa Repayment Callback Received', ['payload' => $payload]);
 
-        $stkData = $payload['Body']['stkCallback'] ?? null;
-        if (!$stkData) return response()->json(['status' => 'error', 'message' => 'Invalid payload']);
+        $resCode  = $payload['output_ResponseCode'] ?? null;
+        $resDesc  = $payload['output_ResponseDesc'] ?? 'No description';
+        $ref      = $payload['output_ThirdPartyConversationID'] ?? null;
+        $mpesaRef = $payload['output_TransactionID'] ?? 'Unknown';
 
-        $checkoutRequestId = $stkData['CheckoutRequestID'];
-        $resultCode = $stkData['ResultCode'];
-        $resultDesc = $stkData['ResultDesc'];
+        if (!$ref) return response()->json(['output_ResponseCode' => 'INS-988', 'output_ResponseDesc' => 'Missing Reference']);
 
-        // Find the payment by checkout ID stored in notes or gateway_reference
-        $payment = Payment::where('gateway_reference', $checkoutRequestId)
-            ->orWhere('notes', 'like', "%{$checkoutRequestId}%")
+        $payment = Payment::where('payment_reference', $ref)
             ->where('status', 'pending')
             ->first();
 
         if (!$payment) {
-            Log::warning('M-Pesa STK Callback: No matching pending payment found', ['checkout_id' => $checkoutRequestId]);
-            return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Accepted']);
+            Log::warning('Vodacom M-Pesa Callback: No matching pending payment found', ['ref' => $ref]);
+            return response()->json(['output_ResponseCode' => 'INS-0', 'output_ResponseDesc' => 'Acknowledged']);
         }
 
-        if ($resultCode == 0) {
+        if ($resCode === 'INS-0') {
             // Success
-            $this->applyPaymentToLoan($payment, $checkoutRequestId);
-            Log::info('M-Pesa STK Callback: Payment VERIFIED', ['ref' => $payment->payment_reference]);
+            $this->applyPaymentToLoan($payment, $mpesaRef);
+            Log::info('Vodacom M-Pesa Callback: Payment VERIFIED', ['ref' => $payment->payment_reference]);
         } else {
             // Failed
             $payment->update([
                 'status' => 'failed',
-                'notes'  => $payment->notes . " | M-Pesa Failed: [{$resultCode}] {$resultDesc}"
+                'notes'  => $payment->notes . " | Vodacom Failed: [{$resCode}] {$resDesc}"
             ]);
-            Log::warning('M-Pesa STK Callback: Payment FAILED', ['ref' => $payment->payment_reference, 'code' => $resultCode]);
+            Log::warning('Vodacom M-Pesa Callback: Payment FAILED', ['ref' => $payment->payment_reference, 'code' => $resCode]);
         }
 
-        return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Accepted']);
+        return response()->json(['output_ResponseCode' => 'INS-0', 'output_ResponseDesc' => 'Acknowledged']);
     }
 
     /**
@@ -62,43 +60,38 @@ class MpesaWebhookController extends Controller
     public function disbursementResult(Request $request)
     {
         $payload = $request->json()->all();
-        Log::info('M-Pesa B2C Result Received', ['payload' => $payload]);
+        Log::info('Vodacom M-Pesa B2C Result Received', ['payload' => $payload]);
 
-        $result = $payload['Result'] ?? null;
-        if (!$result) return response()->json(['status' => 'error']);
+        $resCode  = $payload['output_ResponseCode'] ?? null;
+        $resDesc  = $payload['output_ResponseDesc'] ?? 'No description';
+        $ref      = $payload['output_ThirdPartyConversationID'] ?? null;
+        $mpesaRef = $payload['output_TransactionID'] ?? 'Unknown';
 
-        $conversationId = $result['ConversationID'];
-        $resultCode     = $result['ResultCode'];
-        $resultDesc     = $result['ResultDesc'];
-
-        // Find the loan by conversation ID
-        $loan = Loan::where('disbursement_provider', 'like', "%M-Pesa:{$conversationId}%")
+        $loan = Loan::where('disbursement_provider', 'like', "%M-Pesa:{$ref}%")
             ->first();
 
         if (!$loan) {
-            Log::warning('M-Pesa B2C Result: No matching loan found', ['conv_id' => $conversationId]);
-            return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Accepted']);
+            Log::warning('Vodacom M-Pesa B2C Result: No matching loan found', ['ref' => $ref]);
+            return response()->json(['output_ResponseCode' => 'INS-0', 'output_ResponseDesc' => 'Acknowledged']);
         }
 
-        if ($resultCode == 0) {
-            Log::info('M-Pesa B2C Result: Disbursement SUCCESS', ['loan' => $loan->loan_number]);
-            AuditLog::record('loan.mpesa_disburse_success', "M-Pesa disbursement verified for loan {$loan->loan_number}", $loan);
+        if ($resCode === 'INS-0') {
+            Log::info('Vodacom M-Pesa B2C Result: Disbursement SUCCESS', ['loan' => $loan->loan_number]);
+            AuditLog::record('loan.mpesa_disburse_success', "M-Pesa disbursement verified for loan {$loan->loan_number}. M-Pesa Ref: {$mpesaRef}", $loan);
         } else {
-            Log::error('M-Pesa B2C Result: Disbursement FAILED', ['loan' => $loan->loan_number, 'error' => $resultDesc]);
-            AuditLog::record('loan.mpesa_disburse_failed', "M-Pesa disbursement failed for loan {$loan->loan_number}: [{$resultCode}] {$resultDesc}", $loan);
+            Log::error('Vodacom M-Pesa B2C Result: Disbursement FAILED', ['loan' => $loan->loan_number, 'error' => $resDesc]);
+            AuditLog::record('loan.mpesa_disburse_failed', "M-Pesa disbursement failed for loan {$loan->loan_number}: [{$resCode}] {$resDesc}", $loan);
             
-            // Note: We might want to revert the loan status here, 
-            // but currently the admin confirms it as 'active' when sending the request.
-            $loan->update(['notes' => $loan->notes . " | M-Pesa Disbursement FAILED: {$resultDesc}"]);
+            $loan->update(['notes' => $loan->notes . " | Vodacom Disbursement FAILED: {$resDesc}"]);
         }
 
-        return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Accepted']);
+        return response()->json(['output_ResponseCode' => 'INS-0', 'output_ResponseDesc' => 'Acknowledged']);
     }
 
     public function disbursementTimeout(Request $request)
     {
-        Log::warning('M-Pesa B2C Timeout Received', $request->all());
-        return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Accepted']);
+        Log::warning('Vodacom M-Pesa B2C Timeout Received', $request->all());
+        return response()->json(['output_ResponseCode' => 'INS-0', 'output_ResponseDesc' => 'Acknowledged']);
     }
 
     private function applyPaymentToLoan(Payment $payment, string $gatewayRef): void
@@ -107,7 +100,7 @@ class MpesaWebhookController extends Controller
             'status'            => 'verified',
             'verified_at'       => now(),
             'gateway_reference' => $gatewayRef,
-            'notes'             => $payment->notes . " | M-Pesa STK SUCCESS."
+            'notes'             => $payment->notes . " | Vodacom M-Pesa SUCCESS."
         ]);
 
         $loan = $payment->loan;
@@ -144,7 +137,7 @@ class MpesaWebhookController extends Controller
 
         AuditLog::record(
             'payment.mpesa_verified',
-            "M-Pesa payment M{$payment->amount} verified for loan {$loan->loan_number}. TXN: {$gatewayRef}",
+            "M-Pesa payment LSL{$payment->amount} verified for loan {$loan->loan_number}. TXN: {$gatewayRef}",
             $loan
         );
     }

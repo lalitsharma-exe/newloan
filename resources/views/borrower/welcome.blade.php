@@ -9,12 +9,10 @@
 ═══════════════════════════════════════════════════════ */
 .hero {
   position: relative;
-  height: 100vh;
-  min-height: 580px;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* No margin/padding that could create white gap */
   margin: 0;
   padding: 0;
 }
@@ -166,7 +164,12 @@ input[type=range] {
   cursor: pointer; outline: none;
 }
 
-.calc-product { margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.calc-product { 
+  margin-bottom: 16px; 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); 
+  gap: 6px; 
+}
 .prod-btn {
   background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
   border-radius: 5px; padding: 7px 4px; cursor: pointer;
@@ -229,7 +232,7 @@ input[type=range] {
   }
   .hero-body {
     grid-template-columns: 1fr;
-    padding: 100px 20px 36px;
+    padding: 100px 20px 60px;
     gap: 0;
   }
   /* Hide desktop calc card on tablet/mobile */
@@ -239,12 +242,13 @@ input[type=range] {
 }
 
 @media(max-width:640px) {
-  .hero-body { padding: 90px 18px 28px; }
+  .hero-body { padding: 90px 18px 28px; width: 100%; max-width: 100vw; overflow: hidden; }
   .hero h1 { font-size: clamp(30px, 8vw, 46px); }
   .hero-sub { font-size: 15px; margin-bottom: 28px; }
   .btn-hero { padding: 13px 28px; font-size: 14px; }
   .hero-trust { gap: 14px; margin-top: 28px; padding-top: 20px; }
   .trust-pill { font-size: 11.5px; }
+  .calc-product { grid-template-columns: 1fr; }
 }
 
 @media(max-width:380px) {
