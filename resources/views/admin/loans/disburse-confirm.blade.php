@@ -208,6 +208,21 @@ Disburse
               </div>
             </div>
           </label>
+          {{-- M-Pesa Disbursement --}}
+          @if($mpesaConfigured)
+          <label style="cursor:pointer">
+            <input type="radio" name="_method_preview" value="mpesa_b2c" style="display:none" class="method-radio" onchange="switchMethod('mpesa_b2c')">
+            <div class="method-card" data-m="mpesa_b2c" style="border:2px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:all .2s">
+              <div style="width:42px;height:42px;background:rgba(16,185,129,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="bi bi-phone-fill" style="font-size:20px;color:#10b981"></i>
+              </div>
+              <div>
+                <div style="font-weight:700;font-size:14px;color:var(--dark)">M-Pesa (B2C)</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">Automated disbursement to borrower's phone via M-Pesa</div>
+              </div>
+            </div>
+          </label>
+          @endif
 
           {{-- Cash --}}
           <label style="cursor:pointer">
@@ -222,6 +237,15 @@ Disburse
               </div>
             </div>
           </label>
+        </div>
+
+        {{-- Phone field for M-Pesa --}}
+        <div id="mpesaFields" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 14px;margin-bottom:10px">
+          <div class="fg" style="margin-bottom:0">
+            <label class="fl">M-Pesa Phone Number</label>
+            <input type="tel" id="mpesaPhone" class="fc" placeholder="e.g. 0712345678" value="{{ $loan->user->phone ?? '' }}">
+            <div class="ft">The borrower's M-Pesa registered number</div>
+          </div>
         </div>
 
         {{-- CPay Wallet — phone field --}}
@@ -319,12 +343,17 @@ function switchMethod(val) {
     // Show/hide extra fields
     const cpayF = document.getElementById('cpayWalletFields');
     if (cpayF) cpayF.style.display = val === 'cpay_wallet' ? '' : 'none';
+
+    const mpesaF = document.getElementById('mpesaFields');
+    if (mpesaF) mpesaF.style.display = val === 'mpesa_b2c' ? '' : 'none';
+
     document.getElementById('finalMethod').value = val;
     // Update provider hint
     const prov = document.getElementById('finalProvider');
     if (prov) {
         if (val === 'bank_transfer') prov.value = 'EFT';
         else if (val === 'cpay_wallet') prov.value = 'CPAY';
+        else if (val === 'mpesa_b2c') prov.value = 'M-PESA';
         else prov.value = 'CASH';
     }
 }
@@ -332,8 +361,12 @@ function switchMethod(val) {
 document.getElementById('disburseForm')?.addEventListener('submit', function(e) {
     const method = document.getElementById('finalMethod').value;
     const phoneEl = document.getElementById('cpayWalletPhone');
+    const mpesaPhoneEl = document.getElementById('mpesaPhone');
+    
     if (method === 'cpay_wallet' && phoneEl) {
         document.getElementById('finalPhone').value = phoneEl.value;
+    } else if (method === 'mpesa_b2c' && mpesaPhoneEl) {
+        document.getElementById('finalPhone').value = mpesaPhoneEl.value;
     } else {
         document.getElementById('finalPhone').value = '{{ $loan->user->phone ?? '' }}';
     }

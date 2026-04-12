@@ -61,4 +61,15 @@ return [
         'sender'   => env('BULKSMS_SENDER', 'MyLoan'),
     ],
 
+    'mpesa' => [
+        'key'                 => env('MPESA_CONSUMER_KEY'),
+        'secret'              => env('MPESA_CONSUMER_SECRET'),
+        'shortcode'           => env('MPESA_SHORTCODE'),
+        'passkey'             => env('MPESA_PASSKEY'),
+        'initiator'           => env('MPESA_INITIATOR', 'testapi'),
+        'b2c_shortcode'       => env('MPESA_B2C_SHORTCODE', '600000'),
+        'security_credential' => env('MPESA_SECURITY_CREDENTIAL'),
+        'env'                 => env('MPESA_ENV', 'sandbox'),
+    ],
+
 ];

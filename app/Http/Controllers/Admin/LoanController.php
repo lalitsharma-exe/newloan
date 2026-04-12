@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\{AuditLog, Loan, LoanProduct, Payment};
 use App\Services\Admin\LoanService;
 use App\Services\CPayService;
+use App\Services\MpesaService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +15,8 @@ class LoanController extends Controller
 {
     public function __construct(
         private LoanService $svc,
-        private CPayService $cpay
+        private CPayService $cpay,
+        private MpesaService $mpesa
     ) {}
 
     public function index(Request $request)
@@ -47,7 +49,8 @@ class LoanController extends Controller
         $reference      = 'DISB-' . $loan->loan_number . '-' . now()->format('Ymd');
         $cpayConfigured = $this->cpay->isConfigured();
         $cpayIsSandbox  = $this->cpay->isSandbox();
-        return view('admin.loans.disburse-confirm', compact('loan','checks','reference','cpayConfigured','cpayIsSandbox'));
+        $mpesaConfigured = $this->mpesa->isConfigured();
+        return view('admin.loans.disburse-confirm', compact('loan','checks','reference','cpayConfigured','cpayIsSandbox','mpesaConfigured'));
     }
 
     // ── DISBURSE — Mobile Money + Bank Transfer + Cash + CPay Wallet ─────────
@@ -56,7 +59,7 @@ class LoanController extends Controller
         $request->validate([
             'disbursement_date'      => 'required|date',
             'disbursement_reference' => 'required|string|max:80',
-            'disbursement_method'    => 'required|in:bank_transfer,cash,cpay_wallet',
+            'disbursement_method'    => 'required|in:bank_transfer,cash,cpay_wallet,mpesa_b2c',
             'disbursement_phone'     => 'nullable|string|max:30',
             'disbursement_provider'  => 'nullable|string|max:50',
             'confirm'                => 'required|accepted',
@@ -95,6 +98,21 @@ class LoanController extends Controller
             }
         }
 
+        // ── M-Pesa B2C Disbursement ───────────────────────────────────────────
+        if ($method === 'mpesa_b2c' && $this->mpesa->isConfigured()) {
+            $result = $this->mpesa->disburseLoan($loan, $phone, $reference);
+
+            if ($result['success']) {
+                $cpayTxnId  = $result['conversation_id']; // Store it in the same field for now or log it
+                $cpayStatus = 'accepted';
+            } else {
+                $cpayError = $result['error'];
+                Log::warning('M-Pesa disbursement failed', [
+                    'loan' => $loan->loan_number, 'error' => $cpayError,
+                ]);
+            }
+        }
+
         // ── Block if CPay API failed ──────────────────────────────────────────
         // (Admins can still record manually by selecting 'cash' or turning off API)
         if ($cpayError && $method !== 'cash') {
@@ -109,7 +127,9 @@ class LoanController extends Controller
             'disbursement_reference' => $reference,
             'disbursement_method'    => $method,
             'disbursement_phone'     => $phone,
-            'disbursement_provider'  => $cpayTxnId ? "CPay:{$cpayTxnId}" : $provider,
+            'disbursement_provider'  => $cpayTxnId 
+                ? ($method === 'mpesa_b2c' ? "M-Pesa:{$cpayTxnId}" : "CPay:{$cpayTxnId}") 
+                : $provider,
             'first_payment_date'     => $disbDate->copy()->addMonth()->setDay($loan->salary_payday ?? $loan->application?->salary_payday ?? 25)->toDateString(),
             'maturity_date'          => $disbDate->copy()->addMonths($loan->term_months)->setDay($loan->salary_payday ?? $loan->application?->salary_payday ?? 25)->toDateString(),
         ]);

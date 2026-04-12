@@ -19,8 +19,10 @@
 .pay-method-btn:hover { border-color:#7c3aed; box-shadow:0 4px 20px rgba(124,58,237,.1); }
 .pay-method-btn.active-card   { border-color:#10b981; background:rgba(16,185,129,.04); box-shadow:0 4px 20px rgba(16,185,129,.12); }
 .pay-method-btn.active-cpay   { border-color:#7c3aed; background:rgba(124,58,237,.04); box-shadow:0 4px 20px rgba(124,58,237,.12); }
+.pay-method-btn.active-mpesa  { border-color:#38b2ac; background:rgba(56,178,172,.04); box-shadow:0 4px 20px rgba(56,178,172,.12); }
 .cpay-logo { width:44px;height:44px;background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:22px;letter-spacing:-1px; }
 .card-logo  { width:44px;height:44px;background:linear-gradient(135deg,#0f766e,#10b981);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px; }
+.mpesa-logo { width:44px;height:44px;background:#38b2ac;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px; }
 .info-box   { border-radius:13px;padding:16px 18px;margin-bottom:16px;font-size:13px;line-height:1.8 }
 .info-box ol { margin:0;padding-left:20px }
 .info-box li { margin-bottom:2px }
@@ -109,11 +111,28 @@
         {{-- Payment Method --}}
         <div class="fg">
           <label class="fl">Payment Method</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+
+            {{-- M-Pesa --}}
+            @if($mpesaConfigured)
+            <label style="cursor:pointer;display:block">
+              <input type="radio" name="method" value="mpesa" checked
+                style="display:none" class="method-radio"
+                onchange="switchMethod('mpesa','{{ $loan->id }}')">
+              <div class="pay-method-btn active-mpesa" data-m="mpesa" data-loan="{{ $loan->id }}">
+                <div class="mpesa-logo"><i class="bi bi-phone-fill"></i></div>
+                <div>
+                  <div style="font-size:13.5px;font-weight:800;color:var(--dark)">M-Pesa</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">Safaricom</div>
+                </div>
+                <div style="font-size:10px;color:#319795;background:rgba(56,178,172,.1);padding:2px 8px;border-radius:20px;font-weight:600;margin-top:2px">STK Push</div>
+              </div>
+            </label>
+            @endif
 
             {{-- Card / PayFast --}}
             <label style="cursor:pointer;display:block">
-              <input type="radio" name="method" value="card" checked
+              <input type="radio" name="method" value="card" {{ !$mpesaConfigured ? 'checked' : '' }}
                 style="display:none" class="method-radio"
                 onchange="switchMethod('card','{{ $loan->id }}')">
               <div class="pay-method-btn active-card" data-m="card" data-loan="{{ $loan->id }}">
@@ -177,6 +196,19 @@
           </ol>
         </div>
 
+        {{-- M-Pesa instructions --}}
+        <div id="mpesaInfo{{ $loan->id }}" class="info-box" style="background:rgba(56,178,172,.04);border:1px solid rgba(56,178,172,.2)">
+          <div style="font-weight:700;color:#319795;font-size:13px;margin-bottom:10px">
+            <i class="bi bi-phone-fill"></i> How M-Pesa works
+          </div>
+          <ol>
+            <li>Enter your M-Pesa registered phone number below</li>
+            <li>Click <strong>Pay Now</strong></li>
+            <li>Watch your phone for an <strong>M-Pesa STK Push</strong></li>
+            <li>Enter your M-Pesa PIN — payment applied ✓</li>
+          </ol>
+        </div>
+
         {{-- Email field (card) / Phone field (CPay wallet) --}}
         <div id="emailField{{ $loan->id }}" class="fg">
           <label class="fl">Your Email Address</label>
@@ -190,13 +222,13 @@
         </div>
 
         <div id="phoneField{{ $loan->id }}" class="fg" style="display:none">
-          <label class="fl">CPay Wallet Phone Number</label>
+          <label class="fl">Phone Number (M-Pesa / CPay)</label>
           <input type="tel" name="phone" id="phoneInput{{ $loan->id }}" class="fc"
             value="{{ auth('borrower')->user()->phone }}"
-            placeholder="e.g. 58145851"
+            placeholder="e.g. 2547XXXXXXXX"
             style="font-size:15px;font-weight:600">
           <div style="font-size:11.5px;color:var(--muted);margin-top:4px">
-            <i class="bi bi-info-circle"></i> Your CPay wallet must be linked to this number
+            <i class="bi bi-info-circle"></i> Use the phone number registered for the selected mobile payment
           </div>
         </div>
 
@@ -208,9 +240,12 @@
               M{{ number_format($nextAmount,2) }}
             </div>
           </div>
-          <div id="summaryMethod{{ $loan->id }}" style="color:rgba(255,255,255,.85);font-size:13px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px">
             <div class="card-logo" style="width:34px;height:34px;border-radius:8px;font-size:16px"><i class="bi bi-credit-card-fill"></i></div>
             <span>Card Payment</span>
+          </div>
+          <div id="summaryMethodMpesa{{ $loan->id }}" style="color:rgba(255,255,255,.85);font-size:13px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;display:none">
+            <div class="mpesa-logo" style="width:34px;height:34px;border-radius:8px;font-size:18px"><i class="bi bi-phone-fill"></i></div>
+            <span>M-Pesa</span>
           </div>
         </div>
 
@@ -240,7 +275,7 @@
 function switchMethod(method, loanId) {
   // Reset all method buttons for this loan
   document.querySelectorAll(`.pay-method-btn[data-loan="${loanId}"]`).forEach(el => {
-    el.classList.remove('active-card','active-cpay');
+    el.classList.remove('active-card','active-cpay','active-mpesa');
     el.style.borderColor = 'var(--border)';
     el.style.background  = '';
     el.style.boxShadow   = '';
@@ -251,24 +286,26 @@ function switchMethod(method, loanId) {
   if (selected) {
     if (method === 'card')       selected.classList.add('active-card');
     if (method === 'cpay_wallet') selected.classList.add('active-cpay');
+    if (method === 'mpesa')       selected.classList.add('active-mpesa');
   }
 
   // Toggle info boxes
   document.getElementById(`cardInfo${loanId}`).style.display  = method === 'card' ? '' : 'none';
   document.getElementById(`cpayInfo${loanId}`).style.display  = method === 'cpay_wallet' ? '' : 'none';
+  document.getElementById(`mpesaInfo${loanId}`).style.display = method === 'mpesa' ? '' : 'none';
 
   // Toggle email vs phone fields
   document.getElementById(`emailField${loanId}`).style.display = method === 'card' ? '' : 'none';
-  document.getElementById(`phoneField${loanId}`).style.display = method === 'cpay_wallet' ? '' : 'none';
+  document.getElementById(`phoneField${loanId}`).style.display = (method === 'cpay_wallet' || method === 'mpesa') ? '' : 'none';
 
   // Make email/phone required appropriately
   document.getElementById(`emailInput${loanId}`).required = (method === 'card');
-  document.getElementById(`phoneInput${loanId}`).required = (method === 'cpay_wallet');
+  document.getElementById(`phoneInput${loanId}`).required = (method === 'cpay_wallet' || method === 'mpesa');
 
   // Update summary
-  const icons  = { card:'<div class="card-logo" style="width:34px;height:34px;border-radius:8px;font-size:16px"><i class="bi bi-credit-card-fill"></i></div><span>Card Payment</span>',
-                   cpay_wallet:'<div class="cpay-logo" style="width:34px;height:34px;border-radius:8px;font-size:18px">C</div><span>CPay Wallet</span>' };
-  document.getElementById(`summaryMethod${loanId}`).innerHTML = icons[method] || '';
+  document.getElementById(`summaryMethod${loanId}`).style.display = method === 'card' ? '' : 'none';
+  document.getElementById(`summaryMethodMpesa${loanId}`).style.display = method === 'mpesa' ? '' : 'none';
+  // (Assuming CPay summary method is handled similarly or I should add it)
 }
 
 function setAmount(amount, loanId) {

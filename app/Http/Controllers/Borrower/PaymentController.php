@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Borrower;
 use App\Http\Controllers\Controller;
 use App\Models\{Payment, Loan, LoanInstallment};
 use App\Services\CPayService;
+use App\Services\MpesaService;
 use App\Services\Admin\LoanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -12,6 +13,7 @@ class PaymentController extends Controller
 {
     public function __construct(
         private CPayService $cpay,
+        private MpesaService $mpesa,
         private LoanService $loanService
     ) {}
 
@@ -37,7 +39,8 @@ class PaymentController extends Controller
             ->get();
         $cpayConfigured = $this->cpay->isConfigured();
         $cpayIsSandbox  = $this->cpay->isSandbox();
-        return view('borrower.payments.make', compact('loans','cpayConfigured','cpayIsSandbox'));
+        $mpesaConfigured = $this->mpesa->isConfigured();
+        return view('borrower.payments.make', compact('loans','cpayConfigured','cpayIsSandbox','mpesaConfigured'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -49,14 +52,14 @@ class PaymentController extends Controller
             'loan_id' => 'required|exists:loans,id',
             'amount'  => 'required|numeric|min:1',
             'phone'   => 'nullable|string|max:30',
-            'method'  => 'nullable|in:card,cpay_wallet',
+            'method'  => 'nullable|in:card,cpay_wallet,mpesa',
         ]);
 
         $loan   = Loan::where('user_id', auth('borrower')->id())->findOrFail($request->loan_id);
         $user   = auth('borrower')->user();
         $phone  = $request->phone ?? $user->phone;
         $amount = (float) $request->amount;
-        $method = $request->input('method', 'card'); // card or cpay_wallet only
+        $method = $request->input('method', 'mpesa'); // default to mpesa if not specified or card
 
         // Create pending payment record before any API call
         $payment = Payment::create([
@@ -70,8 +73,8 @@ class PaymentController extends Controller
         ]);
 
 
-        // ── DEMO MODE: No CPay credentials ────────────────────────────────────
-        if (!$this->cpay->isConfigured()) {
+        // ── DEMO MODE: No Credentials ────────────────────────────────────────
+        if (!$this->cpay->isConfigured() && !$this->mpesa->isConfigured()) {
             $this->applyPaymentToLoan($payment);
             return redirect()->route('borrower.payments.callback.success', ['ref' => $payment->payment_reference]);
         }
@@ -122,6 +125,21 @@ class PaymentController extends Controller
                 'phone'   => $this->cpay->normalisePhone($phone),
                 'message' => $result['description'] ?? $result['message'] ?? 'An OTP has been sent to your phone.',
             ]);
+        }
+
+        // ── M-PESA: STK Push Flow ─────────────────────────────────────────────
+        if ($method === 'mpesa' && $this->mpesa->isConfigured()) {
+            $result = $this->mpesa->initiateStkPush($payment, $phone);
+
+            if ($result['success']) {
+                $payment->update(['status' => 'pending', 'notes' => 'M-Pesa STK Push initiated. Checkout ID: ' . $result['checkout_request_id']]);
+                
+                return view('borrower.payments.mpesa-pending', [
+                    'payment' => $payment,
+                    'phone'   => $this->mpesa->formatPhone($phone),
+                    'message' => 'An STK Push has been sent to your phone. Please enter your M-Pesa PIN to complete the payment.',
+                ]);
+            }
         }
 
         // CPay rejected the initiation request

@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->validateCsrfTokens(except: [
+            'portal/webhooks/*',
+            'webhooks/*',
+        ]);
+
         $middleware->web(append: [
             \App\Http\Middleware\SessionTimeout::class,
         ]);

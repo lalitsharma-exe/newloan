@@ -282,6 +282,13 @@ Route::prefix('portal')->name('borrower.')->group(function () {
 Route::prefix('webhooks')->name('webhooks.')->group(function () {
     Route::post('/payment',         [\App\Http\Controllers\Webhook\PaymentWebhookController::class, 'handle'])->name('payment');
     Route::post('/credit-bureau',   [\App\Http\Controllers\Webhook\CreditBureauWebhookController::class, 'handle'])->name('credit-bureau');
+
+    // M-Pesa Webhooks
+    Route::prefix('mpesa')->name('mpesa.')->group(function () {
+        Route::post('/repayment',       [\App\Http\Controllers\Webhook\MpesaWebhookController::class, 'repaymentConfirmation'])->name('repayment');
+        Route::post('/disburse-result', [\App\Http\Controllers\Webhook\MpesaWebhookController::class, 'disbursementResult'])->name('disburse.result');
+        Route::post('/disburse-timeout', [\App\Http\Controllers\Webhook\MpesaWebhookController::class, 'disbursementTimeout'])->name('disburse.timeout');
+    });
 });
 
 /*
