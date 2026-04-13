@@ -41,8 +41,7 @@ class PaymentReminderSms extends Notification implements ShouldQueue
         $dueDateRaw = $this->installment->due_date;
         $dueDateStr = ($dueDateRaw instanceof \Carbon\Carbon) ? $dueDateRaw->format('d M Y') : date('d M Y', strtotime($dueDateRaw));
 
-        return "Hi {$name}, just a reminder that your MyLoan payment of M{$amount} is due on {$dueDateStr}. \n\n" .
-               "Please make sure your account has sufficient funds to avoid any charges. \n\n" .
-               "Thank you";
+        return "Hi {$name}, \n" .
+               "Reminder: your MyLoan payment of M{$amount} is due {$dueDateStr}. Please ensure enough funds to avoid charges.";
     }
 }

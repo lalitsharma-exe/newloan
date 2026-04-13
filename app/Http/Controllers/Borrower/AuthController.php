@@ -18,6 +18,12 @@ class AuthController extends Controller
         $request->validate(['login' => 'required', 'password' => 'required']);
         $login = $request->login;
         $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        
+        // Normalize phone number if it's a phone login
+        if ($field === 'phone') {
+            $login = $this->formatPhone($login);
+        }
+
         $user  = User::where($field, $login)->where('role', 'borrower')->first();
         if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages(['login' => 'Invalid credentials.']);

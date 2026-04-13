@@ -36,9 +36,7 @@ class LoanFullyPaidSms extends Notification implements ShouldQueue
     {
         $name = $notifiable->name;
 
-        return "Hi {$name}, your MyLoan loan is now fully paid 🎉 \n\n" .
-               "Great news — you qualify for another loan! \n" .
-               "Apply anytime here: https://myloan.co.ls \n\n" .
-               "Thank you for choosing MyLoan";
+        return "Hi {$name}, \n" .
+               "Your MyLoan loan is fully paid 🎉 You qualify for another loan! Apply anytime: https://myloan.co.ls";
     }
 }

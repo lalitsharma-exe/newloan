@@ -66,9 +66,10 @@ class SmsService
                 ]);
 
             Log::info('SmsService::send', [
-                'to'   => $to,
-                'http' => $response->status(),
-                'body' => $response->body(),
+                'to'      => $to,
+                'content' => $body,
+                'http'    => $response->status(),
+                'body'    => $response->body(),
             ]);
 
             // 200 or 201 = queued successfully

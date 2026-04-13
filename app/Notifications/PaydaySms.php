@@ -37,8 +37,7 @@ class PaydaySms extends Notification implements ShouldQueue
         $name = $notifiable->name;
         $amount = number_format($this->installment->outstanding_amount, 2);
 
-        return "Hi {$name}, it’s payday   \n\n" .
-               "Please remember to settle your MyLoan payment of M{$amount} today. \n\n" .
-               "Thank you for staying on track";
+        return "Hi {$name}, \n" .
+               "It’s payday. Please remember to pay your MyLoan amount of M{$amount} today. Thanks for staying on track.";
     }
 }

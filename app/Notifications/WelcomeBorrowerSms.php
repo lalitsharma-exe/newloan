@@ -37,10 +37,10 @@ class WelcomeBorrowerSms extends Notification implements ShouldQueue
         $phone = $notifiable->phone;
         $password = $this->plainPassword;
 
-        return "Hi {$name}, welcome to MyLoan \n\n" .
-               "Login to your portal: https://myloan.co.ls\n" .
+        return "Hi {$name}, welcome to MyLoan \n" .
+               "Login: https://myloan.co.ls\n" .
                "Username: {$phone}\n" .
-               "Password: {$password}\n\n" .
-               "Please change your password after login";
+               "Password: {$password}\n" .
+               "Change password after login.";
     }
 }
