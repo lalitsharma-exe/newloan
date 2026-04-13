@@ -102,7 +102,10 @@
   opacity: 0; animation: rise .8s .7s forwards;
 }
 
-.hero-cta { opacity: 0; animation: rise .8s .9s forwards; }
+.hero-cta { 
+  opacity: 0; animation: rise .8s .9s forwards; 
+  display: flex; gap: 16px; align-items: center;
+}
 .btn-hero {
   display: inline-flex; align-items: center; gap: 10px;
   background: var(--accent); color: #fff;
@@ -114,6 +117,17 @@
 .btn-hero:hover {
   background: var(--accent2); transform: translateY(-2px);
   box-shadow: 0 14px 36px rgba(140,198,63,.4);
+}
+.btn-hero-outline {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.05); color: #fff;
+  padding: 13px 32px; border: 2px solid rgba(255,255,255,.2); border-radius: 4px;
+  font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700;
+  letter-spacing: .04em; text-decoration: none;
+  transition: all .3s; backdrop-filter: blur(4px);
+}
+.btn-hero-outline:hover {
+  border-color: #fff; background: rgba(255,255,255,0.1); transform: translateY(-2px);
 }
 
 .hero-trust {
@@ -254,7 +268,8 @@ input[type=range] {
 @media(max-width:380px) {
   .hero-body { padding: 84px 16px 24px; }
   .hero-trust { flex-direction: column; gap: 10px; }
-  .btn-hero { width: 100%; justify-content: center; }
+  .btn-hero, .btn-hero-outline { width: 100%; justify-content: center; }
+  .hero-cta { flex-direction: column; gap: 12px; }
 }
 </style>
 @endpush
@@ -287,6 +302,9 @@ input[type=range] {
         <div class="hero-cta">
           <a href="{{ route('borrower.register') }}" class="btn-hero">
             <i class="bi bi-play-fill"></i> Apply Now
+          </a>
+          <a href="{{ route('borrower.login') }}" class="btn-hero-outline">
+            <i class="bi bi-person-circle"></i> Sign In
           </a>
         </div>
         <div class="hero-trust">
