@@ -47,15 +47,16 @@ class LoanApplication extends Model {
 ];
 
     protected $casts = [
-    'date_of_birth'      => 'date',
-    'submitted_at'       => 'datetime',
-    'reviewed_at'        => 'datetime',
-    'decided_at'         => 'datetime',
-    'disbursement_date'  => 'date',
-    'card_tokenised'     => 'boolean',   // ← add this
-    'gps_latitude'       => 'decimal:6',
-    'gps_longitude'      => 'decimal:6',
-];
+        'date_of_birth'      => 'date',
+        'submitted_at'       => 'datetime',
+        'reviewed_at'        => 'datetime',
+        'decided_at'         => 'datetime',
+        'disbursement_date'  => 'date',
+        'card_tokenised'     => 'boolean',
+        'gps_latitude'       => 'decimal:6',
+        'gps_longitude'      => 'decimal:6',
+        'salary_payday'      => 'integer',
+    ];
 
     // ── Booted ────────────────────────────────────────────────────
     protected static function booted()

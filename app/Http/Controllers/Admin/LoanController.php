@@ -130,8 +130,8 @@ class LoanController extends Controller
             'disbursement_provider'  => $cpayTxnId 
                 ? ($method === 'mpesa_b2c' ? "M-Pesa:{$cpayTxnId}" : "CPay:{$cpayTxnId}") 
                 : $provider,
-            'first_payment_date'     => $disbDate->copy()->addMonth()->setDay($loan->salary_payday ?? $loan->application?->salary_payday ?? 25)->toDateString(),
-            'maturity_date'          => $disbDate->copy()->addMonths($loan->term_months)->setDay($loan->salary_payday ?? $loan->application?->salary_payday ?? 25)->toDateString(),
+            'first_payment_date'     => $disbDate->copy()->addMonth()->setDay((int)($loan->salary_payday ?? $loan->application?->salary_payday ?? 25))->toDateString(),
+            'maturity_date'          => $disbDate->copy()->addMonths($loan->term_months)->setDay((int)($loan->salary_payday ?? $loan->application?->salary_payday ?? 25))->toDateString(),
         ]);
 
         if ($loan->installments()->count() === 0) {
@@ -355,7 +355,7 @@ class LoanController extends Controller
                 ->each(function ($inst) use ($request) {
                     $inst->update([
                         'due_date' => $inst->due_date->setDay(
-                            min($request->salary_payday, $inst->due_date->daysInMonth)
+                            min((int) $request->salary_payday, $inst->due_date->daysInMonth)
                         ),
                     ]);
                 });

@@ -43,6 +43,7 @@ class Loan extends Model
         'first_payment_date' => 'date',
         'last_payment_date'  => 'date',
         'closed_at'          => 'datetime',
+        'salary_payday'      => 'integer',
     ];
 
     // ── Scopes ────────────────────────────────────────────────────
