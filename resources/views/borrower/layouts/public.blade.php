@@ -810,6 +810,16 @@
           <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp_Image_2026-04-12_at_11.22.04_AM-removebg-preview.png"
             alt="Payfast">
         </div>
+        <!-- CDAS -->
+        <div class="pay-logo pay-logo-img-real" title="CDAS">
+          <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp_Image_2026-04-15_at_8.57.51_AM-removebg-preview.png"
+            alt="CDAS">
+        </div>
+        <!-- Experian -->
+        <div class="pay-logo pay-logo-img-real" title="Experian">
+          <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp_Image_2026-04-15_at_8.56.58_AM-removebg-preview%20(1).png"
+            alt="Experian">
+        </div>
       </div>
 
     </div>
