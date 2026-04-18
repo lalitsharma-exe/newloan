@@ -6,7 +6,7 @@ class Employment extends Model {
     protected $table = 'employments';
 
     protected $fillable = [
-        'application_id','employer_name','employer_type','employment_expiry_date',
+        'application_id','employer_name','employer_type','employer_category','employment_expiry_date',
         'department','job_title','contact_number','employment_number',
     ];
 

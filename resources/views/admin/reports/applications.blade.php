@@ -26,6 +26,14 @@
       @endforeach
     </select>
   </div>
+  <div class="fg" style="margin-bottom:0"><label class="fl">Category</label>
+    <select name="category" class="fc">
+      <option value="">— All Categories —</option>
+      @foreach(['Defence','Nss','Police','Lcs','Pensioner','Civil servants','Teacher'] as $cat)
+        <option value="{{ $cat }}" {{ ($filters['category'] ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+      @endforeach
+    </select>
+  </div>
   <div class="flex gap2 aic" style="align-self:flex-end"><button type="submit" class="btn btn-p btn-sm"><i class="bi bi-funnel"></i> Filter</button><a href="{{ route('admin.reports.applications') }}" class="btn btn-o btn-sm">Clear</a></div>
 </form>
 <div class="card">

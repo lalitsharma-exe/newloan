@@ -245,6 +245,14 @@
                   <input type="number" name="penalty_per_10_days" class="fc has-prefix" value="{{ \App\Models\SystemSetting::get('penalty_per_10_days',20) }}" step="0.01">
                 </div>
               </div>
+              <div class="fg">
+                <label class="fl">Loan Application Fee</label>
+                <div class="input-addon">
+                  <span class="prefix">M</span>
+                  <input type="number" name="application_fee" class="fc has-prefix" value="{{ \App\Models\SystemSetting::get('application_fee',10) }}" step="0.01">
+                </div>
+                <div class="ft">One-time fee charged upon application</div>
+              </div>
             </div>
           </div>
         </div>

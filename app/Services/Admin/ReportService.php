@@ -7,9 +7,16 @@ class ReportService {
 
     // ── 1. PORTFOLIO ──────────────────────────────────────────────────────────
     public function getPortfolioReport(array $f): array {
-        $active   = Loan::where('status','active');
+        $active   = Loan::where('loans.status','active');
         $allLoans = Loan::with(['user','loanProduct']);
         if (!empty($f['product'])) { $active->where('loan_product_id',$f['product']); $allLoans->where('loan_product_id',$f['product']); }
+
+        if (!empty($f['category'])) {
+            $active->join('employments', 'loans.application_id', '=', 'employments.application_id')
+                ->where('employments.employer_category', $f['category']);
+            $allLoans->join('employments', 'loans.application_id', '=', 'employments.application_id')
+                ->where('employments.employer_category', $f['category']);
+        }
 
         $activeLoans    = $active->get();
         $totalPortfolio = $activeLoans->sum('outstanding_balance');
@@ -36,6 +43,11 @@ class ReportService {
         $q = Loan::with(['user','loanProduct'])->whereNotNull('disbursement_date');
         $q->whereDate('disbursement_date','>=',$from)->whereDate('disbursement_date','<=',$to);
         if (!empty($f['product'])) $q->where('loan_product_id',$f['product']);
+
+        if (!empty($f['category'])) {
+            $q->join('employments', 'loans.application_id', '=', 'employments.application_id')
+                ->where('employments.employer_category', $f['category']);
+        }
         $loans = $q->latest('disbursement_date')->get();
 
         $today      = Loan::whereDate('disbursement_date', today())->sum('principal_amount');
@@ -74,9 +86,14 @@ class ReportService {
     // ── 4. OUTSTANDING LOANS ──────────────────────────────────────────────────
     public function getOutstandingReport(array $f): array {
         $q = Loan::with(['user','loanProduct','installments' => fn($q) => $q->whereIn('status',['pending','overdue','partial'])->orderBy('due_date')->limit(1)])
-            ->whereIn('status',['active','overdue'])
+            ->whereIn('loans.status',['active','overdue'])
             ->orderByDesc('outstanding_balance');
         if (!empty($f['product'])) $q->where('loan_product_id',$f['product']);
+
+        if (!empty($f['category'])) {
+            $q->join('employments', 'loans.application_id', '=', 'employments.application_id')
+                ->where('employments.employer_category', $f['category']);
+        }
         if (!empty($f['search'])) {
             $s = $f['search'];
             $q->whereHas('user', fn($u) => $u->where('name','like',"%$s%")->orWhere('phone','like',"%$s%"));
@@ -92,6 +109,12 @@ class ReportService {
     public function getArrearsReport(array $f): array {
         $q = LoanInstallment::with(['loan.user','loan.loanProduct'])->where('status','overdue');
         if (!empty($f['min_days'])) $q->whereDate('due_date','<=', now()->subDays($f['min_days']));
+
+        if (!empty($f['category'])) {
+            $q->join('loans', 'loan_installments.loan_id', '=', 'loans.id')
+                ->join('employments', 'loans.application_id', '=', 'employments.application_id')
+                ->where('employments.employer_category', $f['category']);
+        }
         $inst = $q->orderBy('due_date')->get();
 
         $buckets = [
@@ -219,9 +242,14 @@ class ReportService {
         $from = $f['date_from'] ?? now()->startOfMonth()->format('Y-m-d');
         $to   = $f['date_to']   ?? now()->format('Y-m-d');
 
-        $q = LoanApplication::with(['user','loanProduct','assignedOfficer'])->where('status','!=','draft');
-        $q->whereDate('created_at','>=',$from)->whereDate('created_at','<=',$to);
-        if (!empty($f['status'])) $q->where('status',$f['status']);
+        $q = LoanApplication::with(['user','loanProduct','assignedOfficer'])->where('loan_applications.status','!=','draft');
+        $q->whereDate('loan_applications.created_at','>=',$from)->whereDate('loan_applications.created_at','<=',$to);
+        if (!empty($f['status'])) $q->where('loan_applications.status',$f['status']);
+
+        if (!empty($f['category'])) {
+            $q->join('employments', 'loan_applications.id', '=', 'employments.application_id')
+                ->where('employments.employer_category', $f['category']);
+        }
         $apps = $q->latest()->get();
 
         $submitted = $apps->whereIn('status',['submitted','under_review','info_requested','on_hold'])->count();

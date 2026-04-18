@@ -123,9 +123,14 @@ Route::prefix('portal')->name('borrower.')->group(function () {
             // Loan product terms AJAX (fetches rate, monthly payment preview)
             Route::get('/product-terms/{product}',      [ApplicationController::class, 'productTerms'])->name('product-terms');
 
-            // Card Verification (Step 9)
-            Route::get('/{application}/verify-card',    [ApplicationController::class, 'initiateCardVerification'])->name('verify-card');
-            Route::get('/{application}/card-success',   [ApplicationController::class, 'cardVerificationSuccess'])->name('card-success');
+            // Card Verification (Step 9 legacy - removed in favor of application fee)
+            // Route::get('/{application}/verify-card',    [ApplicationController::class, 'initiateCardVerification'])->name('verify-card');
+            // Route::get('/{application}/card-success',   [ApplicationController::class, 'cardVerificationSuccess'])->name('card-success');
+
+            // Application Fee (New flow)
+            Route::get('/{application}/pay-fee',         [ApplicationController::class, 'showPayFee'])->name('pay-fee');
+            Route::post('/{application}/pay-fee',        [ApplicationController::class, 'initiateFeePayment'])->name('pay-fee.initiate');
+            Route::get('/{application}/fee-success',     [ApplicationController::class, 'feePaymentSuccess'])->name('fee-success');
         });
 
         /*

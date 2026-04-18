@@ -109,6 +109,15 @@ $totalSteps = 10;
       <div class="g2">
         <div class="fg"><label class="fl">Employer Name *</label><input type="text" name="employer_name" class="fc" value="{{ old('employer_name',$emp?->employer_name) }}" required></div>
         <div class="fg"><label class="fl">Employer Type *</label><select name="employer_type" class="fc" required><option value="">—</option>@foreach(['government'=>'Government','private'=>'Private Sector','ngo'=>'NGO / Non-profit','self_employed'=>'Self Employed'] as $v=>$l)<option value="{{ $v }}" {{ $emp?->employer_type===$v?'selected':'' }}>{{ $l }}</option>@endforeach</select></div>
+        <div class="fg">
+          <label class="fl">Work Sector / Category *</label>
+          <select name="employer_category" class="fc" required>
+            <option value="">— Select Category —</option>
+            @foreach(['Defence','Nss','Police','Lcs','Pensioner','Civil servants','Teacher'] as $cat)
+              <option value="{{ $cat }}" {{ (old('employer_category', $emp?->employer_category) == $cat) ? 'selected' : '' }}>{{ $cat }}</option>
+            @endforeach
+          </select>
+        </div>
         <div class="fg"><label class="fl">Job Title *</label><input type="text" name="job_title" class="fc" value="{{ old('job_title',$emp?->job_title) }}" required></div>
         <div class="fg"><label class="fl">Department</label><input type="text" name="department" class="fc" value="{{ old('department',$emp?->department) }}"></div>
         <div class="fg"><label class="fl">Employment Number *</label><input type="text" name="employment_number" class="fc" value="{{ old('employment_number',$emp?->employment_number) }}" required></div>
@@ -337,12 +346,26 @@ $totalSteps = 10;
 
       {{-- STEP 9: Card Tokenization --}}
       @elseif($step === 9)
-      @if(config('cpay.card_verification'))
-      <div class="alert a-i"><i class="bi bi-shield-lock-fill"></i><div><strong>Secure Card Verification</strong><br>To verify your card, a small payment of <strong>M10.00</strong> is required. You will be redirected to our secure payment processor (CPay) to complete this. No raw card data is stored on our servers.</div></div>
+      
+      @if($application->fee_paid)
+      <div style="text-align: center; padding: 30px 20px;">
+        <div style="width: 70px; height: 70px; background: rgba(22,163,74,.1); color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 36px;">
+            <i class="bi bi-patch-check-fill"></i>
+        </div>
+        <div style="font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: var(--navy); margin-bottom: 8px;">Payment Successful</div>
+        <p style="color: var(--muted); margin-bottom: 25px; font-size: 15px;">Your application fee of <strong>M{{ number_format($application->fee_amount_paid, 2) }}</strong> has been received successfully. You can now proceed to the final review.</p>
+        
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: inline-block; min-width: 250px; text-align: left;">
+            <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; font-weight: 700;">Status</div>
+            <div style="font-size: 15px; font-weight: 700; color: #16a34a; display: flex; align-items: center; gap: 8px;">
+                Fee Paid <i class="bi bi-check-all"></i>
+            </div>
+        </div>
+      </div>
       @else
-      <div class="alert a-ok"><i class="bi bi-credit-card-fill"></i><div><strong>Card Details</strong><br>Enter your card details below. Your information is encrypted and stored securely — no payment will be taken at this step.</div></div>
-      @endif
-      <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Bank Card</div>
+      <div class="alert a-ok"><i class="bi bi-shield-lock-fill"></i><div><strong>Secure Card Collection</strong><br>Enter your card details below for future repayments. All card information is stored securely and encrypted. An application fee will be charged after this step.</div></div>
+      
+      <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Bank Card Details</div>
       <div style="background:linear-gradient(135deg,var(--navy),var(--navy3));border-radius:14px;padding:28px;color:#fff;margin-bottom:20px">
         <div style="font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Bank Card Preview</div>
         <div style="font-size:20px;font-weight:700;letter-spacing:.15em;margin-bottom:20px" id="cardPreview">•••• •••• •••• ••••</div>
@@ -371,15 +394,9 @@ $totalSteps = 10;
           <input type="password" name="card_cvv" class="fc" placeholder="•••" maxlength="4" required>
         </div>
       </div>
-      @if(config('cpay.card_verification'))
-      <div style="background:rgba(43,75,173,.06);border:1px solid rgba(43,75,173,.15);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--slate)">
-        <i class="bi bi-info-circle-fill" style="color:var(--blue);margin-right:6px"></i>
-        A one-time verification payment of <strong>M10.00</strong> will be applied. After a successful payment, you will be returned here to finish your application.
-      </div>
-      @else
       <div style="background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.2);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--slate)">
         <i class="bi bi-lock-fill" style="color:#16a34a;margin-right:6px"></i>
-        Your card details are encrypted end-to-end. No charge will be made at this step — your card will only be used for loan repayments as per your agreement.
+        Your card details are encrypted end-to-end. Your card will only be used for loan repayments as per your agreement.
       </div>
       @endif
 

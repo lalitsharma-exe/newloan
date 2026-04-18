@@ -11,6 +11,14 @@
 </div>
 <form method="GET" class="filter-bar">
   <div class="fg" style="flex:2;min-width:180px"><label class="fl">Search Borrower</label><input type="text" name="search" class="fc" placeholder="Name or phone…" value="{{ $filters['search']??'' }}"></div>
+  <div class="fg" style="margin-bottom:0;min-width:180px"><label class="fl">Category</label>
+    <select name="category" class="fc">
+      <option value="">— All Categories —</option>
+      @foreach(['Defence','Nss','Police','Lcs','Pensioner','Civil servants','Teacher'] as $cat)
+        <option value="{{ $cat }}" {{ ($filters['category'] ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+      @endforeach
+    </select>
+  </div>
   <div class="flex gap2 aic" style="align-self:flex-end"><button type="submit" class="btn btn-p btn-sm"><i class="bi bi-search"></i> Search</button><a href="{{ route('admin.reports.outstanding') }}" class="btn btn-o btn-sm">Clear</a></div>
 </form>
 <div class="card">

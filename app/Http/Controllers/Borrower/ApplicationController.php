@@ -1,8 +1,8 @@
 <?php
 namespace App\Http\Controllers\Borrower;
 use App\Http\Controllers\Controller;
-use App\Models\{LoanApplication, LoanProduct, AffordabilityAssessment, Payment};
-use App\Services\CPayService;
+use App\Models\{LoanApplication, LoanProduct, AffordabilityAssessment, Payment, SystemSetting};
+use App\Services\{CPayService, MpesaService};
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
@@ -42,10 +42,21 @@ class ApplicationController extends Controller
 
     public function showStep(LoanApplication $application, int $step) {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
+        
         // Allow going back freely, but not skipping ahead
         if ($step > $application->step + 1) {
             return redirect()->route('borrower.apply.step.show', [$application, $application->step]);
         }
+
+        // Protection for Step 10: must have paid fee if configured
+        if ($step === 10) {
+            $fee = (float) SystemSetting::get('application_fee', 0);
+            if ($fee > 0 && !$application->fee_paid) {
+                return redirect()->route('borrower.apply.pay-fee', $application)
+                    ->with('info', 'Please pay the application fee before reviewing your application.');
+            }
+        }
+
         $application->load(['loanProduct','affordability','employment','bankDetails','nextOfKin']);
         $products = LoanProduct::active()->get();
         return view('borrower.applications.step', compact('application','step','products'));
@@ -93,14 +104,23 @@ class ApplicationController extends Controller
             }
         }
         if ($step === 9) {
-            $this->saveCardToken($request, $application);
-
-            if (config('cpay.card_verification')) {
-                // CPay enabled — redirect to payment gateway for M10 card verification
-                return redirect()->route('borrower.apply.verify-card', $application);
+            // If fee is already paid, just advance to Step 10
+            if ($application->fee_paid) {
+                $application->update(['step' => 10]);
+                return redirect()->route('borrower.apply.step.show', [$application, 10]);
             }
 
-            // CPay disabled — skip gateway, mark card as tokenised and advance to review
+            $this->saveCardToken($request, $application);
+
+            $fee = (float) SystemSetting::get('application_fee', 10);
+            
+            if ($fee > 0 && !$application->fee_paid) {
+                // Redirect to application fee payment
+                $application->update(['card_tokenised' => true]); 
+                return redirect()->route('borrower.apply.pay-fee', $application);
+            }
+
+            // No fee — advance to review
             $application->update([
                 'card_tokenised' => true,
                 'step'           => 10,
@@ -291,6 +311,107 @@ class ApplicationController extends Controller
         ]);
     }
 
+    public function showPayFee(LoanApplication $application)
+    {
+        abort_if($application->user_id !== auth('borrower')->id(), 403);
+        
+        $fee = (float) SystemSetting::get('application_fee', 0);
+        if ($fee <= 0 || $application->fee_paid) {
+            return redirect()->route('borrower.apply.step.show', [$application, 10]);
+        }
+
+        $cpay = app(CPayService::class);
+        $mpesa = app(MpesaService::class);
+        
+        $cpayConfigured = $cpay->isConfigured();
+        $mpesaConfigured = $mpesa->isConfigured();
+        $cpayIsSandbox = config('cpay.mode') === 'sandbox';
+
+        return view('borrower.applications.pay-fee', compact('application', 'fee', 'cpayConfigured', 'mpesaConfigured', 'cpayIsSandbox'));
+    }
+
+    public function initiateFeePayment(Request $request, LoanApplication $application)
+    {
+        abort_if($application->user_id !== auth('borrower')->id(), 403);
+        
+        $request->validate(['method' => 'required|in:card,cpay_wallet,mpesa']);
+        
+        $fee = (float) SystemSetting::get('application_fee', 0);
+        if ($fee <= 0 || $application->fee_paid) {
+             return redirect()->route('borrower.apply.step.show', [$application, 10]);
+        }
+
+        $user = auth('borrower')->user();
+        $method = $request->method;
+        $phone = $request->input('phone', $user->phone);
+        $email = $request->input('email', $user->email);
+
+        // Create payment record
+        $payment = Payment::create([
+            'payment_reference' => 'APPF-' . strtoupper(Str::random(10)),
+            'user_id'           => $user->id,
+            'application_id'    => $application->id,
+            'amount'            => $fee,
+            'method'            => $method,
+            'status'            => 'pending',
+            'notes'             => 'Application Fee for #' . $application->id,
+        ]);
+
+        $successUrl = route('borrower.apply.fee-success', ['application' => $application->id, 'ref' => $payment->payment_reference]);
+
+        if ($method === 'mpesa') {
+            $mpesa = app(MpesaService::class);
+            $result = $mpesa->initiateStkPush($payment, $phone);
+            
+            if ($result['success']) {
+                return view('borrower.payments.mpesa-pending', [
+                    'payment' => $payment,
+                    'phone'   => $mpesa->formatPhone($phone),
+                    'message' => 'An M-Pesa payment request has been sent to your phone for the application fee. Please enter your PIN.',
+                    'redirect' => $successUrl
+                ]);
+            }
+        } else {
+            $cpay = app(CPayService::class);
+            $result = $cpay->initiateRepayment($payment, $phone, $method, $successUrl);
+            
+            if ($result['success']) {
+                $redirectUrl = $result['redirect_url'] ?? $result['data']['redirectUrl'] ?? $result['data']['paymentLink'] ?? null;
+                if ($redirectUrl) return redirect()->away($redirectUrl);
+
+                // Wallet OTP flow
+                return view('borrower.payments.cpay-otp', [
+                    'payment' => $payment,
+                    'phone' => $cpay->normalisePhone($phone),
+                    'message' => $result['message'] ?? 'An OTP has been sent for your application fee payment.',
+                    'redirect' => $successUrl
+                ]);
+            }
+        }
+
+        return back()->with('error', $result['error'] ?? 'Could not initiate payment. Please try again.');
+    }
+
+    public function feePaymentSuccess(Request $request, LoanApplication $application)
+    {
+        abort_if($application->user_id !== auth('borrower')->id(), 403);
+        
+        $ref = $request->input('ref') ?? $request->input('transactionId');
+        $payment = Payment::where('payment_reference', $ref)
+            ->where('user_id', auth('borrower')->id())
+            ->first();
+
+        // Mark application fee as paid
+        $application->update([
+            'fee_paid' => true,
+            'fee_amount_paid' => $payment ? $payment->amount : SystemSetting::get('application_fee'),
+            // We do NOT update 'step' to 10 here, we keep it at 9 so they see the success message
+        ]);
+
+        return redirect()->route('borrower.apply.step.show', [$application, 9])
+            ->with('success', 'Application fee of M' . number_format($application->fee_amount_paid, 2) . ' paid successfully!');
+    }
+
     // ── Private save helpers ─────────────────────────────────────
 
     private function saveCardToken(Request $request, LoanApplication $application): void
@@ -461,6 +582,7 @@ class ApplicationController extends Controller
             [
                 'employer_name'          => $request->employer_name,
                 'employer_type'          => $request->employer_type,
+                'employer_category'      => $request->employer_category,
                 'job_title'              => $request->job_title,
                 'department'             => $request->department,
                 'employment_number'      => $request->employment_number,

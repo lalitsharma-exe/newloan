@@ -104,6 +104,20 @@ class MpesaWebhookController extends Controller
         ]);
 
         $loan = $payment->loan;
+        $application = $payment->application;
+
+        if ($application) {
+            $isFee = str_starts_with($payment->payment_reference, 'APPF-');
+            if ($isFee) {
+                $application->update([
+                    'fee_paid' => true,
+                    'fee_amount_paid' => $payment->amount,
+                    'step' => max($application->step, 10)
+                ]);
+                Log::info('M-Pesa webhook: marked application fee as paid', ['app_id' => $application->id]);
+            }
+        }
+
         if (!$loan) return;
 
         $remaining = (float) $payment->amount;

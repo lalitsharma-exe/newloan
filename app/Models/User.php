@@ -13,6 +13,7 @@ class User extends Authenticatable {
     public function isLoanOfficer():bool { return $this->role==="loan_officer"; }
     public function isBorrower():bool    { return $this->role==="borrower"; }
     public function loanApplications()  { return $this->hasMany(LoanApplication::class); }
+    public function assignedApplications() { return $this->hasMany(LoanApplication::class, 'assigned_officer_id'); }
     public function loans()             { return $this->hasMany(Loan::class); }
     public function documents()         { return $this->hasMany(Document::class); }
     public function creditReports()     { return $this->hasMany(CreditReport::class); }

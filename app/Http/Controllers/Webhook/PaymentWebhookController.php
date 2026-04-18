@@ -116,12 +116,24 @@ class PaymentWebhookController extends Controller
         $loan = $payment->loan;
         $application = $payment->application;
 
-        if ($application && !$application->card_tokenised) {
-            $application->update([
-                'card_tokenised' => true,
-                'step'           => 10
-            ]);
-            Log::info('CPay webhook: marked application card as tokenised', ['app_id' => $application->id]);
+        if ($application) {
+            $isFee = str_starts_with($payment->payment_reference, 'APPF-');
+            $isVer = str_starts_with($payment->payment_reference, 'VER-');
+
+            if ($isFee) {
+                $application->update([
+                    'fee_paid' => true,
+                    'fee_amount_paid' => $payment->amount,
+                    'step' => max($application->step, 10)
+                ]);
+                Log::info('CPay webhook: marked application fee as paid', ['app_id' => $application->id]);
+            } elseif ($isVer || !$application->card_tokenised) {
+                $application->update([
+                    'card_tokenised' => true,
+                    'step' => max($application->step, 10)
+                ]);
+                Log::info('CPay webhook: marked application card as tokenised', ['app_id' => $application->id]);
+            }
         }
 
         if (!$loan) return;

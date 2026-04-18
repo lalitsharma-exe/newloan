@@ -14,11 +14,12 @@ class SettingsController extends Controller {
 
     public function updateGeneral(Request $r) {
         $r->validate([
-            'app_name'        => 'required|string|max:100',
-            'currency'        => 'required|string|max:10',
-            'currency_symbol' => 'required|string|max:5',
+            'app_name'         => 'required|string|max:100',
+            'currency'         => 'required|string|max:10',
+            'currency_symbol'  => 'required|string|max:5',
+            'application_fee'  => 'nullable|numeric|min:0',
         ]);
-        $this->svc->updateGroup("general", $r->only('app_name','currency','currency_symbol','country'));
+        $this->svc->updateGroup("general", $r->only('app_name','currency','currency_symbol','country', 'application_fee', 'default_interest_rate', 'initiation_fee_rate', 'admin_fee_fixed', 'max_affordability_pct', 'penalty_per_10_days'));
         return back()->with("success", "General settings saved.");
     }
 

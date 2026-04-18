@@ -115,7 +115,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
       <div class="card-hdr"><span class="card-title">Employment Details</span></div>
       <div class="card-body">
         <div class="info-grid">
-          @foreach(['Employer'=>$application->employment->employer_name,'Type'=>$application->employment->employer_type,'Job Title'=>$application->employment->job_title,'Department'=>$application->employment->department,'Employee #'=>$application->employment->employment_number,'HR Contact'=>$application->employment->contact_number] as $l=>$v)
+          @foreach(['Employer'=>$application->employment->employer_name,'Type'=>$application->employment->employer_type,'Category'=>$application->employment->employer_category,'Job Title'=>$application->employment->job_title,'Department'=>$application->employment->department,'Employee #'=>$application->employment->employment_number,'HR Contact'=>$application->employment->contact_number] as $l=>$v)
           <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
           @endforeach
         </div>

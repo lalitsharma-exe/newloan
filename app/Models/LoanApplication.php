@@ -38,7 +38,9 @@ class LoanApplication extends Model {
  
     // Card tokenization step
     'card_tokenised',   // ← boolean, marks step 9 complete
- 
+    'fee_paid',
+    'fee_amount_paid',
+
     // Overrides
     'override_amount', 'override_term', 'override_rate',
     
@@ -53,6 +55,7 @@ class LoanApplication extends Model {
         'decided_at'         => 'datetime',
         'disbursement_date'  => 'date',
         'card_tokenised'     => 'boolean',
+        'fee_paid'           => 'boolean',
         'gps_latitude'       => 'decimal:6',
         'gps_longitude'      => 'decimal:6',
         'salary_payday'      => 'integer',
