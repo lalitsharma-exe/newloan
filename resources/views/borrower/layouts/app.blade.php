@@ -334,6 +334,73 @@ select.fc { cursor: pointer; }
   <a href="{{ route('borrower.profile.index') }}"  class="{{ request()->routeIs('borrower.profile.*') ? 'active' : '' }}"><i class="bi bi-person-circle"></i>Me</a>
 </nav>
 
+<!-- SESSION IDLE MODAL -->
+<div id="idleModal" style="position:fixed;inset:0;background:rgba(13,27,62,.6);backdrop-filter:blur(4px);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:400px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)">
+    <div style="padding:24px;text-align:center">
+      <div style="width:60px;height:60px;background:#fff7ed;color:#ea580c;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">
+        <i class="bi bi-clock-history"></i>
+      </div>
+      <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px">Session Expiring Soon</h3>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.5">You have been inactive for a while. For your security, you will be logged out in <strong id="idleCounter" style="color:var(--err)">60</strong> seconds.</p>
+      <div style="display:flex;gap:12px">
+        <button type="button" onclick="stayLoggedIn()" class="btn btn-p" style="flex:1;justify-content:center">Stay Logged In</button>
+        <form action="{{ route('borrower.logout') }}" method="POST" style="display:none" id="idleLogoutForm">@csrf</form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── IDLE AUTO-LOGOUT (30 min idle → 60 s warning → logout) ──────────
+(function(){
+  const IDLE_MS    = 30 * 60 * 1000; // 30 minutes
+  const WARN_SECS  = 60;             // 60-second countdown
+  const CSRF       = document.querySelector('meta[name="csrf-token"]')?.content || '';
+  const LOGOUT_URL = "{{ route('borrower.logout') }}";
+
+  let idleTimer, countdownTimer, warnActive = false, secs = WARN_SECS;
+  const modal   = document.getElementById('idleModal');
+  const counter = document.getElementById('idleCounter');
+
+  function doLogout() {
+    const f = document.createElement('form');
+    f.method = 'POST'; f.action = LOGOUT_URL;
+    const t = document.createElement('input');
+    t.type = 'hidden'; t.name = '_token'; t.value = CSRF;
+    f.appendChild(t); document.body.appendChild(f); f.submit();
+  }
+
+  function showWarning() {
+    warnActive = true; secs = WARN_SECS; counter.textContent = secs;
+    modal.style.display = 'flex';
+    countdownTimer = setInterval(() => {
+      secs--; counter.textContent = secs;
+      if (secs <= 0) { clearInterval(countdownTimer); doLogout(); }
+    }, 1000);
+  }
+
+  window.stayLoggedIn = function() {
+    clearInterval(countdownTimer);
+    modal.style.display = 'none';
+    warnActive = false;
+    resetIdle();
+  };
+
+  function resetIdle() {
+    if (warnActive) return;
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(showWarning, IDLE_MS);
+  }
+
+  ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev =>
+    document.addEventListener(ev, resetIdle, { passive: true })
+  );
+
+  resetIdle();
+})();
+</script>
+
 @stack('scripts')
 </body>
 </html>

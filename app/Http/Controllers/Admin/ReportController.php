@@ -86,6 +86,55 @@ class ReportController extends Controller
         return view('admin.reports.borrower-demographics', ['data' => $this->svc->getBorrowerDemographicsReport($r->all()), 'filters' => $r->all()]);
     }
 
+    public function collectionSheet(Request $r) {
+        return view('admin.reports.collection-sheet', [
+            'data'    => $this->svc->getCollectionSheetReport($r->all()),
+            'filters' => $r->all(),
+        ]);
+    }
+
+    public function exportCollectionSheet(Request $r) {
+        $data = $this->svc->getCollectionSheetReport($r->all());
+        $installments = $data['installments'];
+        $month = $data['month'];
+
+        $filename = "collection-sheet-{$month}.csv";
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = ['Name of client', 'Bank Account Number', 'Bank Branch Code', 'Instalment Amount', 'Collection Month'];
+
+        $callback = function() use($installments, $columns, $month) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($installments as $i) {
+                $loan = $i->loan;
+                if (!$loan || !$loan->user) continue;
+
+                $branchCode = $loan->application->bankDetails->branch_code ?? '';
+                // Pad to 6 digits as requested
+                $branchCode = str_pad($branchCode, 6, '0', STR_PAD_LEFT);
+                
+                fputcsv($file, [
+                    $loan->user->name,
+                    $loan->application->bankDetails->account_number ?? '',
+                    $branchCode,
+                    number_format($i->total_amount, 2, '.', ''),
+                    $month
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     // Scheduled reports
     public function scheduledIndex() {
         $scheduled = \DB::table('scheduled_reports')->orderBy('created_at','desc')->get();

@@ -7,8 +7,8 @@ class ReportService {
 
     // ── 1. PORTFOLIO ──────────────────────────────────────────────────────────
     public function getPortfolioReport(array $f): array {
-        $active   = Loan::where('loans.status','active');
-        $allLoans = Loan::with(['user','loanProduct']);
+        $active   = Loan::select('loans.*')->where('loans.status','active');
+        $allLoans = Loan::select('loans.*')->with(['user','loanProduct']);
         if (!empty($f['product'])) { $active->where('loan_product_id',$f['product']); $allLoans->where('loan_product_id',$f['product']); }
 
         if (!empty($f['category'])) {
@@ -85,7 +85,7 @@ class ReportService {
 
     // ── 4. OUTSTANDING LOANS ──────────────────────────────────────────────────
     public function getOutstandingReport(array $f): array {
-        $q = Loan::with(['user','loanProduct','installments' => fn($q) => $q->whereIn('status',['pending','overdue','partial'])->orderBy('due_date')->limit(1)])
+        $q = Loan::select('loans.*')->with(['user','loanProduct','installments' => fn($q) => $q->whereIn('status',['pending','overdue','partial'])->orderBy('due_date')->limit(1)])
             ->whereIn('loans.status',['active','overdue'])
             ->orderByDesc('outstanding_balance');
         if (!empty($f['product'])) $q->where('loan_product_id',$f['product']);
@@ -107,15 +107,20 @@ class ReportService {
 
     // ── 5. ARREARS ────────────────────────────────────────────────────────────
     public function getArrearsReport(array $f): array {
-        $q = LoanInstallment::with(['loan.user','loan.loanProduct'])->where('status','overdue');
-        if (!empty($f['min_days'])) $q->whereDate('due_date','<=', now()->subDays($f['min_days']));
+        $q = LoanInstallment::with(['loan.user','loan.loanProduct'])
+            ->select('loan_installments.*')
+            ->where('loan_installments.status','overdue');
+
+        if (!empty($f['min_days'])) {
+            $q->whereDate('loan_installments.due_date','<=', now()->subDays($f['min_days']));
+        }
 
         if (!empty($f['category'])) {
             $q->join('loans', 'loan_installments.loan_id', '=', 'loans.id')
                 ->join('employments', 'loans.application_id', '=', 'employments.application_id')
                 ->where('employments.employer_category', $f['category']);
         }
-        $inst = $q->orderBy('due_date')->get();
+        $inst = $q->orderBy('loan_installments.due_date')->get();
 
         $buckets = [
             '1–30 days'  => $inst->filter(fn($i) => $i->due_date->diffInDays(now()) <= 30),
@@ -345,5 +350,29 @@ class ReportService {
     private function dates($q, array $f, string $col = 'created_at'): void {
         if (!empty($f['date_from'])) $q->whereDate($col,'>=',$f['date_from']);
         if (!empty($f['date_to']))   $q->whereDate($col,'<=',$f['date_to']);
+    }
+
+    // ── 11. COLLECTION SHEET (CSV) ─────────────────────────────────────────────
+    public function getCollectionSheetReport(array $f): array
+    {
+        $month = $f['month'] ?? now()->format('Y-m');
+        $category = $f['category'] ?? null;
+
+        $q = LoanInstallment::with(['loan.user', 'loan.application.bankDetails', 'loan.application.employment'])
+            ->whereHas('loan', function($l) {
+                $l->whereIn('status', ['active', 'overdue']);
+            })
+            ->whereIn('status', ['pending', 'overdue', 'partial'])
+            ->where('due_date', 'like', "$month%");
+
+        if ($category) {
+            $q->whereHas('loan.application.employment', function($e) use ($category) {
+                $e->where('employer_category', $category);
+            });
+        }
+
+        $installments = $q->get();
+
+        return compact('installments', 'month', 'category');
     }
 }

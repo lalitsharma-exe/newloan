@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OfficerAssignmentController;
 use App\Http\Controllers\Admin\DocumentController;
+use App\Http\Controllers\Admin\BankController;
 
 /*
 |--------------------------------------------------------------------------
@@ -105,6 +106,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{application}/documents/{doc}/view',  [DocumentController::class, 'view'])->name('documents.view');
             Route::post('/{application}/documents/upload', [ApplicationController::class, 'uploadDocument'])->name('documents.upload');
             Route::post('/{application}/affordability', [ApplicationController::class, 'updateAffordability'])->name('update-affordability');
+            Route::post('/{application}/employment', [ApplicationController::class, 'updateEmployment'])->name('update-employment');
+            Route::post('/{application}/bank-details', [ApplicationController::class, 'updateBankDetails'])->name('update-bank-details');
 
             // AJAX Chat
             Route::get('/{application}/messages', [ApplicationController::class, 'getMessages'])->name('messages.get');
@@ -207,6 +210,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/officer-performance',  [ReportController::class, 'officerPerformance'])->name('officer-performance');
             Route::get('/income-statement',     [ReportController::class, 'incomeStatement'])->name('income-statement');
             Route::get('/borrower-demographics',[ReportController::class, 'borrowerDemographics'])->name('borrower-demographics');
+            Route::get('/collection-sheet',     [ReportController::class, 'collectionSheet'])->name('collection-sheet');
+            Route::get('/collection-sheet/export', [ReportController::class, 'exportCollectionSheet'])->name('collection-sheet.export');
 
             Route::post('/export',              [ReportController::class, 'export'])->name('export');
             Route::get('/scheduled',            [ReportController::class, 'scheduledIndex'])->name('scheduled.index');
@@ -310,6 +315,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/test-email',       [SettingsController::class, 'testEmail'])->name('test-email');
             Route::post('/test-sms',         [SettingsController::class, 'testSms'])->name('test-sms');
             Route::post('/test-gateway',     [SettingsController::class, 'testGateway'])->name('test-gateway');
+        });
+
+        /*
+        | ── BANK MANAGEMENT ────────────────────────────────────────
+        */
+        Route::prefix('banks')->name('banks.')->group(function () {
+            Route::get('/',                 [BankController::class, 'index'])->name('index');
+            Route::post('/',                [BankController::class, 'store'])->name('store');
+            Route::put('/{bank}',           [BankController::class, 'update'])->name('update');
+            Route::delete('/{bank}',        [BankController::class, 'destroy'])->name('destroy');
+
+            Route::get('/{bank}/branches',               [BankController::class, 'branches'])->name('branches');
+            Route::post('/{bank}/branches',              [BankController::class, 'storeBranch'])->name('branches.store');
+            Route::put('/{bank}/branches/{branch}',      [BankController::class, 'updateBranch'])->name('branches.update');
+            Route::delete('/{bank}/branches/{branch}',   [BankController::class, 'destroyBranch'])->name('branches.destroy');
         });
 
         /*

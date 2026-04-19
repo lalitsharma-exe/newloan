@@ -102,7 +102,7 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
       <div class="card-hdr"><span class="card-title">Employment</span></div>
       <div class="card-body">
         <div class="info-grid">
-          @foreach(['Employer'=>$application->employment->employer_name,'Type'=>$application->employment->employer_type,'Job Title'=>$application->employment->job_title,'Department'=>$application->employment->department,'Emp. Number'=>$application->employment->employment_number,'HR Contact'=>$application->employment->contact_number] as $l=>$v)
+          @foreach(['Employer'=>$application->employment->employer_name,'Type'=>$application->employment->employer_type,'Category'=>$application->employment->employer_category,'Job Title'=>$application->employment->job_title,'Department'=>$application->employment->department,'Emp. Number'=>$application->employment->employment_number,'HR Contact'=>$application->employment->contact_number] as $l=>$v)
           <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
           @endforeach
         </div>
@@ -115,7 +115,7 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
       <div class="card-hdr"><span class="card-title">Bank & Card Details</span></div>
       <div class="card-body">
         <div class="info-grid">
-          @foreach(['Bank'=>$application->bankDetails->bank_name,'Account Name'=>$application->bankDetails->account_holder_name,'Account Number'=>$application->bankDetails->account_number,'Account Type'=>$application->bankDetails->account_type] as $l=>$v)
+          @foreach(['Bank'=>$application->bankDetails->bank_name,'Branch'=>$application->bankDetails->branch_name,'Branch Code'=>$application->bankDetails->branch_code,'Account Name'=>$application->bankDetails->account_holder_name,'Account Number'=>$application->bankDetails->account_number,'Account Type'=>$application->bankDetails->account_type] as $l=>$v)
           <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
           @endforeach
           

@@ -35,7 +35,7 @@ class AdminSeeder extends Seeder {
             ["group"=>"credit_bureau","key"=>"bureau_mode","value"=>"sandbox"],
             ["group"=>"notifications","key"=>"email_from","value"=>"noreply@myloan.co.ls"],
             ["group"=>"notifications","key"=>"email_from_name","value"=>"MyLoan"],
-            ["group"=>"security","key"=>"session_timeout","value"=>"60"],
+            ["group"=>"security","key"=>"session_timeout","value"=>"30"],
             ["group"=>"security","key"=>"max_login_attempts","value"=>"5"],
         ];
         foreach($settings as $s) SystemSetting::updateOrCreate(["key"=>$s["key"]],$s);

@@ -160,6 +160,7 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     <div class="nav-item"><a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.index')?'active':'' }}"><i class="bi bi-people-fill"></i> Users</a></div>
     <div class="nav-item"><a href="{{ route('admin.users.profile-requests') }}" class="{{ request()->routeIs('admin.users.profile-requests')?'active':'' }}"><i class="bi bi-person-gear"></i> Profile Requests</a></div>
     <div class="nav-item"><a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*')?'active':'' }}"><i class="bi bi-box-fill"></i> Loan Products</a></div>
+    <div class="nav-item"><a href="{{ route('admin.banks.index') }}" class="{{ request()->routeIs('admin.banks.*')?'active':'' }}"><i class="bi bi-bank"></i> Manage Banks</a></div>
     <div class="nav-item"><a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*')?'active':'' }}"><i class="bi bi-gear-fill"></i> Settings</a></div>
     <div class="nav-lbl">System</div>
     <div class="nav-item">
@@ -301,9 +302,9 @@ document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.
 document.getElementById('logoutModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
 function switchTab(g,id){document.querySelectorAll('[data-tg="'+g+'"]').forEach(e=>e.classList.remove('active'));document.querySelectorAll('[data-pg="'+g+'"]').forEach(e=>e.classList.remove('active'));document.querySelector('[data-tg="'+g+'"][data-t="'+id+'"]').classList.add('active');document.querySelector('[data-pg="'+g+'"][data-p="'+id+'"]').classList.add('active')}
 
-// ── IDLE AUTO-LOGOUT (3 min idle → 60 s warning → logout) ────────────
+// ── IDLE AUTO-LOGOUT (30 min idle → 60 s warning → logout) ──────────
 (function(){
-  const IDLE_MS    = 3 * 60 * 1000; // 3 minutes
+  const IDLE_MS    = 30 * 60 * 1000; // 30 minutes
   const WARN_SECS  = 60;             // 60-second countdown
   const CSRF       = document.querySelector('meta[name="csrf-token"]')?.content || '';
   const LOGOUT_URL = document.querySelector('#idleModal form')?.action || '/admin/logout';

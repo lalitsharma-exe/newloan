@@ -117,6 +117,39 @@ class ApplicationController extends Controller
         return redirect()->back()->with('success', 'Affordability data updated successfully.');
     }
 
+    public function updateEmployment(Request $request, LoanApplication $application)
+    {
+        $data = $request->validate([
+            'employer_name'     => 'required|string|max:200',
+            'employer_type'     => 'required|string|max:50',
+            'employer_category' => 'nullable|string|max:100',
+            'job_title'         => 'nullable|string|max:100',
+            'department'        => 'nullable|string|max:100',
+            'employment_number' => 'nullable|string|max:50',
+            'contact_number'    => 'nullable|string|max:20',
+        ]);
+
+        $application->employment()->updateOrCreate(['application_id' => $application->id], $data);
+
+        return redirect()->back()->with('success', 'Employment details updated successfully.');
+    }
+
+    public function updateBankDetails(Request $request, LoanApplication $application)
+    {
+        $data = $request->validate([
+            'bank_name'           => 'required|string|max:100',
+            'branch_name'         => 'nullable|string|max:100',
+            'branch_code'         => 'nullable|string|max:20',
+            'account_holder_name' => 'required|string|max:200',
+            'account_number'      => 'required|string|max:50',
+            'account_type'        => 'required|string|max:50',
+        ]);
+
+        $application->bankDetails()->updateOrCreate(['application_id' => $application->id], $data);
+
+        return redirect()->back()->with('success', 'Bank details updated successfully.');
+    }
+
     public function approve(Request $request, LoanApplication $application)
     {
         $request->validate([

@@ -19,6 +19,7 @@
     ['income-statement','Income & Profit',         'graph-up-arrow',          'Interest, fees, admin fees, net profit','ok'],
     ['applications',    'Application Report',      'file-earmark-text-fill',  'Submitted/approved/declined/pending','i'],
     ['payment-failures','Payment Failure Report',  'credit-card-2-front',     'Failed debits, blocked cards','e'],
+    ['collection-sheet','Collection Sheet',        'file-earmark-spreadsheet-fill','Monthly debit list for bank collections','p'],
   ] as [$route,$title,$icon,$desc,$color])
   <a href="{{ route('admin.reports.'.$route) }}" style="text-decoration:none">
     <div class="card" style="transition:all .2s;cursor:pointer"

@@ -222,6 +222,16 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
   <main class="pc">@yield('content')</main>
 </div>
 
+{{-- SESSION IDLE MODAL --}}
+<div id="idleModal" class="mo">
+  <div class="mb" style="max-width:400px;text-align:center;padding:26px">
+    <div style="width:56px;height:56px;background:rgba(245,158,11,.12);color:var(--warn);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px"><i class="bi bi-clock-history"></i></div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:8px">Session Expiring Soon</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px">You have been inactive for a while. For your security, you will be logged out in <strong id="idleCounter" style="color:var(--err)">60</strong> seconds.</div>
+    <button type="button" onclick="stayLoggedIn()" class="btn btn-p" style="width:100%;justify-content:center">Stay Logged In</button>
+  </div>
+</div>
+
 {{-- LOGOUT MODAL --}}
 <div id="logoutModal" class="mo">
   <div style="background:#fff;border-radius:18px;width:100%;max-width:400px;margin:20px;box-shadow:0 25px 60px rgba(0,0,0,.2);overflow:hidden">
@@ -245,10 +255,55 @@ const sbToggle=document.getElementById('sbToggle'),sb=document.getElementById('s
 sbToggle.addEventListener('click',()=>sb.classList.toggle('open'));
 setTimeout(()=>document.querySelectorAll('.alert').forEach(el=>{el.style.transition='opacity .5s';el.style.opacity='0';setTimeout(()=>el.remove(),500)}),4500);
 function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
-document.getElementById('logoutModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
 function switchTab(g,id){document.querySelectorAll('[data-tg="'+g+'"]').forEach(e=>e.classList.remove('active'));document.querySelectorAll('[data-pg="'+g+'"]').forEach(e=>e.classList.remove('active'));document.querySelector('[data-tg="'+g+'"][data-t="'+id+'"]').classList.add('active');document.querySelector('[data-pg="'+g+'"][data-p="'+id+'"]').classList.add('active')}
+
+// ── IDLE AUTO-LOGOUT (30 min idle → 60 s warning → logout) ──────────
+(function(){
+  const IDLE_MS    = 30 * 60 * 1000; // 30 minutes
+  const WARN_SECS  = 60;             // 60-second countdown
+  const CSRF       = document.querySelector('meta[name="csrf-token"]')?.content || '';
+  const LOGOUT_URL = "{{ route('officer.logout') }}";
+
+  let idleTimer, countdownTimer, warnActive = false, secs = WARN_SECS;
+  const modal   = document.getElementById('idleModal');
+  const counter = document.getElementById('idleCounter');
+
+  function doLogout() {
+    const f = document.createElement('form');
+    f.method = 'POST'; f.action = LOGOUT_URL;
+    const t = document.createElement('input');
+    t.type = 'hidden'; t.name = '_token'; t.value = CSRF;
+    f.appendChild(t); document.body.appendChild(f); f.submit();
+  }
+
+  function showWarning() {
+    warnActive = true; secs = WARN_SECS; counter.textContent = secs;
+    modal.classList.add('open');
+    countdownTimer = setInterval(() => {
+      secs--; counter.textContent = secs;
+      if (secs <= 0) { clearInterval(countdownTimer); doLogout(); }
+    }, 1000);
+  }
+
+  window.stayLoggedIn = function() {
+    clearInterval(countdownTimer);
+    modal.classList.remove('open');
+    warnActive = false;
+    resetIdle();
+  };
+
+  function resetIdle() {
+    if (warnActive) return;
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(showWarning, IDLE_MS);
+  }
+
+  ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev =>
+    document.addEventListener(ev, resetIdle, { passive: true })
+  );
+
+  resetIdle();
+})();
 </script>
 @stack('scripts')
 </body>

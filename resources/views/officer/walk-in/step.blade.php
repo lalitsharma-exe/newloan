@@ -15,11 +15,10 @@ $titles = [
   6=>'Affordability',
   7=>'Loan Details',
   8=>'Upload Documents',
-  9=>'Card Setup',
-  10=>'Review & Submit'
+  9=>'Review & Submit'
 ];
 $stepTitle = $titles[(int)$step] ?? 'Step '.$step;
-$totalSteps = 10;
+$totalSteps = 9;
 @endphp
 
 {{-- Client Banner --}}
@@ -53,7 +52,7 @@ $totalSteps = 10;
 </div>
 
 <div class="card">
-<form id="stepForm" method="POST" action="{{ route('officer.walk-in.step.save', [$application, $step]) }}" enctype="multipart/form-data">
+<form id="stepForm" method="POST" action="{{ $step === 9 ? route('officer.walk-in.submit', $application) : route('officer.walk-in.step.save', [$application, $step]) }}" enctype="multipart/form-data">
     @csrf
     <div class="card-body">
 
@@ -187,11 +186,20 @@ $totalSteps = 10;
       </div>
       <div class="fg">
         <label class="fl">Employer Type *</label>
-        <select name="employer_type" class="fc" required>
+        <select name="employer_type" class="fc" required onchange="toggleCategory(this.value)">
           <option value="">— Select —</option>
-          @foreach(['private'=>'Private','government'=>'Government','ngo'=>'NGO','self_employed'=>'Self-Employed','other'=>'Other'] as $v=>$l)
+          @foreach(['government'=>'Government','private'=>'Private Sector','sme'=>'SMEs'] as $v=>$l)
           <option value="{{ $v }}" {{ old('employer_type',$emp?->employer_type)===$v?'selected':'' }}>{{ $l }}</option>
           @endforeach
+        </select>
+      </div>
+      <div class="fg" id="category_wrapper" style="{{ (old('employer_type',$emp?->employer_type) === 'government') ? '' : 'display:none' }}">
+        <label class="fl">Work Sector / Category *</label>
+        <select name="employer_category" id="employer_category" class="fc" {{ (old('employer_type',$emp?->employer_type) === 'government') ? 'required' : '' }}>
+            <option value="">— Select —</option>
+            @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher'] as $c)
+            <option {{ old('employer_category',$emp?->employer_category)===$c?'selected':'' }}>{{ $c }}</option>
+            @endforeach
         </select>
       </div>
       <div class="fg">
@@ -228,13 +236,20 @@ $totalSteps = 10;
     <div class="g2" style="gap:14px">
       <div class="fg">
         <label class="fl">Bank Name *</label>
-        <select name="bank_name" class="fc" required>
+        <select name="bank_name" id="bank_name" class="fc" data-prev="{{ old('bank_name',$bank?->bank_name) }}" required onchange="loadBranches(this.value)">
           <option value="">— Select Bank —</option>
-          @foreach(['Lesotho PostBank','Standard Lesotho Bank','Nedbank Lesotho','First National Bank Lesotho','Other'] as $b)
-          <option value="{{ $b }}" {{ old('bank_name',$bank?->bank_name)===$b?'selected':'' }}>{{ $b }}</option>
-          @endforeach
         </select>
         @error('bank_name')<span class="iv">{{ $message }}</span>@enderror
+      </div>
+      <div class="fg">
+        <label class="fl">Branch Name *</label>
+        <select name="branch_name" id="branch_name" class="fc" data-prev="{{ old('branch_name',$bank?->branch_name) }}" required onchange="updateBranchCode(this.options[this.selectedIndex])">
+            <option value="">— Select Branch —</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Branch Code</label>
+        <input type="text" name="branch_code" id="branch_code" class="fc" value="{{ old('branch_code',$bank?->branch_code) }}" placeholder="Auto-filled">
       </div>
       <div class="fg">
         <label class="fl">Account Holder Name *</label>
@@ -248,13 +263,7 @@ $totalSteps = 10;
       </div>
       <div class="fg">
         <label class="fl">Account Type *</label>
-        <select name="account_type" class="fc" required>
-          <option value="">— Select —</option>
-          <option value="savings" {{ old('account_type',$bank?->account_type)==='savings'?'selected':'' }}>Savings</option>
-          <option value="cheque" {{ old('account_type',$bank?->account_type)==='cheque'?'selected':'' }}>Cheque / Current</option>
-        </select>
-      </div>
-    </div>
+        <select name="account_type" class="fc" required><option value="">—</option><option value="savings" {{ old('account_type',$bank?->account_type)==='savings'?'selected':'' }}>Savings</option><option value="cheque" {{ old('account_type',$bank?->account_type)==='cheque'?'selected':'' }}>Cheque / Current</option></select></div>
   </div>
 </div>
 
@@ -512,71 +521,8 @@ $totalSteps = 10;
             <button type="button" id="btn_{{ $dtype }}" class="btn btn-p btn-sm" onclick="uploadDoc('{{ $dtype }}', this)" style="height:38px;padding:0 15px">Upload</button>
           </div>
         @else
-          <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;font-size:12.5px">
-             <i class="bi bi-file-earmark-check-fill" style="color:var(--ok);font-size:16px"></i>
-             <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $existing->original_name }}</div>
-          </div>
-        @endif
-      </div>
-      @endforeach
-    </div>
-  </div>
-</div>
-
-{{-- ═══════════ STEP 9: CARD SETUP ═══════════ --}}
+          <div style="background:#fff;border:1px solid var(--bor{{-- ═══════════ STEP 9: REVIEW & SUBMIT ═══════════ --}}
 @elseif($step == 9)
-<div class="card">
-  <div class="card-hdr">
-    <span class="card-title"><i class="bi bi-credit-card-2-front" style="color:var(--p)"></i> Card Setup</span>
-  </div>
-  <div class="card-body">
-      <div class="alert a-i" style="margin-bottom:24px">
-        <i class="bi bi-shield-lock-fill"></i>
-        <div><strong>Secure Encryption</strong><br>Details are encrypted and used only for automated repayments if selected.</div>
-      </div>
-
-      <div style="background:linear-gradient(135deg, var(--navy), var(--navy2));border-radius:18px;padding:30px;color:#fff;margin-bottom:30px;box-shadow:0 10px 25px -5px rgba(15,23,42,.3);position:relative;overflow:hidden">
-        <div style="position:absolute;top:-20px;right:-20px;width:150px;height:150px;background:rgba(255,255,255,.03);border-radius:50%"></div>
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px">
-          <i class="bi bi-cpu" style="font-size:32px;color:rgba(255,255,255,.6)"></i>
-          <i class="bi bi-wifi" style="font-size:24px;transform:rotate(90deg);color:rgba(255,255,255,.4)"></i>
-        </div>
-        <div style="font-size:22px;font-weight:700;letter-spacing:.15em;margin-bottom:30px;font-family:monospace" id="cardPreview">•••• •••• •••• ••••</div>
-        <div style="display:flex;justify-content:space-between;align-items:flex-end">
-          <div>
-            <div style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Card Holder</div>
-            <div style="font-size:15px;font-weight:600;text-transform:uppercase" id="cardNamePreview">CLIENT NAME</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Expires</div>
-            <div style="font-size:15px;font-weight:600" id="cardExpiryPreview">MM/YY</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="g2">
-        <div class="fg" style="grid-column:span 2">
-          <label class="fl">Cardholder Name</label>
-          <input type="text" name="card_name" class="fc" placeholder="As it appears on the card" oninput="document.getElementById('cardNamePreview').textContent = this.value || 'CLIENT NAME'">
-        </div>
-        <div class="fg" style="grid-column:span 2">
-          <label class="fl">Card Number</label>
-          <input type="text" name="card_number" class="fc" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this); document.getElementById('cardPreview').textContent = this.value || '•••• •••• •••• ••••'">
-        </div>
-        <div class="fg">
-          <label class="fl">Expiry Date</label>
-          <input type="text" name="card_expiry" class="fc" placeholder="MM/YY" maxlength="5" oninput="formatExpiry(this, event); document.getElementById('cardExpiryPreview').textContent = this.value || 'MM/YY'">
-        </div>
-        <div class="fg">
-          <label class="fl">CVV</label>
-          <input type="password" name="card_cvv" class="fc" placeholder="•••" maxlength="4">
-        </div>
-      </div>
-  </div>
-</div>
-
-{{-- ═══════════ STEP 10: REVIEW & SUBMIT ═══════════ --}}
-@elseif($step == 10)
 <div class="alert a-ok" style="margin-bottom:20px;border:1px solid rgba(16,185,129,.2)">
   <i class="bi bi-check-circle-fill"></i>
   <div><strong>Ready to submit!</strong> Please review all details below. Once confirmed, collect the client's signature.</div>
@@ -675,6 +621,16 @@ $totalSteps = 10;
     </div>
   </div>
 </div>
+@endifolid #fbd38d;background:#fffaf0">
+  <div class="card-body" style="padding:15px">
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <i class="bi bi-exclamation-triangle-fill" style="color:#dd6b20;font-size:18px"></i>
+      <div style="font-size:13px;color:#744210;line-height:1.5">
+        <strong>Officer Declaration:</strong> I confirm that I have interviewed the client ({{ $application->applicant_name }}), verified their original documents, and performed a preliminary affordability check as per the company's lending policy.
+      </div>
+    </div>
+  </div>
+</div>
 
 @endif
 
@@ -683,7 +639,7 @@ $totalSteps = 10;
   <a href="{{ route('officer.walk-in.step.show', [$application, $step-1]) }}" class="btn btn-o"><i class="bi bi-chevron-left"></i> Back</a>
   @else<div></div>@endif
 
-  @if($step < 10)
+  @if($step < 9)
     <button type="submit" class="btn btn-p">Save & Continue <i class="bi bi-chevron-right"></i></button>
   @else
     <button type="button" class="btn btn-ok" onclick="prepareSubmit()"><i class="bi bi-send-fill"></i> Submit for Review</button>
@@ -691,7 +647,6 @@ $totalSteps = 10;
 </div>
 </form>
 
-@if($step == 10)
 <!-- Final Confirmation Modal -->
 <div class="mo" id="submitModal"><div class="mc" style="max-width:440px">
   <div class="mh">
@@ -713,7 +668,6 @@ $totalSteps = 10;
     </form>
   </div>
 </div></div>
-@endif
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
@@ -800,6 +754,63 @@ function prepareSubmit() {
     openModal('submitModal');
 }
 
+function toggleCategory(val) {
+    const wrap = document.getElementById('category_wrapper');
+    const sel = document.getElementById('employer_category');
+    if (wrap) {
+        wrap.style.display = (val === 'government') ? '' : 'none';
+        if (sel) {
+            if (val === 'government') sel.setAttribute('required','required');
+            else { sel.removeAttribute('required'); sel.value = ''; }
+        }
+    }
+}
+
+async function loadBanks() {
+    const el = document.getElementById('bank_name');
+    if (!el) return;
+    try {
+        const res = await fetch('/api/banks');
+        const banks = await res.json();
+        const prev = el.getAttribute('data-prev');
+        banks.forEach(b => {
+            const opt = new Option(b.name, b.id);
+            if (b.id == prev || b.name == prev) opt.selected = true;
+            el.add(opt);
+        });
+        if (el.value) loadBranches(el.value);
+    } catch(e) {}
+}
+
+async function loadBranches(bankId) {
+    const el = document.getElementById('branch_name');
+    if (!el || !bankId) return;
+    el.innerHTML = '<option value="">— Select Branch —</option>';
+    try {
+        const res = await fetch(`/api/banks/${bankId}/branches`);
+        const branches = await res.json();
+        const prev = el.getAttribute('data-prev');
+        branches.forEach(b => {
+            const opt = new Option(b.name, b.name);
+            opt.setAttribute('data-code', b.code);
+            if (b.name == prev) opt.selected = true;
+            el.add(opt);
+        });
+        updateBranchCode(el.options[el.selectedIndex]);
+    } catch(e) {}
+}
+
+function updateBranchCode(opt) {
+    const codeEl = document.getElementById('branch_code');
+    if (codeEl && opt && opt.getAttribute('data-code')) {
+        codeEl.value = opt.getAttribute('data-code');
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    loadBanks();
+});
+</script>
 @if($step == 6)
 // ── AFFORDABILITY CALCULATOR ──
 function calcAfford(){

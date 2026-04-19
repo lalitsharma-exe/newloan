@@ -6,7 +6,7 @@ class BankDetail extends Model {
     protected $table = 'bank_details';
 
     protected $fillable = [
-        'application_id','bank_name','account_holder_name','account_number','account_type',
+        'application_id','bank_name','account_holder_name','account_number','branch_name','branch_code','account_type',
     ];
 
     public function application() { return $this->belongsTo(LoanApplication::class); }

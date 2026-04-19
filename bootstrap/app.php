@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'portal/webhooks/*',
             'webhooks/*',
+            'admin/logout',
+            'borrower/logout',
+            'officer/logout',
         ]);
 
         $middleware->web(append: [
@@ -60,11 +63,15 @@ return Application::configure(basePath: dirname(__DIR__))
         // Graceful handling of 419 — Page Expired (Session token mismatch)
         $exceptions->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
             $path = $request->path();
-            $targetRoute = 'borrower.login';
-            if (str_starts_with($path, 'admin'))   $targetRoute = 'admin.login';
-            if (str_starts_with($path, 'officer')) $targetRoute = 'officer.login';
+            if (str_contains($path, 'admin/logout')) return redirect()->route('admin.login');
+            if (str_contains($path, 'borrower/logout')) return redirect()->route('borrower.login');
+            if (str_contains($path, 'officer/logout')) return redirect()->route('officer.login');
 
-            return redirect()->route($targetRoute)->with('error', 'Your security token or session has expired. Please sign in again.');
+            if (str_starts_with($path, 'admin')) return redirect()->route('admin.login')->with('error', 'Your session has expired. Please log in again.');
+            if (str_starts_with($path, 'officer')) return redirect()->route('officer.login')->with('error', 'Your session has expired. Please log in again.');
+            if (str_starts_with($path, 'borrower')) return redirect()->route('borrower.login')->with('error', 'Your session has expired. Please log in again.');
+
+            return redirect()->route('home')->with('error', 'Your session has expired for security reasons. Please try again.');
         });
     })
 

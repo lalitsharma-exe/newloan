@@ -16,7 +16,7 @@ class SessionTimeout
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $timeout = SystemSetting::get('session_timeout', 120); // Default to 120 minutes if not set
+        $timeout = SystemSetting::get('session_timeout', 30); // Default to 30 minutes if not set
         
         // Laravel's config(['session.lifetime' => ...]) must be set BEFORE the session is started.
         // But since this is middleware, the session might already be started if it's in the 'web' group.

@@ -112,7 +112,12 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
 
     @if($application->employment)
     <div class="card" style="margin-bottom:16px">
-      <div class="card-hdr"><span class="card-title">Employment Details</span></div>
+      <div class="card-hdr">
+          <span class="card-title">Employment Details</span>
+          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="showEditEmploymentModal()">
+              <i class="bi bi-pencil"></i> Edit
+          </button>
+      </div>
       <div class="card-body">
         <div class="info-grid">
           @foreach(['Employer'=>$application->employment->employer_name,'Type'=>$application->employment->employer_type,'Category'=>$application->employment->employer_category,'Job Title'=>$application->employment->job_title,'Department'=>$application->employment->department,'Employee #'=>$application->employment->employment_number,'HR Contact'=>$application->employment->contact_number] as $l=>$v)
@@ -125,10 +130,15 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
 
     @if($application->bankDetails)
     <div class="card">
-      <div class="card-hdr"><span class="card-title">Bank & Card Details</span></div>
+      <div class="card-hdr">
+          <span class="card-title">Bank & Card Details</span>
+          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="showEditBankModal()">
+              <i class="bi bi-pencil"></i> Edit
+          </button>
+      </div>
       <div class="card-body">
         <div class="info-grid">
-          @foreach(['Bank'=>$application->bankDetails->bank_name,'Account Holder'=>$application->bankDetails->account_holder_name,'Account #'=>$application->bankDetails->account_number,'Account Type'=>ucfirst($application->bankDetails->account_type??'')] as $l=>$v)
+          @foreach(['Bank'=>$application->bankDetails->bank_name,'Account Holder'=>$application->bankDetails->account_holder_name,'Account #'=>$application->bankDetails->account_number,'Branch'=>$application->bankDetails->branch_name,'Branch Code'=>$application->bankDetails->branch_code,'Account Type'=>ucfirst($application->bankDetails->account_type??'')] as $l=>$v)
           <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
           @endforeach
 
@@ -832,4 +842,179 @@ function sendChatMessage(e) {
 }
 </script>
 
+@if($application->employment)
+{{-- Edit Employment Modal --}}
+<div class="mo" id="editEmploymentModal">
+    <div class="mb" style="max-width:700px">
+        <form action="{{ route('admin.applications.update-employment', $application) }}" method="POST">
+            @csrf
+            <div class="mh">
+                <div class="mt">Edit Employment Details</div>
+                <button type="button" class="mc" onclick="closeModal('editEmploymentModal')">&times;</button>
+            </div>
+            <div class="mbody">
+                <div class="g2">
+                    <div class="fg">
+                        <label class="fl">Employer Name</label>
+                        <input type="text" name="employer_name" class="fc" value="{{ $application->employment->employer_name }}" required>
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Employer Type</label>
+                        <select name="employer_type" class="fc" required onchange="toggleCategoryEdit(this.value)">
+                            @foreach(['government'=>'Government','private'=>'Private Sector','sme'=>'SMEs'] as $v=>$l)
+                            <option value="{{ $v }}" {{ $application->employment->employer_type === $v ? 'selected' : '' }}>{{ $l }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="fg" id="category_edit_wrapper" style="{{ $application->employment->employer_type === 'government' ? '' : 'display:none' }}">
+                    <label class="fl">Work Sector / Category</label>
+                    <select name="employer_category" class="fc">
+                        <option value="">— Select Category —</option>
+                        @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher'] as $c)
+                        <option {{ $application->employment->employer_category === $c ? 'selected' : '' }}>{{ $c }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="g2">
+                    <div class="fg">
+                        <label class="fl">Job Title</label>
+                        <input type="text" name="job_title" class="fc" value="{{ $application->employment->job_title }}">
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Department</label>
+                        <input type="text" name="department" class="fc" value="{{ $application->employment->department }}">
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Employee Number</label>
+                        <input type="text" name="employment_number" class="fc" value="{{ $application->employment->employment_number }}">
+                    </div>
+                    <div class="fg">
+                        <label class="fl">HR/Employer Contact</label>
+                        <input type="text" name="contact_number" class="fc" value="{{ $application->employment->contact_number }}">
+                    </div>
+                </div>
+            </div>
+            <div class="mf">
+                <button type="button" class="btn btn-o" onclick="closeModal('editEmploymentModal')">Cancel</button>
+                <button type="submit" class="btn btn-p">Update Employment</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
+@if($application->bankDetails)
+{{-- Edit Bank Modal --}}
+<div class="mo" id="editBankModal">
+    <div class="mb">
+        <form action="{{ route('admin.applications.update-bank-details', $application) }}" method="POST">
+            @csrf
+            <div class="mh">
+                <div class="mt">Edit Bank Details</div>
+                <button type="button" class="mc" onclick="closeModal('editBankModal')">&times;</button>
+            </div>
+            <div class="mbody">
+                <div class="fg">
+                    <label class="fl">Bank Name *</label>
+                    <select name="bank_name" id="edit_bank_name" class="fc" data-prev="{{ $application->bankDetails->bank_name }}" required onchange="loadBranchesEdit(this.value)">
+                        <option value="">— Select Bank —</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label class="fl">Account Holder Name *</label>
+                    <input type="text" name="account_holder_name" class="fc" value="{{ $application->bankDetails->account_holder_name }}" required>
+                </div>
+                <div class="fg">
+                    <label class="fl">Account Number *</label>
+                    <input type="text" name="account_number" class="fc" value="{{ $application->bankDetails->account_number }}" required>
+                </div>
+                <div class="g2">
+                    <div class="fg">
+                        <label class="fl">Branch Name *</label>
+                        <select name="branch_name" id="edit_branch_name" class="fc" data-prev="{{ $application->bankDetails->branch_name }}" required onchange="updateBranchCodeEdit(this.options[this.selectedIndex])">
+                            <option value="">— Select Branch —</option>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Branch Code</label>
+                        <input type="text" name="branch_code" id="edit_branch_code" class="fc" value="{{ $application->bankDetails->branch_code }}" placeholder="Auto-filled">
+                    </div>
+                </div>
+                <div class="fg">
+                    <label class="fl">Account Type</label>
+                    <select name="account_type" class="fc" required>
+                        <option value="savings" {{ $application->bankDetails->account_type === 'savings' ? 'selected' : '' }}>Savings</option>
+                        <option value="cheque" {{ $application->bankDetails->account_type === 'cheque' ? 'selected' : '' }}>Cheque / Current</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mf">
+                <button type="button" class="btn btn-o" onclick="closeModal('editBankModal')">Cancel</button>
+                <button type="submit" class="btn btn-p">Update Bank Details</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
+<script>
+function showEditEmploymentModal() { openModal('editEmploymentModal'); }
+function showEditBankModal() { openModal('editBankModal'); }
+function toggleCategoryEdit(type) {
+    const wrapper = document.getElementById('category_edit_wrapper');
+    if(wrapper) {
+        wrapper.style.display = (type === 'government') ? '' : 'none';
+        if(type !== 'government') {
+            const sel = wrapper.querySelector('select');
+            if(sel) sel.value = '';
+        }
+    }
+}
+
+async function loadBanksEdit() {
+    const el = document.getElementById('edit_bank_name');
+    if (!el) return;
+    try {
+        const res = await fetch('/api/banks');
+        const banks = await res.json();
+        const prev = el.getAttribute('data-prev');
+        banks.forEach(b => {
+            const opt = new Option(b.name, b.id);
+            if (b.id == prev || b.name == prev) opt.selected = true;
+            el.add(opt);
+        });
+        if (el.value) loadBranchesEdit(el.value);
+    } catch(e) {}
+}
+
+async function loadBranchesEdit(bankId) {
+    const el = document.getElementById('edit_branch_name');
+    if (!el || !bankId) return;
+    el.innerHTML = '<option value="">— Select Branch —</option>';
+    try {
+        const res = await fetch(`/api/banks/${bankId}/branches`);
+        const branches = await res.json();
+        const prev = el.getAttribute('data-prev');
+        branches.forEach(b => {
+            const opt = new Option(b.name, b.name);
+            opt.setAttribute('data-code', b.code);
+            if (b.name == prev) opt.selected = true;
+            el.add(opt);
+        });
+        updateBranchCodeEdit(el.options[el.selectedIndex]);
+    } catch(e) {}
+}
+
+function updateBranchCodeEdit(opt) {
+    const codeEl = document.getElementById('edit_branch_code');
+    if (codeEl && opt && opt.getAttribute('data-code')) {
+        codeEl.value = opt.getAttribute('data-code');
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    loadBanksEdit();
+});
+</script>
 @endsection

@@ -12,11 +12,10 @@ $titles = [
   6=>'Affordability',
   7=>'Loan Details',
   8=>'Upload Documents',
-  9=>'Card Setup',
-  10=>'Review & Submit'
+  9=>'Review & Submit'
 ];
 $stepTitle = $titles[(int)$step] ?? 'Step '.$step;
-$totalSteps = 10;
+$totalSteps = 9;
 @endphp
 
 {{-- Progress --}}
@@ -36,7 +35,7 @@ $totalSteps = 10;
 </div>
 
 <div class="card">
-<form id="stepForm" method="POST" action="{{ $step === 10 ? route('borrower.apply.submit', $application) : route('borrower.apply.step.save', [$application, $step]) }}" enctype="multipart/form-data">
+<form id="stepForm" method="POST" action="{{ $step === 9 ? route('borrower.apply.submit', $application) : route('borrower.apply.step.save', [$application, $step]) }}" enctype="multipart/form-data">
     @csrf
     <div class="card-body">
 
@@ -108,10 +107,10 @@ $totalSteps = 10;
       @php $emp = $application->employment; @endphp
       <div class="g2">
         <div class="fg"><label class="fl">Employer Name *</label><input type="text" name="employer_name" class="fc" value="{{ old('employer_name',$emp?->employer_name) }}" required></div>
-        <div class="fg"><label class="fl">Employer Type *</label><select name="employer_type" class="fc" required><option value="">—</option>@foreach(['government'=>'Government','private'=>'Private Sector','ngo'=>'NGO / Non-profit','self_employed'=>'Self Employed'] as $v=>$l)<option value="{{ $v }}" {{ $emp?->employer_type===$v?'selected':'' }}>{{ $l }}</option>@endforeach</select></div>
-        <div class="fg">
+        <div class="fg"><label class="fl">Employer Type *</label><select name="employer_type" id="employer_type" class="fc" required><option value="">—</option>@foreach(['government'=>'Government','private'=>'Private Sector','sme'=>'SMEs'] as $v=>$l)<option value="{{ $v }}" {{ $emp?->employer_type===$v?'selected':'' }}>{{ $l }}</option>@endforeach</select></div>
+        <div class="fg" id="category_wrapper" style="{{ ($emp?->employer_type === 'government') ? '' : 'display:none' }}">
           <label class="fl">Work Sector / Category *</label>
-          <select name="employer_category" class="fc" required>
+          <select name="employer_category" id="employer_category" class="fc" {{ ($emp?->employer_type === 'government') ? 'required' : '' }}>
             <option value="">— Select Category —</option>
             @foreach(['Defence','Nss','Police','Lcs','Pensioner','Civil servants','Teacher'] as $cat)
               <option value="{{ $cat }}" {{ (old('employer_category', $emp?->employer_category) == $cat) ? 'selected' : '' }}>{{ $cat }}</option>
@@ -130,12 +129,17 @@ $totalSteps = 10;
       @php $bank = $application->bankDetails; @endphp
       <div class="g2">
         <div class="fg"><label class="fl">Bank Name *</label>
-          <select name="bank_name" class="fc" required>
+          <select name="bank_name" id="bank_name" class="fc" data-prev="{{ old('bank_name',$bank?->bank_name) }}" required onchange="loadBranches(this.value)">
             <option value="">— Select Bank —</option>
-            @foreach(['Lesotho PostBank','Standard Lesotho Bank','Nedbank Lesotho','First National Bank Lesotho','Other'] as $b)
-            <option {{ old('bank_name',$bank?->bank_name)===$b?'selected':'' }}>{{ $b }}</option>
-            @endforeach
           </select>
+        </div>
+        <div class="fg"><label class="fl">Branch Name *</label>
+            <select name="branch_name" id="branch_name" class="fc" data-prev="{{ old('branch_name',$bank?->branch_name) }}" required onchange="updateBranchCode(this.options[this.selectedIndex])">
+                <option value="">— Select Branch —</option>
+            </select>
+        </div>
+        <div class="fg"><label class="fl">Branch Code</label>
+            <input type="text" name="branch_code" id="branch_code" class="fc" value="{{ old('branch_code',$bank?->branch_code) }}" placeholder="Auto-filled">
         </div>
         <div class="fg"><label class="fl">Account Holder Name *</label><input type="text" name="account_holder_name" class="fc" value="{{ old('account_holder_name',$bank?->account_holder_name) }}" required></div>
         <div class="fg"><label class="fl">Account Number *</label><input type="text" name="account_number" class="fc" value="{{ old('account_number',$bank?->account_number) }}" required></div>
@@ -344,64 +348,8 @@ $totalSteps = 10;
       </div>
       @endforeach
 
-      {{-- STEP 9: Card Tokenization --}}
+      {{-- STEP 9: Review & Submit --}}
       @elseif($step === 9)
-      
-      @if($application->fee_paid)
-      <div style="text-align: center; padding: 30px 20px;">
-        <div style="width: 70px; height: 70px; background: rgba(22,163,74,.1); color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 36px;">
-            <i class="bi bi-patch-check-fill"></i>
-        </div>
-        <div style="font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: var(--navy); margin-bottom: 8px;">Payment Successful</div>
-        <p style="color: var(--muted); margin-bottom: 25px; font-size: 15px;">Your application fee of <strong>M{{ number_format($application->fee_amount_paid, 2) }}</strong> has been received successfully. You can now proceed to the final review.</p>
-        
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: inline-block; min-width: 250px; text-align: left;">
-            <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; font-weight: 700;">Status</div>
-            <div style="font-size: 15px; font-weight: 700; color: #16a34a; display: flex; align-items: center; gap: 8px;">
-                Fee Paid <i class="bi bi-check-all"></i>
-            </div>
-        </div>
-      </div>
-      @else
-      <div class="alert a-ok"><i class="bi bi-shield-lock-fill"></i><div><strong>Secure Card Collection</strong><br>Enter your card details below for future repayments. All card information is stored securely and encrypted. An application fee will be charged after this step.</div></div>
-      
-      <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Bank Card Details</div>
-      <div style="background:linear-gradient(135deg,var(--navy),var(--navy3));border-radius:14px;padding:28px;color:#fff;margin-bottom:20px">
-        <div style="font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Bank Card Preview</div>
-        <div style="font-size:20px;font-weight:700;letter-spacing:.15em;margin-bottom:20px" id="cardPreview">•••• •••• •••• ••••</div>
-        <div style="display:flex;justify-content:space-between">
-          <div><div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:3px">CARDHOLDER</div><div style="font-size:13px;font-weight:600" id="cardNamePreview">YOUR NAME</div></div>
-          <div><div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:3px">EXPIRES</div><div style="font-size:13px;font-weight:600" id="cardExpiryPreview">MM/YY</div></div>
-        </div>
-      </div>
-      <div class="g2">
-        <div class="fg" style="grid-column:span 2">
-          <label class="fl">Cardholder Name *</label>
-          <input type="text" name="card_name" class="fc" placeholder="As it appears on your card" required oninput="document.getElementById('cardNamePreview').textContent=this.value||'YOUR NAME'">
-        </div>
-        <div class="fg" style="grid-column:span 2">
-          <label class="fl">Card Number *</label>
-          <input type="text" name="card_number" class="fc" placeholder="1234 5678 9012 3456" maxlength="19" required
-            oninput="formatCard(this);document.getElementById('cardPreview').textContent=this.value.replace(/\d(?=\d{4})/g,'•').padEnd(19,'•')">
-        </div>
-        <div class="fg">
-          <label class="fl">Expiry Date *</label>
-          <input type="text" name="card_expiry" class="fc" placeholder="MM/YY" maxlength="5" required
-            oninput="formatExpiry(this, event);document.getElementById('cardExpiryPreview').textContent=this.value||'MM/YY'">
-        </div>
-        <div class="fg">
-          <label class="fl">CVV *</label>
-          <input type="password" name="card_cvv" class="fc" placeholder="•••" maxlength="4" required>
-        </div>
-      </div>
-      <div style="background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.2);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--slate)">
-        <i class="bi bi-lock-fill" style="color:#16a34a;margin-right:6px"></i>
-        Your card details are encrypted end-to-end. Your card will only be used for loan repayments as per your agreement.
-      </div>
-      @endif
-
-      {{-- STEP 10: Review & Submit --}}
-      @elseif($step === 10)
       <div class="alert a-ok"><i class="bi bi-check-circle-fill"></i> Review everything below and put your signature before submitting.</div>
 
       {{-- Personal --}}
@@ -445,17 +393,17 @@ $totalSteps = 10;
       <div style="background:#f8fafc;border:1px dashed var(--border);border-radius:10px;padding:16px;margin-bottom:16px">
         <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--navy)"><i class="bi bi-upload" style="margin-right:6px;color:var(--blue)"></i>Upload Additional Documents</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-            <select name="type" class="fc" required style="padding:9px 11px;font-size:13px" form="uploadForm_step10">
+            <select name="type" class="fc" required style="padding:9px 11px;font-size:13px" form="uploadForm_step9">
               <option value="">— Document Type —</option>
               @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','other'=>'Other'] as $v=>$l)
               <option value="{{ $v }}">{{ $l }}</option>
               @endforeach
             </select>
-            <input type="file" id="file_step10" name="file" class="fc" accept=".pdf,.jpg,.jpeg,.png" required style="padding:7px 11px;font-size:13px" form="uploadForm_step10">
+            <input type="file" id="file_step9" name="file" class="fc" accept=".pdf,.jpg,.jpeg,.png" required style="padding:7px 11px;font-size:13px" form="uploadForm_step9">
             <div style="display:flex;gap:6px">
-              <input type="file" id="cam_step10" accept="image/*" capture="environment" style="display:none" onchange="if(this.files.length){const df=new DataTransfer();df.items.add(this.files[0]);document.getElementById('file_step10').files=df.files;document.getElementById('uploadForm_step10').submit();}">
-              <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('cam_step10').click()" title="Take Photo" style="height:40px;padding:0 12px"><i class="bi bi-camera" style="font-size:16px"></i></button>
-              <button type="submit" class="btn btn-p btn-sm" style="height:40px;flex:1" form="uploadForm_step10">Upload</button>
+              <input type="file" id="cam_step9" accept="image/*" capture="environment" style="display:none" onchange="if(this.files.length){const df=new DataTransfer();df.items.add(this.files[0]);document.getElementById('file_step9').files=df.files;document.getElementById('uploadForm_step9').submit();}">
+              <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('cam_step9').click()" title="Take Photo" style="height:40px;padding:0 12px"><i class="bi bi-camera" style="font-size:16px"></i></button>
+              <button type="submit" class="btn btn-p btn-sm" style="height:40px;flex:1" form="uploadForm_step9">Upload</button>
             </div>
           </div>
       </div>
@@ -481,7 +429,7 @@ $totalSteps = 10;
       @if($step > 1)
       <a href="{{ route('borrower.apply.step.show', [$application, $step-1]) }}" class="btn btn-o"><i class="bi bi-chevron-left"></i> Back</a>
       @else<div></div>@endif
-      @if($step < 10)
+      @if($step < 9)
       <button type="submit" class="btn btn-p">Save & Continue <i class="bi bi-chevron-right"></i></button>
       @else
       <button type="submit" class="btn btn-ok"><i class="bi bi-send-fill"></i> Submit Application</button>
@@ -599,8 +547,8 @@ function uploadLivePhoto(dtype, btn) {
 </script>
 @endif
 
-@if($step === 10)
-    <form id="uploadForm_step10" method="POST" action="{{ route('borrower.documents.upload.application',$application) }}" enctype="multipart/form-data">
+@if($step === 9)
+    <form id="uploadForm_step9" method="POST" action="{{ route('borrower.documents.upload.application',$application) }}" enctype="multipart/form-data">
         @csrf
     </form>
 @endif
@@ -707,8 +655,71 @@ function captureGPS() {
     ()=>{s.textContent='Could not capture. Please enter address manually.';}
   ,{enableHighAccuracy:true,timeout:10000});
 }
+
+async function loadBanks() {
+    const el = document.getElementById('bank_name');
+    if (!el) return;
+    try {
+        const res = await fetch('/api/banks');
+        const banks = await res.json();
+        const prev = el.getAttribute('data-prev');
+        banks.forEach(b => {
+            const opt = new Option(b.name, b.id);
+            if (b.id == prev || b.name == prev) opt.selected = true;
+            el.add(opt);
+        });
+        if (el.value) loadBranches(el.value);
+    } catch(e) {}
+}
+
+async function loadBranches(bankId) {
+    const el = document.getElementById('branch_name');
+    if (!el || !bankId) return;
+    el.innerHTML = '<option value="">— Select Branch —</option>';
+    try {
+        const res = await fetch(`/api/banks/${bankId}/branches`);
+        const branches = await res.json();
+        const prev = el.getAttribute('data-prev');
+        branches.forEach(b => {
+            const opt = new Option(b.name, b.name);
+            opt.setAttribute('data-code', b.code);
+            if (b.name == prev) opt.selected = true;
+            el.add(opt);
+        });
+        updateBranchCode(el.options[el.selectedIndex]);
+    } catch(e) {}
+}
+
+function updateBranchCode(opt) {
+    const codeEl = document.getElementById('branch_code');
+    if (codeEl && opt && opt.getAttribute('data-code')) {
+        codeEl.value = opt.getAttribute('data-code');
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadBanks);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const typeSelect = document.getElementById('employer_type');
+    const catWrapper = document.getElementById('category_wrapper');
+    const catSelect  = document.getElementById('employer_category');
+
+    if (typeSelect && catWrapper) {
+        typeSelect.addEventListener('change', function() {
+            if (this.value === 'government') {
+                catWrapper.style.display = 'block';
+                catSelect.setAttribute('required', 'required');
+            } else {
+                catWrapper.style.display = 'none';
+                catSelect.removeAttribute('required');
+                catSelect.value = '';
+            }
+        });
+    }
+});
+</script>
 <script>
 // Step 10: Signature Pad
 let sigPad;

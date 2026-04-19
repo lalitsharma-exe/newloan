@@ -48,13 +48,10 @@ class ApplicationController extends Controller
             return redirect()->route('borrower.apply.step.show', [$application, $application->step]);
         }
 
-        // Protection for Step 10: must have paid fee if configured
-        if ($step === 10) {
-            $fee = (float) SystemSetting::get('application_fee', 0);
-            if ($fee > 0 && !$application->fee_paid) {
-                return redirect()->route('borrower.apply.pay-fee', $application)
-                    ->with('info', 'Please pay the application fee before reviewing your application.');
-            }
+        // Protection for Step 9: users can review, but Submit button will trigger fee check
+        // (Removed the automatic redirect from here so they can see their summary)
+        if ($step > 9) {
+            return redirect()->route('borrower.apply.step.show', [$application, 9]);
         }
 
         $application->load(['loanProduct','affordability','employment','bankDetails','nextOfKin']);
@@ -65,8 +62,8 @@ class ApplicationController extends Controller
     public function saveStep(Request $request, LoanApplication $application, int $step) {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
 
-        $totalSteps = 10;
-        $nextStep   = min($step + 1, $totalSteps); // ← FIX: was min($step+1, 9)
+        $totalSteps = 9;
+        $nextStep   = min($step + 1, $totalSteps);
 
         // ── Step-specific handlers ──────────────────────────────────
         if ($step === 3)  $this->saveEmployment($request, $application);
@@ -103,31 +100,8 @@ class ApplicationController extends Controller
                 return back()->with('error', 'Please upload all required documents ('.implode(', ', array_map(fn($v)=>ucwords(str_replace('_',' ',$v)),$missing)).') before continuing.');
             }
         }
-        if ($step === 9) {
-            // If fee is already paid, just advance to Step 10
-            if ($application->fee_paid) {
-                $application->update(['step' => 10]);
-                return redirect()->route('borrower.apply.step.show', [$application, 10]);
-            }
-
-            $this->saveCardToken($request, $application);
-
-            $fee = (float) SystemSetting::get('application_fee', 10);
-            
-            if ($fee > 0 && !$application->fee_paid) {
-                // Redirect to application fee payment
-                $application->update(['card_tokenised' => true]); 
-                return redirect()->route('borrower.apply.pay-fee', $application);
-            }
-
-            // No fee — advance to review
-            $application->update([
-                'card_tokenised' => true,
-                'step'           => 10,
-            ]);
-            return redirect()->route('borrower.apply.step.show', [$application, 10])
-                ->with('success', 'Card details saved. Please review and submit your application.');
-        }
+        
+        // Step 9 is Review & Submit, handled separately via the submit() route.
 
         // ── Fields to exclude from direct application update ────────
         // (handled by their own save methods above)
@@ -163,7 +137,7 @@ class ApplicationController extends Controller
         if ($step < $totalSteps) {
             return redirect()->route('borrower.apply.step.show', [$application, $nextStep]);
         }
-        // Step 10 — stay on review page (submit button uses different action)
+        // Step 9 — stay on review page (submit button uses different action)
         return redirect()->route('borrower.apply.step.show', [$application, $totalSteps]);
     }
 
@@ -175,7 +149,14 @@ class ApplicationController extends Controller
 
     public function submit(Request $request, LoanApplication $application) {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        
+
+        // ── APPLICATION FEE HURDLE ──────────────────────────────────
+        $fee = (float) \App\Models\SystemSetting::get('application_fee', 0);
+        if ($fee > 0 && !$application->fee_paid) {
+            return redirect()->route('borrower.apply.pay-fee', $application)
+                ->with('info', 'Please pay the application fee of M' . number_format($fee, 2) . ' to submit your application.');
+        }
+
         $signaturePath = $application->signature_path;
         if ($request->filled('signature_data')) {
             $data = $request->input('signature_data');
@@ -317,7 +298,7 @@ class ApplicationController extends Controller
         
         $fee = (float) SystemSetting::get('application_fee', 0);
         if ($fee <= 0 || $application->fee_paid) {
-            return redirect()->route('borrower.apply.step.show', [$application, 10]);
+            return redirect()->route('borrower.apply.step.show', [$application, 9]);
         }
 
         $cpay = app(CPayService::class);
@@ -338,7 +319,7 @@ class ApplicationController extends Controller
         
         $fee = (float) SystemSetting::get('application_fee', 0);
         if ($fee <= 0 || $application->fee_paid) {
-             return redirect()->route('borrower.apply.step.show', [$application, 10]);
+             return redirect()->route('borrower.apply.step.show', [$application, 9]);
         }
 
         $user = auth('borrower')->user();
@@ -409,7 +390,7 @@ class ApplicationController extends Controller
         ]);
 
         return redirect()->route('borrower.apply.step.show', [$application, 9])
-            ->with('success', 'Application fee of M' . number_format($application->fee_amount_paid, 2) . ' paid successfully!');
+            ->with('success', 'Application fee of M' . number_format($application->fee_amount_paid, 2) . ' paid successfully! You can now submit your application.');
     }
 
     // ── Private save helpers ─────────────────────────────────────
@@ -582,7 +563,7 @@ class ApplicationController extends Controller
             [
                 'employer_name'          => $request->employer_name,
                 'employer_type'          => $request->employer_type,
-                'employer_category'      => $request->employer_category,
+                'employer_category'      => ($request->employer_type === 'government') ? $request->employer_category : null,
                 'job_title'              => $request->job_title,
                 'department'             => $request->department,
                 'employment_number'      => $request->employment_number,

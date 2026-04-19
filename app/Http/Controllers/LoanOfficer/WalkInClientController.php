@@ -79,7 +79,7 @@ class WalkInClientController extends Controller
     // ── Show step ────────────────────────────────────────────────────────
     public function showStep(LoanApplication $application, int $step)
     {
-        $step = max(1, min(10, $step));
+        $step = max(1, min(9, $step));
         $application->load(['user', 'loanProduct', 'affordability', 'employment', 'bankDetails', 'nextOfKin']);
         $products = LoanProduct::active()->get();
         return view('officer.walk-in.step', compact('application', 'step', 'products'));
@@ -88,8 +88,8 @@ class WalkInClientController extends Controller
     // ── Save step ────────────────────────────────────────────────────────
     public function saveStep(Request $request, LoanApplication $application, int $step)
     {
-        $step     = max(1, min(10, $step));
-        $nextStep = min($step + 1, 10);
+        $step     = max(1, min(9, $step));
+        $nextStep = min($step + 1, 9);
 
         match ($step) {
             1 => $this->savePersonal($request, $application),
@@ -100,8 +100,7 @@ class WalkInClientController extends Controller
             6 => $this->saveAffordability($request, $application),
             7 => $this->saveLoanDetails($request, $application),
             8 => $this->saveDocuments($request, $application),
-            9 => $this->saveCardToken($request, $application),
-            10 => null,
+            9 => null,
         };
 
         if ($nextStep > ($application->fresh()->step ?? 1)) {
@@ -214,16 +213,17 @@ class WalkInClientController extends Controller
 
     private function saveBankDetails(Request $request, LoanApplication $application): void
     {
-        $data = $request->validate([
-            'bank_name'           => 'required|string|max:100',
-            'account_holder_name' => 'required|string|max:150',
-            'account_number'      => 'required|string|max:50',
-            'account_type'        => 'required|string|max:30',
-        ]);
-
+        $id = $application->id;
         $application->bankDetails()->updateOrCreate(
-            ['application_id' => $application->id],
-            $data
+            ['application_id' => $id],
+            [
+                'bank_name'           => $request->bank_name,
+                'branch_name'         => $request->branch_name,
+                'branch_code'         => $request->branch_code,
+                'account_holder_name' => $request->account_holder_name,
+                'account_number'      => $request->account_number,
+                'account_type'        => $request->account_type,
+            ]
         );
     }
 
