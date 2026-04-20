@@ -150,6 +150,44 @@ class ApplicationController extends Controller
         return redirect()->back()->with('success', 'Bank details updated successfully.');
     }
 
+    public function updatePersonal(Request $request, LoanApplication $application)
+    {
+        $data = $request->validate([
+            'title'          => 'nullable|string|max:10',
+            'first_name'     => 'required|string|max:100',
+            'surname'        => 'required|string|max:100',
+            'maiden_name'    => 'nullable|string|max:100',
+            'national_id'    => 'required|string|max:50',
+            'date_of_birth'  => 'nullable|date',
+            'gender'         => 'nullable|string|max:20',
+            'marital_status' => 'nullable|string|max:20',
+            'cell_number'    => 'required|string|max:20',
+            'email'          => 'nullable|email|max:100',
+        ]);
+
+        $application->update($data);
+
+        return redirect()->back()->with('success', 'Personal information updated successfully.');
+    }
+
+    public function updateAddress(Request $request, LoanApplication $application)
+    {
+        $data = $request->validate([
+            'residential_address' => 'required|string|max:255',
+            'village'             => 'required|string|max:100',
+            'town'                => 'required|string|max:100',
+            'district'            => 'required|string|max:50',
+            'address_duration'    => 'nullable|string|max:50',
+            'residence_type'      => 'nullable|string|max:50',
+            'nearest_landmark'    => 'nullable|string|max:255',
+            'home_directions'     => 'nullable|string|max:500',
+        ]);
+
+        $application->update($data);
+
+        return redirect()->back()->with('success', 'Address details updated successfully.');
+    }
+
     public function approve(Request $request, LoanApplication $application)
     {
         $request->validate([

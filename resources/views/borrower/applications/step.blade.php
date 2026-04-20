@@ -139,7 +139,7 @@ $totalSteps = 9;
             </select>
         </div>
         <div class="fg"><label class="fl">Branch Code</label>
-            <input type="text" name="branch_code" id="branch_code" class="fc" value="{{ old('branch_code',$bank?->branch_code) }}" placeholder="Auto-filled">
+            <input type="text" name="branch_code" id="branch_code" class="fc" value="{{ old('branch_code',$bank?->branch_code) }}" placeholder="Auto-filled" readonly>
         </div>
         <div class="fg"><label class="fl">Account Holder Name *</label><input type="text" name="account_holder_name" class="fc" value="{{ old('account_holder_name',$bank?->account_holder_name) }}" required></div>
         <div class="fg"><label class="fl">Account Number *</label><input type="text" name="account_number" class="fc" value="{{ old('account_number',$bank?->account_number) }}" required></div>
@@ -350,7 +350,18 @@ $totalSteps = 9;
 
       {{-- STEP 9: Review & Submit --}}
       @elseif($step === 9)
+      @php $fee = (float) \App\Models\SystemSetting::get('application_fee', 0); @endphp
       <div class="alert a-ok"><i class="bi bi-check-circle-fill"></i> Review everything below and put your signature before submitting.</div>
+      
+      @if($fee > 0 && !$application->fee_paid)
+      <div style="background:rgba(79,70,229,.05);border:1px solid rgba(79,70,229,.2);border-radius:12px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:50%;background:rgba(79,70,229,.1);display:flex;align-items:center;justify-content:center;color:var(--p);flex-shrink:0"><i class="bi bi-credit-card-fill"></i></div>
+        <div>
+          <div style="font-weight:700;color:var(--navy);font-size:13.5px">Application Fee: M{{ number_format($fee, 2) }}</div>
+          <div style="font-size:12px;color:var(--muted)">A one-time fee is required to submit your application. You will be redirected to the payment page after clicking submit.</div>
+        </div>
+      </div>
+      @endif
 
       {{-- Personal --}}
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Personal Information</div>

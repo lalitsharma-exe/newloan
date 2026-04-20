@@ -70,13 +70,13 @@ class BankSeeder extends Seeder
                 'Kingsway' => '280261',
                 'Butha Buthe' => '280561',
                 'Mafeteng' => '280861',
-                'Ty' => '',
+                'Teyateyaneng' => '282961',
                 'Hlotse' => '282861',
-                'Mokhotlong' => '',
-                'Masianokeng' => '',
-                'Maseru Mall' => '',
-                'Quthing' => '',
-                'Mohale’s Hoek' => '',
+                'Mokhotlong' => '283261',
+                'Masianokeng' => '282761',
+                'Maseru Mall' => '280061',
+                'Quthing' => '280061',
+                'Mohale’s Hoek' => '280061',
             ]
         ];
 

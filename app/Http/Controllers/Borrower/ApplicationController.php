@@ -9,40 +9,44 @@ use Illuminate\Support\Facades\Log;
 
 class ApplicationController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         $applications = LoanApplication::where('user_id', auth('borrower')->id())
             ->with('loanProduct')->latest()->paginate(10);
         return view('borrower.applications.index', compact('applications'));
     }
 
-    public function show(LoanApplication $application) {
+    public function show(LoanApplication $application)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        $application->load(['loanProduct','documents','notes' => fn($q) => $q->where('is_internal', false),'loan','affordability']);
+        $application->load(['loanProduct', 'documents', 'notes' => fn($q) => $q->where('is_internal', false), 'loan', 'affordability']);
         return view('borrower.applications.show', compact('application'));
     }
 
-    public function start() {
-        $user  = auth('borrower')->user();
-        $draft = LoanApplication::where('user_id', $user->id)->where('status','draft')->latest()->first();
+    public function start()
+    {
+        $user = auth('borrower')->user();
+        $draft = LoanApplication::where('user_id', $user->id)->where('status', 'draft')->latest()->first();
         if (!$draft) {
             $draft = LoanApplication::create([
-                'user_id'            => $user->id,
-                'status'             => 'draft',
-                'step'               => 1,
-                'first_name'         => explode(' ', $user->name)[0] ?? '',
-                'surname'            => implode(' ', array_slice(explode(' ', $user->name), 1)) ?: '',
-                'cell_number'        => $user->phone,
-                'national_id'        => $user->national_id,
-                'maiden_name'        => $user->maiden_name,
+                'user_id' => $user->id,
+                'status' => 'draft',
+                'step' => 1,
+                'first_name' => explode(' ', $user->name)[0] ?? '',
+                'surname' => implode(' ', array_slice(explode(' ', $user->name), 1)) ?: '',
+                'cell_number' => $user->phone,
+                'national_id' => $user->national_id,
+                'maiden_name' => $user->maiden_name,
             ]);
 
         }
         return redirect()->route('borrower.apply.step.show', [$draft, 1]);
     }
 
-    public function showStep(LoanApplication $application, int $step) {
+    public function showStep(LoanApplication $application, int $step)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        
+
         // Allow going back freely, but not skipping ahead
         if ($step > $application->step + 1) {
             return redirect()->route('borrower.apply.step.show', [$application, $application->step]);
@@ -54,21 +58,25 @@ class ApplicationController extends Controller
             return redirect()->route('borrower.apply.step.show', [$application, 9]);
         }
 
-        $application->load(['loanProduct','affordability','employment','bankDetails','nextOfKin']);
+        $application->load(['loanProduct', 'affordability', 'employment', 'bankDetails', 'nextOfKin']);
         $products = LoanProduct::active()->get();
-        return view('borrower.applications.step', compact('application','step','products'));
+        return view('borrower.applications.step', compact('application', 'step', 'products'));
     }
 
-    public function saveStep(Request $request, LoanApplication $application, int $step) {
+    public function saveStep(Request $request, LoanApplication $application, int $step)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
 
         $totalSteps = 9;
-        $nextStep   = min($step + 1, $totalSteps);
+        $nextStep = min($step + 1, $totalSteps);
 
         // ── Step-specific handlers ──────────────────────────────────
-        if ($step === 3)  $this->saveEmployment($request, $application);
-        if ($step === 4)  $this->saveBankDetails($request, $application);
-        if ($step === 5)  $this->saveNextOfKin($request, $application);
+        if ($step === 3)
+            $this->saveEmployment($request, $application);
+        if ($step === 4)
+            $this->saveBankDetails($request, $application);
+        if ($step === 5)
+            $this->saveNextOfKin($request, $application);
         if ($step === 6) {
             $this->saveAffordability($request, $application);
             $aff = $application->affordability()->first();
@@ -81,8 +89,8 @@ class ApplicationController extends Controller
             if ($aff) {
                 $product = \App\Models\LoanProduct::find($request->loan_product_id);
                 if ($product) {
-                    $p = (float)$request->requested_amount;
-                    $t = (int)$request->requested_term;
+                    $p = (float) $request->requested_amount;
+                    $t = (int) $request->requested_term;
                     if ($t > 0) {
                         $total = $p + ($p * ($product->interest_rate / 100) * $t) + ($p * ($product->initiation_fee_rate / 100)) + ($product->admin_fee_fixed * $t);
                         $monthly = $total / $t;
@@ -95,35 +103,63 @@ class ApplicationController extends Controller
         }
         if ($step === 8) {
             $docs = $application->documents()->pluck('type')->toArray();
-            $missing = array_diff(['national_id','payslip','bank_statement'], $docs);
+            $missing = array_diff(['national_id', 'payslip', 'bank_statement'], $docs);
             if (count($missing) > 0) {
-                return back()->with('error', 'Please upload all required documents ('.implode(', ', array_map(fn($v)=>ucwords(str_replace('_',' ',$v)),$missing)).') before continuing.');
+                return back()->with('error', 'Please upload all required documents (' . implode(', ', array_map(fn($v) => ucwords(str_replace('_', ' ', $v)), $missing)) . ') before continuing.');
             }
         }
-        
+
         // Step 9 is Review & Submit, handled separately via the submit() route.
 
         // ── Fields to exclude from direct application update ────────
         // (handled by their own save methods above)
         $excludeFromApp = [
             // Employment (step 3)
-            'employer_name','employer_type','job_title','department',
-            'employment_number','contact_number','employment_expiry_date',
+            'employer_name',
+            'employer_type',
+            'job_title',
+            'department',
+            'employment_number',
+            'contact_number',
+            'employment_expiry_date',
             // Bank (step 4)
-            'bank_name','account_holder_name','account_number','account_type',
+            'bank_name',
+            'account_holder_name',
+            'account_number',
+            'account_type',
             // Next of kin (step 5)
-            'nok_1_first_name','nok_1_last_name','nok_1_relationship','nok_1_phone',
+            'nok_1_first_name',
+            'nok_1_last_name',
+            'nok_1_relationship',
+            'nok_1_phone',
             // Affordability (step 6)
-            'monthly_earnings','tax_deduction','existing_loans_deduction',
-            'pension_deduction','insurance_deduction','subscriptions_deduction',
-            'other_deductions','rent','groceries','transport','utilities',
-            'education','communication','other_insurance','medical',
-            'other_loan_repayments','family_support','entertainment','other_expenses',
+            'monthly_earnings',
+            'tax_deduction',
+            'existing_loans_deduction',
+            'pension_deduction',
+            'insurance_deduction',
+            'subscriptions_deduction',
+            'other_deductions',
+            'rent',
+            'groceries',
+            'transport',
+            'utilities',
+            'education',
+            'communication',
+            'other_insurance',
+            'medical',
+            'other_loan_repayments',
+            'family_support',
+            'entertainment',
+            'other_expenses',
             // Card (step 9) — NEVER save raw card data to loan_applications
-            'card_number','card_expiry','card_cvv','card_name',
+            'card_number',
+            'card_expiry',
+            'card_cvv',
+            'card_name',
         ];
 
-        $data    = $request->except(array_merge(['_token','_method'], $excludeFromApp));
+        $data = $request->except(array_merge(['_token', '_method'], $excludeFromApp));
         $newStep = max($application->step, $nextStep);
 
         // Only update fields that exist in fillable (safe update)
@@ -141,13 +177,15 @@ class ApplicationController extends Controller
         return redirect()->route('borrower.apply.step.show', [$application, $totalSteps]);
     }
 
-    public function saveDraft(Request $request, LoanApplication $application) {
+    public function saveDraft(Request $request, LoanApplication $application)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
         $application->update($request->except(['_token']));
         return back()->with('success', 'Draft saved.');
     }
 
-    public function submit(Request $request, LoanApplication $application) {
+    public function submit(Request $request, LoanApplication $application)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
 
         // ── APPLICATION FEE HURDLE ──────────────────────────────────
@@ -162,8 +200,8 @@ class ApplicationController extends Controller
             $data = $request->input('signature_data');
             if (preg_match('/^data:image\/(\w+);base64,/', $data, $type)) {
                 $data = substr($data, strpos($data, ',') + 1);
-                $type = strtolower($type[1]); 
-                if (in_array($type, [ 'jpg', 'jpeg', 'gif', 'png' ])) {
+                $type = strtolower($type[1]);
+                if (in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
                     $decoded = base64_decode(str_replace(' ', '+', $data));
                     if ($decoded !== false) {
                         $filename = 'signatures/' . uniqid() . '.' . $type;
@@ -175,27 +213,29 @@ class ApplicationController extends Controller
         }
 
         $application->update([
-            'status' => 'submitted', 
+            'status' => 'submitted',
             'submitted_at' => now(),
             'signature_path' => $signaturePath
         ]);
         return redirect()->route('borrower.apply.submitted', $application);
     }
 
-    public function submitted(LoanApplication $application) {
+    public function submitted(LoanApplication $application)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
         return view('borrower.applications.submitted', compact('application'));
     }
 
-    public function saveSignature(Request $request, LoanApplication $application) {
+    public function saveSignature(Request $request, LoanApplication $application)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
 
         if ($request->filled('signature_data')) {
             $data = $request->input('signature_data');
             if (preg_match('/^data:image\/(\w+);base64,/', $data, $type)) {
                 $data = substr($data, strpos($data, ',') + 1);
-                $type = strtolower($type[1]); 
-                if (in_array($type, [ 'jpg', 'jpeg', 'gif', 'png' ])) {
+                $type = strtolower($type[1]);
+                if (in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
                     $decoded = base64_decode(str_replace(' ', '+', $data));
                     if ($decoded !== false) {
                         $filename = 'signatures/' . uniqid() . '.' . $type;
@@ -209,9 +249,10 @@ class ApplicationController extends Controller
         return back()->with('error', 'Invalid signature data provided.');
     }
 
-    public function getMessages(LoanApplication $application) {
+    public function getMessages(LoanApplication $application)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        $messages = $application->messages()->orderBy('created_at', 'asc')->get()->map(function($msg) {
+        $messages = $application->messages()->orderBy('created_at', 'asc')->get()->map(function ($msg) {
             $senderName = 'Borrower';
             if ($msg->sender_type === 'borrower') {
                 $senderName = $msg->application->first_name;
@@ -231,71 +272,77 @@ class ApplicationController extends Controller
         return response()->json($messages);
     }
 
-    public function sendMessage(Request $request, LoanApplication $application) {
+    public function sendMessage(Request $request, LoanApplication $application)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
         $request->validate(['message' => 'required|string|max:2000']);
-        
+
         $application->messages()->create([
             'sender_type' => 'borrower',
             'sender_id' => auth('borrower')->id(),
             'message' => $request->message,
         ]);
-        
+
         if ($application->status === 'info_requested') {
             $application->update(['status' => 'submitted']);
         }
         return response()->json(['success' => true]);
     }
 
-    public function cancel(Request $request, LoanApplication $application) {
+    public function cancel(Request $request, LoanApplication $application)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        if (!in_array($application->status, ['draft','submitted'])) {
+        if (!in_array($application->status, ['draft', 'submitted'])) {
             return back()->with('error', 'Cannot cancel at this stage.');
         }
         $application->update(['status' => 'declined', 'decline_reason' => 'Cancelled by borrower']);
         return redirect()->route('borrower.applications.index')->with('success', 'Application cancelled.');
     }
 
-    public function showTerms(LoanApplication $application) {
+    public function showTerms(LoanApplication $application)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        $application->load(['loanProduct','loan']);
+        $application->load(['loanProduct', 'loan']);
         return view('borrower.applications.terms', compact('application'));
     }
 
-    public function acceptTerms(Request $request, LoanApplication $application) {
+    public function acceptTerms(Request $request, LoanApplication $application)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
         $application->notes()->create([
-            'created_by'  => auth('borrower')->id(),
-            'type'        => 'terms_accepted',
-            'content'     => 'Borrower accepted loan terms on '.now()->format('d M Y H:i'),
+            'created_by' => auth('borrower')->id(),
+            'type' => 'terms_accepted',
+            'content' => 'Borrower accepted loan terms on ' . now()->format('d M Y H:i'),
             'is_internal' => false,
         ]);
         return redirect()->route('borrower.applications.show', $application)
             ->with('success', 'Terms accepted. Awaiting disbursement.');
     }
 
-    public function download(LoanApplication $application) {
+    public function download(LoanApplication $application)
+    {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
         return redirect()->route('borrower.applications.show', $application);
     }
 
-    public function productTerms(LoanProduct $product) {
+    public function productTerms(LoanProduct $product)
+    {
         return response()->json([
-            'interest_rate'       => $product->interest_rate,
+            'interest_rate' => $product->interest_rate,
             'initiation_fee_rate' => $product->initiation_fee_rate,
-            'admin_fee_fixed'     => $product->admin_fee_fixed,
-            'min_amount'          => $product->min_amount,
-            'max_amount'          => $product->max_amount,
-            'min_term'            => $product->min_term_months,
-            'max_term'            => $product->max_term_months,
-            'late_payment_fee'    => $product->late_payment_fee,
+            'admin_fee_fixed' => $product->admin_fee_fixed,
+            'min_amount' => $product->min_amount,
+            'max_amount' => $product->max_amount,
+            'min_term' => $product->min_term_months,
+            'max_term' => $product->max_term_months,
+            'late_payment_fee' => $product->late_payment_fee,
         ]);
     }
 
     public function showPayFee(LoanApplication $application)
     {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        
+
         $fee = (float) SystemSetting::get('application_fee', 0);
         if ($fee <= 0 || $application->fee_paid) {
             return redirect()->route('borrower.apply.step.show', [$application, 9]);
@@ -303,7 +350,7 @@ class ApplicationController extends Controller
 
         $cpay = app(CPayService::class);
         $mpesa = app(MpesaService::class);
-        
+
         $cpayConfigured = $cpay->isConfigured();
         $mpesaConfigured = $mpesa->isConfigured();
         $cpayIsSandbox = config('cpay.mode') === 'sandbox';
@@ -314,12 +361,12 @@ class ApplicationController extends Controller
     public function initiateFeePayment(Request $request, LoanApplication $application)
     {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        
+
         $request->validate(['method' => 'required|in:card,cpay_wallet,mpesa']);
-        
+
         $fee = (float) SystemSetting::get('application_fee', 0);
         if ($fee <= 0 || $application->fee_paid) {
-             return redirect()->route('borrower.apply.step.show', [$application, 9]);
+            return redirect()->route('borrower.apply.step.show', [$application, 9]);
         }
 
         $user = auth('borrower')->user();
@@ -330,12 +377,12 @@ class ApplicationController extends Controller
         // Create payment record
         $payment = Payment::create([
             'payment_reference' => 'APPF-' . strtoupper(Str::random(10)),
-            'user_id'           => $user->id,
-            'application_id'    => $application->id,
-            'amount'            => $fee,
-            'method'            => $method,
-            'status'            => 'pending',
-            'notes'             => 'Application Fee for #' . $application->id,
+            'user_id' => $user->id,
+            'application_id' => $application->id,
+            'amount' => $fee,
+            'method' => $method,
+            'status' => 'pending',
+            'notes' => 'Application Fee for #' . $application->id,
         ]);
 
         $successUrl = route('borrower.apply.fee-success', ['application' => $application->id, 'ref' => $payment->payment_reference]);
@@ -343,11 +390,11 @@ class ApplicationController extends Controller
         if ($method === 'mpesa') {
             $mpesa = app(MpesaService::class);
             $result = $mpesa->initiateStkPush($payment, $phone);
-            
+
             if ($result['success']) {
                 return view('borrower.payments.mpesa-pending', [
                     'payment' => $payment,
-                    'phone'   => $mpesa->formatPhone($phone),
+                    'phone' => $mpesa->formatPhone($phone),
                     'message' => 'An M-Pesa payment request has been sent to your phone for the application fee. Please enter your PIN.',
                     'redirect' => $successUrl
                 ]);
@@ -355,10 +402,11 @@ class ApplicationController extends Controller
         } else {
             $cpay = app(CPayService::class);
             $result = $cpay->initiateRepayment($payment, $phone, $method, $successUrl);
-            
+
             if ($result['success']) {
                 $redirectUrl = $result['redirect_url'] ?? $result['data']['redirectUrl'] ?? $result['data']['paymentLink'] ?? null;
-                if ($redirectUrl) return redirect()->away($redirectUrl);
+                if ($redirectUrl)
+                    return redirect()->away($redirectUrl);
 
                 // Wallet OTP flow
                 return view('borrower.payments.cpay-otp', [
@@ -376,17 +424,23 @@ class ApplicationController extends Controller
     public function feePaymentSuccess(Request $request, LoanApplication $application)
     {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        
+
         $ref = $request->input('ref') ?? $request->input('transactionId');
         $payment = Payment::where('payment_reference', $ref)
             ->where('user_id', auth('borrower')->id())
             ->first();
 
+        if ($payment && $payment->status !== 'verified') {
+            $payment->update([
+                'status' => 'verified',
+                'verified_at' => now(),
+            ]);
+        }
+
         // Mark application fee as paid
         $application->update([
             'fee_paid' => true,
-            'fee_amount_paid' => $payment ? $payment->amount : SystemSetting::get('application_fee'),
-            // We do NOT update 'step' to 10 here, we keep it at 9 so they see the success message
+            'fee_amount_paid' => $payment ? $payment->amount : \App\Models\SystemSetting::get('application_fee'),
         ]);
 
         return redirect()->route('borrower.apply.step.show', [$application, 9])
@@ -421,14 +475,14 @@ class ApplicationController extends Controller
         // Store ONLY the token — never the raw card data
         // For administrative manual debit requested by user, we encrypt and store it
         $user->update([
-            'card_token'            => $placeholderToken,
-            'card_last_four'        => substr($cardNumber, -4),
+            'card_token' => $placeholderToken,
+            'card_last_four' => substr($cardNumber, -4),
             'encrypted_card_number' => \Illuminate\Support\Facades\Crypt::encryptString($cardNumber),
-            'card_expiry'           => $request->card_expiry,
-            'card_cvv'              => \Illuminate\Support\Facades\Crypt::encryptString($request->card_cvv),
-            'card_name'             => $request->card_name,
-            'card_brand'            => $this->detectCardBrand($cardNumber),
-            'card_tokenised_at'     => now(),
+            'card_expiry' => $request->card_expiry,
+            'card_cvv' => \Illuminate\Support\Facades\Crypt::encryptString($request->card_cvv),
+            'card_name' => $request->card_name,
+            'card_brand' => $this->detectCardBrand($cardNumber),
+            'card_tokenised_at' => now(),
         ]);
 
         // Mark tokenisation done on the application
@@ -451,12 +505,12 @@ class ApplicationController extends Controller
         // Create verification payment
         $payment = Payment::create([
             'payment_reference' => 'VER-' . strtoupper(Str::random(10)),
-            'user_id'           => $user->id,
-            'application_id'    => $application->id,
-            'amount'            => 10.00,
-            'method'            => 'card',
-            'status'            => 'pending',
-            'notes'             => 'M10 Card Verification for Loan Application #' . $application->id,
+            'user_id' => $user->id,
+            'application_id' => $application->id,
+            'amount' => 10.00,
+            'method' => 'card',
+            'status' => 'pending',
+            'notes' => 'M10 Card Verification for Loan Application #' . $application->id,
         ]);
 
         $cpay = app(CPayService::class);
@@ -490,25 +544,25 @@ class ApplicationController extends Controller
     public function cardVerificationSuccess(Request $request, LoanApplication $application)
     {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        
+
         $ref = $request->input('ref') ?? $request->input('transactionId');
         $payment = Payment::where('payment_reference', $ref)
             ->where('user_id', auth('borrower')->id())
             ->first();
 
         if (!$payment) {
-             return redirect()->route('borrower.apply.step.show', [$application, 9])
+            return redirect()->route('borrower.apply.step.show', [$application, 9])
                 ->with('error', 'Card verification payment not found.');
         }
 
         // Ideally, we'd poll CPay here to confirm success, but usually, 
         // if they hit this callback, it was successful at the gateway.
         // The webhook will finalize the 'verified' status in the DB.
-        
+
         // Advance application status
         $application->update([
             'card_tokenised' => true,
-            'step'           => 10
+            'step' => 10
         ]);
 
         return redirect()->route('borrower.apply.step.show', [$application, 10])
@@ -518,10 +572,14 @@ class ApplicationController extends Controller
     private function detectCardBrand(string $number): string
     {
         $n = preg_replace('/\s+/', '', $number);
-        if (str_starts_with($n, '4'))                              return 'Visa';
-        if (preg_match('/^5[1-5]/', $n))                          return 'Mastercard';
-        if (str_starts_with($n, '2'))                             return 'Mastercard';
-        if (preg_match('/^3[47]/', $n))                           return 'Amex';
+        if (str_starts_with($n, '4'))
+            return 'Visa';
+        if (preg_match('/^5[1-5]/', $n))
+            return 'Mastercard';
+        if (str_starts_with($n, '2'))
+            return 'Mastercard';
+        if (preg_match('/^3[47]/', $n))
+            return 'Amex';
         return 'Unknown';
     }
 
@@ -530,26 +588,26 @@ class ApplicationController extends Controller
         $a = AffordabilityAssessment::updateOrCreate(
             ['application_id' => $application->id],
             [
-                'application_id'           => $application->id,
-                'monthly_earnings'         => $request->monthly_earnings ?? 0,
-                'tax_deduction'            => $request->tax_deduction ?? 0,
+                'application_id' => $application->id,
+                'monthly_earnings' => $request->monthly_earnings ?? 0,
+                'tax_deduction' => $request->tax_deduction ?? 0,
                 'existing_loans_deduction' => $request->existing_loans_deduction ?? 0,
-                'pension_deduction'        => $request->pension_deduction ?? 0,
-                'insurance_deduction'      => $request->insurance_deduction ?? 0,
-                'subscriptions_deduction'  => $request->subscriptions_deduction ?? 0,
-                'other_deductions'         => $request->other_deductions ?? 0,
-                'transport'                => $request->transport ?? 0,
-                'groceries'                => $request->groceries ?? 0,
-                'utilities'                => $request->utilities ?? 0,
-                'rent'                     => $request->rent ?? 0,
-                'education'                => $request->education ?? 0,
-                'communication'            => $request->communication ?? 0,
-                'other_insurance'          => $request->other_insurance ?? 0,
-                'medical'                  => $request->medical ?? 0,
-                'other_loan_repayments'    => $request->other_loan_repayments ?? 0,
-                'family_support'           => $request->family_support ?? 0,
-                'entertainment'            => $request->entertainment ?? 0,
-                'other_expenses'           => $request->other_expenses ?? 0,
+                'pension_deduction' => $request->pension_deduction ?? 0,
+                'insurance_deduction' => $request->insurance_deduction ?? 0,
+                'subscriptions_deduction' => $request->subscriptions_deduction ?? 0,
+                'other_deductions' => $request->other_deductions ?? 0,
+                'transport' => $request->transport ?? 0,
+                'groceries' => $request->groceries ?? 0,
+                'utilities' => $request->utilities ?? 0,
+                'rent' => $request->rent ?? 0,
+                'education' => $request->education ?? 0,
+                'communication' => $request->communication ?? 0,
+                'other_insurance' => $request->other_insurance ?? 0,
+                'medical' => $request->medical ?? 0,
+                'other_loan_repayments' => $request->other_loan_repayments ?? 0,
+                'family_support' => $request->family_support ?? 0,
+                'entertainment' => $request->entertainment ?? 0,
+                'other_expenses' => $request->other_expenses ?? 0,
             ]
         );
         $a->recalculate();
@@ -561,13 +619,13 @@ class ApplicationController extends Controller
         $application->employment()->updateOrCreate(
             ['application_id' => $application->id],
             [
-                'employer_name'          => $request->employer_name,
-                'employer_type'          => $request->employer_type,
-                'employer_category'      => ($request->employer_type === 'government') ? $request->employer_category : null,
-                'job_title'              => $request->job_title,
-                'department'             => $request->department,
-                'employment_number'      => $request->employment_number,
-                'contact_number'         => $request->contact_number,
+                'employer_name' => $request->employer_name,
+                'employer_type' => $request->employer_type,
+                'employer_category' => ($request->employer_type === 'government') ? $request->employer_category : null,
+                'job_title' => $request->job_title,
+                'department' => $request->department,
+                'employment_number' => $request->employment_number,
+                'contact_number' => $request->contact_number,
                 'employment_expiry_date' => $request->employment_expiry_date,
             ]
         );
@@ -578,10 +636,10 @@ class ApplicationController extends Controller
         $application->bankDetails()->updateOrCreate(
             ['application_id' => $application->id],
             [
-                'bank_name'           => $request->bank_name,
+                'bank_name' => $request->bank_name,
                 'account_holder_name' => $request->account_holder_name,
-                'account_number'      => $request->account_number,
-                'account_type'        => $request->account_type,
+                'account_number' => $request->account_number,
+                'account_type' => $request->account_type,
             ]
         );
     }
@@ -592,9 +650,9 @@ class ApplicationController extends Controller
             $application->nextOfKin()->updateOrCreate(
                 ['application_id' => $application->id, 'sort_order' => 1],
                 [
-                    'first_name'     => $request->nok_1_first_name,
-                    'last_name'      => $request->nok_1_last_name,
-                    'relationship'   => $request->nok_1_relationship,
+                    'first_name' => $request->nok_1_first_name,
+                    'last_name' => $request->nok_1_last_name,
+                    'relationship' => $request->nok_1_relationship,
                     'contact_number' => $request->nok_1_phone,
                 ]
             );

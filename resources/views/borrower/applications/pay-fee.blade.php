@@ -84,6 +84,7 @@
                 style="display:none" class="method-radio"
                 onchange="switchMethod('mpesa')">
               <div class="pay-method-btn active-mpesa" data-m="mpesa">
+                <span class="badge" style="position:absolute;top:10px;right:-25px;background:#e11d48;color:#fff;font-size:9px;padding:3px 30px;transform:rotate(45deg);font-weight:800">COMING SOON</span>
                 <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-04-12%20at%2011.19.20%20AM.jpeg" class="method-logo" alt="M-Pesa">
                 <div>
                   <div style="font-size:13px;font-weight:800;color:var(--dark)">M-Pesa</div>

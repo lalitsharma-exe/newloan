@@ -89,7 +89,12 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
   {{-- ── PERSONAL TAB ──────────────────────────────────────────── --}}
   <div class="tpanel active" data-pg="app" data-p="personal">
     <div class="card" style="margin-bottom:16px">
-      <div class="card-hdr"><span class="card-title">Personal Information</span></div>
+      <div class="card-hdr">
+          <span class="card-title">Personal Information</span>
+          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="openModal('editPersonalModal')">
+              <i class="bi bi-pencil"></i> Edit
+          </button>
+      </div>
       <div class="card-body">
         <div class="info-grid">
           @foreach(['Title'=>$application->title,'First Name'=>$application->first_name,'Surname'=>$application->surname,'Maiden Name'=>$application->maiden_name,'National ID'=>$application->national_id,'Date of Birth'=>$application->date_of_birth?->format('d M Y'),'Gender'=>ucfirst($application->gender??''),'Marital Status'=>ucfirst($application->marital_status??''),'Cell'=>$application->cell_number,'Email'=>$application->email??'—'] as $l=>$v)
@@ -100,7 +105,12 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
     </div>
 
     <div class="card" style="margin-bottom:16px">
-      <div class="card-hdr"><span class="card-title">Address & Location</span></div>
+      <div class="card-hdr">
+          <span class="card-title">Address & Location</span>
+          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="openModal('editAddressModal')">
+              <i class="bi bi-pencil"></i> Edit
+          </button>
+      </div>
       <div class="card-body">
         <div class="info-grid">
           @foreach(['Residential Address'=>$application->residential_address, 'Village'=>$application->village, 'Town'=>$application->town, 'District'=>$application->district, 'Residence Type'=>ucfirst($application->residence_type??''), 'Duration'=>$application->address_duration, 'Nearest Landmark'=>$application->nearest_landmark, 'Home Directions'=>$application->home_directions, 'GPS Coordinates'=>($application->gps_latitude && $application->gps_longitude) ? "{$application->gps_latitude}, {$application->gps_longitude}" : null] as $l=>$v)
@@ -114,7 +124,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
     <div class="card" style="margin-bottom:16px">
       <div class="card-hdr">
           <span class="card-title">Employment Details</span>
-          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="showEditEmploymentModal()">
+          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="openModal('editEmploymentModal')">
               <i class="bi bi-pencil"></i> Edit
           </button>
       </div>
@@ -132,7 +142,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
     <div class="card">
       <div class="card-hdr">
           <span class="card-title">Bank & Card Details</span>
-          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="showEditBankModal()">
+          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="openModal('editBankModal')">
               <i class="bi bi-pencil"></i> Edit
           </button>
       </div>
@@ -841,7 +851,65 @@ function sendChatMessage(e) {
   });
 }
 </script>
+{{-- Edit Personal Modal --}}
+<div class="mo" id="editPersonalModal">
+    <div class="mb" style="max-width:700px">
+        <form action="{{ route('admin.applications.update-personal', $application) }}" method="POST">
+            @csrf
+            <div class="mh">
+                <div class="mt">Edit Personal Information</div>
+                <button type="button" class="mc" onclick="closeModal('editPersonalModal')">&times;</button>
+            </div>
+            <div class="mbody">
+                <div class="g2">
+                    <div class="fg"><label class="fl">Title</label><input type="text" name="title" class="fc" value="{{ $application->title }}"></div>
+                    <div class="fg"><label class="fl">First Name *</label><input type="text" name="first_name" class="fc" value="{{ $application->first_name }}" required></div>
+                    <div class="fg"><label class="fl">Surname *</label><input type="text" name="surname" class="fc" value="{{ $application->surname }}" required></div>
+                    <div class="fg"><label class="fl">Maiden Name</label><input type="text" name="maiden_name" class="fc" value="{{ $application->maiden_name }}"></div>
+                    <div class="fg"><label class="fl">National ID *</label><input type="text" name="national_id" class="fc" value="{{ $application->national_id }}" required></div>
+                    <div class="fg"><label class="fl">Date of Birth</label><input type="date" name="date_of_birth" class="fc" value="{{ $application->date_of_birth?->format('Y-m-d') }}"></div>
+                    <div class="fg"><label class="fl">Gender</label><select name="gender" class="fc"><option value="male" {{ $application->gender=='male'?'selected':'' }}>Male</option><option value="female" {{ $application->gender=='female'?'selected':'' }}>Female</option></select></div>
+                    <div class="fg"><label class="fl">Marital Status</label><select name="marital_status" class="fc"><option value="single" {{ $application->marital_status=='single'?'selected':'' }}>Single</option><option value="married" {{ $application->marital_status=='married'?'selected':'' }}>Married</option><option value="divorced" {{ $application->marital_status=='divorced'?'selected':'' }}>Divorced</option><option value="widowed" {{ $application->marital_status=='widowed'?'selected':'' }}>Widowed</option></select></div>
+                    <div class="fg"><label class="fl">Cell Number *</label><input type="text" name="cell_number" class="fc" value="{{ $application->cell_number }}" required></div>
+                    <div class="fg"><label class="fl">Email</label><input type="email" name="email" class="fc" value="{{ $application->email }}"></div>
+                </div>
+            </div>
+            <div class="mf">
+                <button type="button" class="btn btn-o" onclick="closeModal('editPersonalModal')">Cancel</button>
+                <button type="submit" class="btn btn-p">Update Personal Info</button>
+            </div>
+        </form>
+    </div>
+</div>
 
+{{-- Edit Address Modal --}}
+<div class="mo" id="editAddressModal">
+    <div class="mb" style="max-width:700px">
+        <form action="{{ route('admin.applications.update-address', $application) }}" method="POST">
+            @csrf
+            <div class="mh">
+                <div class="mt">Edit Address Details</div>
+                <button type="button" class="mc" onclick="closeModal('editAddressModal')">&times;</button>
+            </div>
+            <div class="mbody">
+                <div class="fg"><label class="fl">Residential Address *</label><input type="text" name="residential_address" class="fc" value="{{ $application->residential_address }}" required></div>
+                <div class="g2">
+                    <div class="fg"><label class="fl">Village *</label><input type="text" name="village" class="fc" value="{{ $application->village }}" required></div>
+                    <div class="fg"><label class="fl">Town *</label><input type="text" name="town" class="fc" value="{{ $application->town }}" required></div>
+                    <div class="fg"><label class="fl">District *</label><input type="text" name="district" class="fc" value="{{ $application->district }}" required></div>
+                    <div class="fg"><label class="fl">Residence Type</label><input type="text" name="residence_type" class="fc" value="{{ $application->residence_type }}"></div>
+                    <div class="fg"><label class="fl">Duration</label><input type="text" name="address_duration" class="fc" value="{{ $application->address_duration }}"></div>
+                </div>
+                <div class="fg"><label class="fl">Nearest Landmark</label><input type="text" name="nearest_landmark" class="fc" value="{{ $application->nearest_landmark }}"></div>
+                <div class="fg"><label class="fl">Home Directions</label><textarea name="home_directions" class="fc" rows="2">{{ $application->home_directions }}</textarea></div>
+            </div>
+            <div class="mf">
+                <button type="button" class="btn btn-o" onclick="closeModal('editAddressModal')">Cancel</button>
+                <button type="submit" class="btn btn-p">Update Address</button>
+            </div>
+        </form>
+    </div>
+</div>
 @if($application->employment)
 {{-- Edit Employment Modal --}}
 <div class="mo" id="editEmploymentModal">

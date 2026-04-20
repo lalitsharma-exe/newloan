@@ -108,6 +108,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{application}/affordability', [ApplicationController::class, 'updateAffordability'])->name('update-affordability');
             Route::post('/{application}/employment', [ApplicationController::class, 'updateEmployment'])->name('update-employment');
             Route::post('/{application}/bank-details', [ApplicationController::class, 'updateBankDetails'])->name('update-bank-details');
+            Route::post('/{application}/personal', [ApplicationController::class, 'updatePersonal'])->name('update-personal');
+            Route::post('/{application}/address', [ApplicationController::class, 'updateAddress'])->name('update-address');
 
             // AJAX Chat
             Route::get('/{application}/messages', [ApplicationController::class, 'getMessages'])->name('messages.get');

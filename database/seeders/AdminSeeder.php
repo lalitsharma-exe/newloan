@@ -37,6 +37,7 @@ class AdminSeeder extends Seeder {
             ["group"=>"notifications","key"=>"email_from_name","value"=>"MyLoan"],
             ["group"=>"security","key"=>"session_timeout","value"=>"30"],
             ["group"=>"security","key"=>"max_login_attempts","value"=>"5"],
+            ["group"=>"loan","key"=>"application_fee","value"=>"10.00"],
         ];
         foreach($settings as $s) SystemSetting::updateOrCreate(["key"=>$s["key"]],$s);
         $this->command->info("✓ Admin:   admin@loanplatform.com / Admin@12345");
