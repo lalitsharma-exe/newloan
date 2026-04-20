@@ -81,6 +81,7 @@
           <th>Phone</th>
           <th>Loan #</th>
           <th>Due Date</th>
+          <th>Branch Code</th>
           <th>Installment</th>
           <th>Penalty</th>
           <th>Total Due</th>
@@ -105,6 +106,7 @@
             <div style="font-size:10px">{{ now()->diffInDays($inst->due_date) }} days overdue</div>
             @endif
           </td>
+          <td style="font-size:12.5px"><code>{{ str_pad($inst->loan->application?->bankDetails?->branch_code ?? '', 6, '0', STR_PAD_LEFT) }}</code></td>
           <td style="font-size:12.5px">M{{ number_format($inst->total_amount,2) }}</td>
           <td style="color:#ef4444;font-size:12.5px">{{ $inst->late_fee > 0 ? 'M'.number_format($inst->late_fee,2) : '—' }}</td>
           <td><strong style="color:#1e3a5f">M{{ number_format($inst->outstanding_amount,2) }}</strong></td>
@@ -120,7 +122,7 @@
       </tbody>
       <tfoot>
         <tr style="background:#f8fafc;font-weight:700">
-          <td colspan="7" style="padding:10px 12px;font-size:13px;text-align:right">Officer Total:</td>
+          <td colspan="8" style="padding:10px 12px;font-size:13px;text-align:right">Officer Total:</td>
           <td style="padding:10px 12px;color:#1e3a5f;font-size:14px">M{{ number_format($installments->sum('outstanding_amount'),2) }}</td>
           <td colspan="3"></td>
         </tr>

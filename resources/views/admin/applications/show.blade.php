@@ -91,7 +91,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
     <div class="card" style="margin-bottom:16px">
       <div class="card-hdr">
           <span class="card-title">Personal Information</span>
-          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="openModal('editPersonalModal')">
+          <button class="btn btn-sm btn-o" style="margin-left:auto" onclick="openModal('editPersonalModal')">
               <i class="bi bi-pencil"></i> Edit
           </button>
       </div>
@@ -107,7 +107,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
     <div class="card" style="margin-bottom:16px">
       <div class="card-hdr">
           <span class="card-title">Address & Location</span>
-          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="openModal('editAddressModal')">
+          <button class="btn btn-sm btn-o" style="margin-left:auto" onclick="openModal('editAddressModal')">
               <i class="bi bi-pencil"></i> Edit
           </button>
       </div>
@@ -120,33 +120,35 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
       </div>
     </div>
 
-    @if($application->employment)
     <div class="card" style="margin-bottom:16px">
       <div class="card-hdr">
           <span class="card-title">Employment Details</span>
-          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="openModal('editEmploymentModal')">
-              <i class="bi bi-pencil"></i> Edit
+          <button class="btn btn-sm btn-o" style="margin-left:auto" onclick="openModal('editEmploymentModal')">
+              <i class="bi bi-pencil"></i> {{ $application->employment ? 'Edit' : 'Add' }}
           </button>
       </div>
       <div class="card-body">
+        @if($application->employment)
         <div class="info-grid">
           @foreach(['Employer'=>$application->employment->employer_name,'Type'=>$application->employment->employer_type,'Category'=>$application->employment->employer_category,'Job Title'=>$application->employment->job_title,'Department'=>$application->employment->department,'Employee #'=>$application->employment->employment_number,'HR Contact'=>$application->employment->contact_number] as $l=>$v)
           <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
           @endforeach
         </div>
+        @else
+        <div style="text-align:center;color:var(--muted);font-size:12px;padding:10px">No employment details found. <a href="javascript:void(0)" onclick="openModal('editEmploymentModal')">Add now</a></div>
+        @endif
       </div>
     </div>
-    @endif
 
-    @if($application->bankDetails)
     <div class="card">
       <div class="card-hdr">
-          <span class="card-title">Bank & Card Details</span>
-          <button class="btn btn-sm btn-outline-primary" style="margin-left:auto" onclick="openModal('editBankModal')">
-              <i class="bi bi-pencil"></i> Edit
+          <span class="card-title">Bank Details</span>
+          <button class="btn btn-sm btn-o" style="margin-left:auto" onclick="openModal('editBankModal')">
+              <i class="bi bi-pencil"></i> {{ $application->bankDetails ? 'Edit' : 'Add' }}
           </button>
       </div>
       <div class="card-body">
+        @if($application->bankDetails)
         <div class="info-grid">
           @foreach(['Bank'=>$application->bankDetails->bank_name,'Account Holder'=>$application->bankDetails->account_holder_name,'Account #'=>$application->bankDetails->account_number,'Branch'=>$application->bankDetails->branch_name,'Branch Code'=>$application->bankDetails->branch_code,'Account Type'=>ucfirst($application->bankDetails->account_type??'')] as $l=>$v)
           <div><div class="info-lbl">{{ $l }}</div><div class="info-val">{{ $v ?: '—' }}</div></div>
@@ -173,10 +175,11 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
           @else
             <div><div class="info-lbl">Card Setup</div><div class="info-val"><span style="color:var(--muted)">Pending</span></div></div>
           @endif
-        </div>
+        @else
+        <div style="text-align:center;color:var(--muted);font-size:12px;padding:10px">No bank details found. <a href="javascript:void(0)" onclick="openModal('editBankModal')">Add now</a></div>
+        @endif
       </div>
     </div>
-    @endif
 
     @if($application->nextOfKin->count() > 0)
     <div class="card" style="margin-top:16px">
@@ -330,7 +333,10 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
     <div class="card" style="margin-bottom:16px">
       <div class="card-hdr">
         <span class="card-title">Requested Loan Terms</span>
-        @if($isPending)<button onclick="openModal('ovModal')" class="btn btn-sm btn-o"><i class="bi bi-pencil"></i> Override</button>@endif
+        <div style="margin-left:auto;display:flex;gap:8px">
+            @if($isPending)<button onclick="openModal('ovModal')" class="btn btn-sm btn-o"><i class="bi bi-pencil"></i> Override</button>@endif
+            <button onclick="openModal('editRequestModal')" class="btn btn-sm btn-o"><i class="bi bi-pencil-square"></i> Edit Request</button>
+        </div>
       </div>
       <div class="card-body">
         <div class="info-grid">
@@ -896,12 +902,31 @@ function sendChatMessage(e) {
                 <div class="g2">
                     <div class="fg"><label class="fl">Village *</label><input type="text" name="village" class="fc" value="{{ $application->village }}" required></div>
                     <div class="fg"><label class="fl">Town *</label><input type="text" name="town" class="fc" value="{{ $application->town }}" required></div>
-                    <div class="fg"><label class="fl">District *</label><input type="text" name="district" class="fc" value="{{ $application->district }}" required></div>
-                    <div class="fg"><label class="fl">Residence Type</label><input type="text" name="residence_type" class="fc" value="{{ $application->residence_type }}"></div>
-                    <div class="fg"><label class="fl">Duration</label><input type="text" name="address_duration" class="fc" value="{{ $application->address_duration }}"></div>
+                    <div class="fg"><label class="fl">District *</label>
+                        <select name="district" class="fc" required>
+                            <option value="">— Select —</option>
+                            @foreach(['Maseru','Berea','Leribe','Butha-Buthe','Mokhotlong','Thaba-Tseka','Qacha\'s Nek','Quthing','Mohale\'s Hoek','Mafeteng'] as $d)
+                            <option {{ $application->district===$d?'selected':'' }}>{{ $d }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="fg"><label class="fl">Residence Type *</label>
+                        <select name="residence_type" class="fc" required>
+                            <option value="">— Select —</option>
+                            <option value="own" {{ $application->residence_type==='own'?'selected':'' }}>Own</option>
+                            <option value="rent" {{ $application->residence_type==='rent'?'selected':'' }}>Rent</option>
+                            <option value="family" {{ $application->residence_type==='family'?'selected':'' }}>Family</option>
+                            <option value="employer" {{ $application->residence_type==='employer'?'selected':'' }}>Employer Provided</option>
+                        </select>
+                    </div>
+                    <div class="fg"><label class="fl">Duration at Address</label><input type="text" name="address_duration" class="fc" value="{{ $application->address_duration }}"></div>
                 </div>
-                <div class="fg"><label class="fl">Nearest Landmark</label><input type="text" name="nearest_landmark" class="fc" value="{{ $application->nearest_landmark }}"></div>
-                <div class="fg"><label class="fl">Home Directions</label><textarea name="home_directions" class="fc" rows="2">{{ $application->home_directions }}</textarea></div>
+                <div class="fg"><label class="fl">Nearest Landmark *</label><input type="text" name="nearest_landmark" class="fc" value="{{ $application->nearest_landmark }}" required></div>
+                <div class="fg"><label class="fl">Home Directions *</label><textarea name="home_directions" class="fc" rows="2" required>{{ $application->home_directions }}</textarea></div>
+                <div class="g2">
+                    <div class="fg"><label class="fl">GPS Latitude</label><input type="text" name="gps_latitude" class="fc" value="{{ $application->gps_latitude }}"></div>
+                    <div class="fg"><label class="fl">GPS Longitude</label><input type="text" name="gps_longitude" class="fc" value="{{ $application->gps_longitude }}"></div>
+                </div>
             </div>
             <div class="mf">
                 <button type="button" class="btn btn-o" onclick="closeModal('editAddressModal')">Cancel</button>
@@ -910,7 +935,6 @@ function sendChatMessage(e) {
         </form>
     </div>
 </div>
-@if($application->employment)
 {{-- Edit Employment Modal --}}
 <div class="mo" id="editEmploymentModal">
     <div class="mb" style="max-width:700px">
@@ -923,43 +947,48 @@ function sendChatMessage(e) {
             <div class="mbody">
                 <div class="g2">
                     <div class="fg">
-                        <label class="fl">Employer Name</label>
-                        <input type="text" name="employer_name" class="fc" value="{{ $application->employment->employer_name }}" required>
+                        <label class="fl">Employer Name *</label>
+                        <input type="text" name="employer_name" class="fc" value="{{ $application->employment->employer_name ?? '' }}" required>
                     </div>
                     <div class="fg">
-                        <label class="fl">Employer Type</label>
+                        <label class="fl">Employer Type *</label>
                         <select name="employer_type" class="fc" required onchange="toggleCategoryEdit(this.value)">
+                            <option value="">— Select —</option>
                             @foreach(['government'=>'Government','private'=>'Private Sector','sme'=>'SMEs'] as $v=>$l)
-                            <option value="{{ $v }}" {{ $application->employment->employer_type === $v ? 'selected' : '' }}>{{ $l }}</option>
+                            <option value="{{ $v }}" {{ ($application->employment->employer_type ?? '') === $v ? 'selected' : '' }}>{{ $l }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
-                <div class="fg" id="category_edit_wrapper" style="{{ $application->employment->employer_type === 'government' ? '' : 'display:none' }}">
+                <div class="fg" id="category_edit_wrapper" style="{{ ($application->employment->employer_type ?? '') === 'government' ? '' : 'display:none' }}">
                     <label class="fl">Work Sector / Category</label>
                     <select name="employer_category" class="fc">
                         <option value="">— Select Category —</option>
                         @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher'] as $c)
-                        <option {{ $application->employment->employer_category === $c ? 'selected' : '' }}>{{ $c }}</option>
+                        <option {{ ($application->employment->employer_category ?? '') === $c ? 'selected' : '' }}>{{ $c }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="g2">
                     <div class="fg">
-                        <label class="fl">Job Title</label>
-                        <input type="text" name="job_title" class="fc" value="{{ $application->employment->job_title }}">
+                        <label class="fl">Job Title *</label>
+                        <input type="text" name="job_title" class="fc" value="{{ $application->employment->job_title ?? '' }}" required>
                     </div>
                     <div class="fg">
                         <label class="fl">Department</label>
-                        <input type="text" name="department" class="fc" value="{{ $application->employment->department }}">
+                        <input type="text" name="department" class="fc" value="{{ $application->employment->department ?? '' }}">
                     </div>
                     <div class="fg">
-                        <label class="fl">Employee Number</label>
-                        <input type="text" name="employment_number" class="fc" value="{{ $application->employment->employment_number }}">
+                        <label class="fl">Employee Number *</label>
+                        <input type="text" name="employment_number" class="fc" value="{{ $application->employment->employment_number ?? '' }}" required>
                     </div>
                     <div class="fg">
-                        <label class="fl">HR/Employer Contact</label>
-                        <input type="text" name="contact_number" class="fc" value="{{ $application->employment->contact_number }}">
+                        <label class="fl">HR/Employer Contact *</label>
+                        <input type="text" name="contact_number" class="fc" value="{{ $application->employment->contact_number ?? '' }}" required>
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Employment Expiry</label>
+                        <input type="date" name="employment_expiry_date" class="fc" value="{{ $application->employment?->employment_expiry_date?->format('Y-m-d') }}">
                     </div>
                 </div>
             </div>
@@ -970,9 +999,7 @@ function sendChatMessage(e) {
         </form>
     </div>
 </div>
-@endif
 
-@if($application->bankDetails)
 {{-- Edit Bank Modal --}}
 <div class="mo" id="editBankModal">
     <div class="mb">
@@ -985,35 +1012,35 @@ function sendChatMessage(e) {
             <div class="mbody">
                 <div class="fg">
                     <label class="fl">Bank Name *</label>
-                    <select name="bank_name" id="edit_bank_name" class="fc" data-prev="{{ $application->bankDetails->bank_name }}" required onchange="loadBranchesEdit(this.value)">
+                    <select name="bank_name" id="edit_bank_name" class="fc" data-prev="{{ $application->bankDetails->bank_name ?? '' }}" required onchange="loadBranchesEdit(this.value)">
                         <option value="">— Select Bank —</option>
                     </select>
                 </div>
                 <div class="fg">
                     <label class="fl">Account Holder Name *</label>
-                    <input type="text" name="account_holder_name" class="fc" value="{{ $application->bankDetails->account_holder_name }}" required>
+                    <input type="text" name="account_holder_name" class="fc" value="{{ $application->bankDetails->account_holder_name ?? '' }}" required>
                 </div>
                 <div class="fg">
                     <label class="fl">Account Number *</label>
-                    <input type="text" name="account_number" class="fc" value="{{ $application->bankDetails->account_number }}" required>
+                    <input type="text" name="account_number" class="fc" value="{{ $application->bankDetails->account_number ?? '' }}" required>
                 </div>
                 <div class="g2">
                     <div class="fg">
                         <label class="fl">Branch Name *</label>
-                        <select name="branch_name" id="edit_branch_name" class="fc" data-prev="{{ $application->bankDetails->branch_name }}" required onchange="updateBranchCodeEdit(this.options[this.selectedIndex])">
+                        <select name="branch_name" id="edit_branch_name" class="fc" data-prev="{{ $application->bankDetails->branch_name ?? '' }}" required onchange="updateBranchCodeEdit(this.options[this.selectedIndex])">
                             <option value="">— Select Branch —</option>
                         </select>
                     </div>
                     <div class="fg">
                         <label class="fl">Branch Code</label>
-                        <input type="text" name="branch_code" id="edit_branch_code" class="fc" value="{{ $application->bankDetails->branch_code }}" placeholder="Auto-filled">
+                        <input type="text" name="branch_code" id="edit_branch_code" class="fc" value="{{ $application->bankDetails->branch_code ?? '' }}" placeholder="Auto-filled">
                     </div>
                 </div>
                 <div class="fg">
-                    <label class="fl">Account Type</label>
+                    <label class="fl">Account Type *</label>
                     <select name="account_type" class="fc" required>
-                        <option value="savings" {{ $application->bankDetails->account_type === 'savings' ? 'selected' : '' }}>Savings</option>
-                        <option value="cheque" {{ $application->bankDetails->account_type === 'cheque' ? 'selected' : '' }}>Cheque / Current</option>
+                        <option value="savings" {{ ($application->bankDetails->account_type ?? '') === 'savings' ? 'selected' : '' }}>Savings</option>
+                        <option value="cheque" {{ ($application->bankDetails->account_type ?? '') === 'cheque' ? 'selected' : '' }}>Cheque / Current</option>
                     </select>
                 </div>
             </div>
@@ -1024,7 +1051,53 @@ function sendChatMessage(e) {
         </form>
     </div>
 </div>
-@endif
+
+{{-- Edit Request Modal --}}
+<div class="mo" id="editRequestModal">
+    <div class="mb" style="max-width:600px">
+        <form action="{{ route('admin.applications.update-loan-request', $application) }}" method="POST">
+            @csrf
+            <div class="mh">
+                <div class="mt">Edit Loan Request</div>
+                <button type="button" class="mc" onclick="closeModal('editRequestModal')">&times;</button>
+            </div>
+            <div class="mbody">
+                <div class="g2">
+                    <div class="fg"><label class="fl">Requested Amount (M) *</label><input type="number" name="requested_amount" class="fc" value="{{ $application->requested_amount }}" required></div>
+                    <div class="fg"><label class="fl">Requested Term (Months) *</label><input type="number" name="requested_term" class="fc" value="{{ $application->requested_term }}" required></div>
+                </div>
+                <div class="fg"><label class="fl">Loan Purpose</label><input type="text" name="loan_purpose" class="fc" value="{{ $application->loan_purpose }}"></div>
+                <div class="g2">
+                    <div class="fg">
+                        <label class="fl">Payout Method *</label>
+                        <select name="payout_method" class="fc" required>
+                            @foreach(['bank_transfer'=>'Bank Transfer','mobile_money'=>'Mobile Money','cash'=>'Cash'] as $v=>$l)
+                            <option value="{{ $v }}" {{ $application->payout_method === $v ? 'selected' : '' }}>{{ $l }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Collection Method *</label>
+                        <select name="collection_method" class="fc" required>
+                            @foreach(['payroll'=>'Payroll Deduction','debit_order'=>'Debit Order','cash'=>'Cash / Direct'] as $v=>$l)
+                            <option value="{{ $v }}" {{ $application->collection_method === $v ? 'selected' : '' }}>{{ $l }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label class="fl">Salary Payday *</label>
+                        <input type="number" name="salary_payday" class="fc" value="{{ $application->salary_payday ?? 25 }}" min="1" max="31" required>
+                        <small style="color:var(--muted)">Day of month (1-31)</small>
+                    </div>
+                </div>
+            </div>
+            <div class="mf">
+                <button type="button" class="btn btn-o" onclick="closeModal('editRequestModal')">Cancel</button>
+                <button type="submit" class="btn btn-p">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
 function showEditEmploymentModal() { openModal('editEmploymentModal'); }

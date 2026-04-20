@@ -358,7 +358,7 @@ $totalSteps = 9;
         <div style="width:40px;height:40px;border-radius:50%;background:rgba(79,70,229,.1);display:flex;align-items:center;justify-content:center;color:var(--p);flex-shrink:0"><i class="bi bi-credit-card-fill"></i></div>
         <div>
           <div style="font-weight:700;color:var(--navy);font-size:13.5px">Application Fee: M{{ number_format($fee, 2) }}</div>
-          <div style="font-size:12px;color:var(--muted)">A one-time fee is required to submit your application. You will be redirected to the payment page after clicking submit.</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.5">Please pay a non-refundable application fee of M{{ number_format($fee, 2) }} to submit your application. Kindly note that payment of this fee does not guarantee loan approval, as all applications are subject to review and verification.</div>
         </div>
       </div>
       @endif

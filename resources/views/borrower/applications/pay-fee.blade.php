@@ -35,7 +35,7 @@
 <div style="max-width:580px;margin:0 auto">
 
   <div style="font-size:22px;font-weight:700;color:var(--navy);margin-bottom:4px">Application Fee</div>
-  <div style="font-size:13.5px;color:var(--muted);margin-bottom:24px">Pay the one-time application fee to finalize your application</div>
+  <div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5">Please pay a non-refundable application fee of M{{ number_format($fee, 2) }} to submit your application. Kindly note that payment of this fee does not guarantee loan approval, as all applications are subject to review and verification.</div>
 
   @if(session('error'))
   <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:11px;padding:13px 16px;margin-bottom:20px;font-size:13.5px;color:#991b1b;display:flex;gap:10px;align-items:flex-start">

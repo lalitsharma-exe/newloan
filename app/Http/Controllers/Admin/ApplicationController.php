@@ -127,6 +127,7 @@ class ApplicationController extends Controller
             'department'        => 'nullable|string|max:100',
             'employment_number' => 'nullable|string|max:50',
             'contact_number'    => 'nullable|string|max:20',
+            'employment_expiry_date' => 'nullable|date',
         ]);
 
         $application->employment()->updateOrCreate(['application_id' => $application->id], $data);
@@ -178,14 +179,32 @@ class ApplicationController extends Controller
             'town'                => 'required|string|max:100',
             'district'            => 'required|string|max:50',
             'address_duration'    => 'nullable|string|max:50',
-            'residence_type'      => 'nullable|string|max:50',
-            'nearest_landmark'    => 'nullable|string|max:255',
-            'home_directions'     => 'nullable|string|max:500',
+            'residence_type'      => 'required|string|max:50',
+            'nearest_landmark'    => 'required|string|max:255',
+            'home_directions'     => 'required|string|max:500',
+            'gps_latitude'        => 'nullable|string|max:50',
+            'gps_longitude'       => 'nullable|string|max:50',
         ]);
 
         $application->update($data);
 
         return redirect()->back()->with('success', 'Address details updated successfully.');
+    }
+
+    public function updateLoanRequest(Request $request, LoanApplication $application)
+    {
+        $data = $request->validate([
+            'requested_amount'  => 'required|numeric|min:1',
+            'requested_term'    => 'required|integer|min:1',
+            'loan_purpose'      => 'nullable|string|max:500',
+            'payout_method'     => 'required|string|max:50',
+            'collection_method' => 'required|string|max:50',
+            'salary_payday'     => 'required|integer|min:1|max:31',
+        ]);
+
+        $application->update($data);
+
+        return redirect()->back()->with('success', 'Loan request details updated successfully.');
     }
 
     public function approve(Request $request, LoanApplication $application)

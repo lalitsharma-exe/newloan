@@ -319,7 +319,7 @@ class LoanService
     {
         $targetDate = \Carbon\Carbon::parse($date);
 
-        $q = \App\Models\LoanInstallment::with(['loan.user', 'loan.loanProduct', 'loan.application.assignedOfficer'])
+        $q = \App\Models\LoanInstallment::with(['loan.user', 'loan.loanProduct', 'loan.application.assignedOfficer', 'loan.application.bankDetails'])
             ->whereIn('status', ['pending', 'overdue', 'partial'])
             ->whereDate('due_date', '<=', $targetDate)
             ->orderBy('due_date');
