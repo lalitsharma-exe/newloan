@@ -14,7 +14,7 @@
   <div class="fg" style="margin-bottom:0;min-width:180px"><label class="fl">Category</label>
     <select name="category" class="fc">
       <option value="">— All Categories —</option>
-      @foreach(['Defence','Nss','Police','Lcs','Pensioner','Civil servants','Teacher'] as $cat)
+      @foreach(['Defence','Nss','Police','Lcs','Pensioner','Civil servants','Teacher','SMEs'] as $cat)
         <option value="{{ $cat }}" {{ ($filters['category'] ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
       @endforeach
     </select>

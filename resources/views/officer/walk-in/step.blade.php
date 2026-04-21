@@ -197,7 +197,7 @@ $totalSteps = 9;
         <label class="fl">Work Sector / Category *</label>
         <select name="employer_category" id="employer_category" class="fc" {{ (old('employer_type',$emp?->employer_type) === 'government') ? 'required' : '' }}>
             <option value="">— Select —</option>
-            @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher'] as $c)
+            @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher','SMEs'] as $c)
             <option {{ old('employer_category',$emp?->employer_category)===$c?'selected':'' }}>{{ $c }}</option>
             @endforeach
         </select>

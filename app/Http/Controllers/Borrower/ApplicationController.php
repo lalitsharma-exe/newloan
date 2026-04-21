@@ -621,7 +621,7 @@ class ApplicationController extends Controller
             [
                 'employer_name' => $request->employer_name,
                 'employer_type' => $request->employer_type,
-                'employer_category' => ($request->employer_type === 'government') ? $request->employer_category : null,
+                'employer_category' => in_array($request->employer_type, ['government','sme']) ? $request->employer_category : null,
                 'job_title' => $request->job_title,
                 'department' => $request->department,
                 'employment_number' => $request->employment_number,

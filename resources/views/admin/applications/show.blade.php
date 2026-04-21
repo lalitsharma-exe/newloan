@@ -175,6 +175,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
           @else
             <div><div class="info-lbl">Card Setup</div><div class="info-val"><span style="color:var(--muted)">Pending</span></div></div>
           @endif
+        </div>
         @else
         <div style="text-align:center;color:var(--muted);font-size:12px;padding:10px">No bank details found. <a href="javascript:void(0)" onclick="openModal('editBankModal')">Add now</a></div>
         @endif
@@ -964,7 +965,7 @@ function sendChatMessage(e) {
                     <label class="fl">Work Sector / Category</label>
                     <select name="employer_category" class="fc">
                         <option value="">— Select Category —</option>
-                        @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher'] as $c)
+                        @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher','SMEs'] as $c)
                         <option {{ ($application->employment->employer_category ?? '') === $c ? 'selected' : '' }}>{{ $c }}</option>
                         @endforeach
                     </select>

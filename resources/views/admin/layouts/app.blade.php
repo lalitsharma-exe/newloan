@@ -173,6 +173,12 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
       </a>
     </div>
     <div class="nav-item"><a href="{{ route('admin.audit.index') }}" class="{{ request()->routeIs('admin.audit.*')?'active':'' }}"><i class="bi bi-journal-text"></i> Audit Log</a></div>
+    
+    <div style="margin-top:20px;padding:0 22px;margin-bottom:10px">
+      <button onclick="openModal('logoutModal')" style="width:100%;background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s" onmouseover="this.style.background='rgba(239,68,68,.2)'" onmouseout="this.style.background='rgba(239,68,68,.1)'">
+        <i class="bi bi-box-arrow-right"></i> Sign Out
+      </button>
+    </div>
   </nav>
   <div class="sb-foot">
     <a href="{{ route('admin.profile.index') }}" style="text-decoration:none;display:block" title="My Profile">
@@ -189,7 +195,9 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
         <div class="uname">{{ $authUser->name??'Admin' }}</div>
         <div class="urole">{{ ucfirst(str_replace('_',' ',$authUser->role??'admin')) }}</div>
       </div>
-      <i class="bi bi-chevron-right" style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.3)"></i>
+      <div onclick="openModal('logoutModal')" title="Sign Out" style="margin-left:auto;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);transition:all .2s" onclick="event.stopPropagation()" onmouseover="this.style.background='rgba(239,68,68,.2)';this.style.color='#ef4444'" onmouseout="this.style.background='';this.style.color='rgba(255,255,255,.3)'">
+        <i class="bi bi-power"></i>
+      </div>
     </div>
     </a>
   </div>

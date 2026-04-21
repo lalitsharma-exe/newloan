@@ -25,7 +25,7 @@
                 <label class="fl">Employment Category</label>
                 <select name="category" class="fc">
                     <option value="">— All Categories —</option>
-                    @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher','Private sector'] as $c)
+                    @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher','Private sector','SMEs'] as $c)
                     <option value="{{ $c }}" {{ ($filters['category'] ?? '') == $c ? 'selected' : '' }}>{{ $c }}</option>
                     @endforeach
                 </select>
