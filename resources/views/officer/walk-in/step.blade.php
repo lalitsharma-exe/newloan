@@ -193,9 +193,9 @@ $totalSteps = 9;
           @endforeach
         </select>
       </div>
-      <div class="fg" id="category_wrapper" style="{{ (old('employer_type',$emp?->employer_type) === 'government') ? '' : 'display:none' }}">
+      <div id="category_wrapper" style="display: {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'block' : 'none' }}">
         <label class="fl">Work Sector / Category *</label>
-        <select name="employer_category" id="employer_category" class="fc" {{ (old('employer_type',$emp?->employer_type) === 'government') ? 'required' : '' }}>
+        <select name="employer_category" id="employer_category" class="fc" {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'required' : '' }}>
             <option value="">— Select —</option>
             @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher','SMEs'] as $c)
             <option {{ old('employer_category',$emp?->employer_category)===$c?'selected':'' }}>{{ $c }}</option>
@@ -758,9 +758,9 @@ function toggleCategory(val) {
     const wrap = document.getElementById('category_wrapper');
     const sel = document.getElementById('employer_category');
     if (wrap) {
-        wrap.style.display = (val === 'government') ? '' : 'none';
+        wrap.style.display = (['government', 'sme'].includes(val)) ? '' : 'none';
         if (sel) {
-            if (val === 'government') sel.setAttribute('required','required');
+            if (['government', 'sme'].includes(val)) sel.setAttribute('required','required');
             else { sel.removeAttribute('required'); sel.value = ''; }
         }
     }

@@ -40,8 +40,17 @@ class PaymentController extends Controller
             ->get();
         $cpayConfigured = $this->cpay->isConfigured();
         $cpayIsSandbox = $this->cpay->isSandbox();
-        $mpesaConfigured = $this->mpesa->isConfigured();
-        return view('borrower.payments.make', compact('loans', 'cpayConfigured', 'cpayIsSandbox', 'mpesaConfigured'));
+        $mpesaConfigured = $this->mpesa->isConfigured() && (bool) \App\Models\SystemSetting::get('mpesa_payment_enabled', 1);
+        $cardEnabled = (bool) \App\Models\SystemSetting::get('card_payment_enabled', 1);
+        $walletEnabled = (bool) \App\Models\SystemSetting::get('cpay_wallet_enabled', 1);
+
+        $defaultMethod = 'mpesa';
+        if (!$mpesaConfigured) {
+            if ($cardEnabled) $defaultMethod = 'card';
+            elseif ($walletEnabled) $defaultMethod = 'cpay_wallet';
+        }
+
+        return view('borrower.payments.make', compact('loans', 'cpayConfigured', 'cpayIsSandbox', 'mpesaConfigured', 'cardEnabled', 'walletEnabled', 'defaultMethod'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -60,7 +69,18 @@ class PaymentController extends Controller
         $user = auth('borrower')->user();
         $phone = $request->phone ?? $user->phone;
         $amount = (float) $request->amount;
-        $method = $request->input('method', 'mpesa'); // default to mpesa if not specified or card
+        $method = $request->input('method', 'mpesa'); 
+
+        // Validate toggles
+        if ($method === 'mpesa' && !\App\Models\SystemSetting::get('mpesa_payment_enabled', 1)) {
+            return back()->with('error', 'M-Pesa payment is currently disabled.');
+        }
+        if ($method === 'card' && !\App\Models\SystemSetting::get('card_payment_enabled', 1)) {
+            return back()->with('error', 'Card payment is currently disabled.');
+        }
+        if ($method === 'cpay_wallet' && !\App\Models\SystemSetting::get('cpay_wallet_enabled', 1)) {
+            return back()->with('error', 'CPay wallet payment is currently disabled.');
+        }
 
         // Create pending payment record before any API call
         $payment = Payment::create([

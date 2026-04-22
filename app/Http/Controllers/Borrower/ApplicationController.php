@@ -352,10 +352,19 @@ class ApplicationController extends Controller
         $mpesa = app(MpesaService::class);
 
         $cpayConfigured = $cpay->isConfigured();
-        $mpesaConfigured = $mpesa->isConfigured();
+        $mpesaConfigured = $mpesa->isConfigured() && (bool) SystemSetting::get('mpesa_payment_enabled', 1);
+        $cardEnabled = (bool) SystemSetting::get('card_payment_enabled', 1);
+        $walletEnabled = (bool) SystemSetting::get('cpay_wallet_enabled', 1);
         $cpayIsSandbox = config('cpay.mode') === 'sandbox';
 
-        return view('borrower.applications.pay-fee', compact('application', 'fee', 'cpayConfigured', 'mpesaConfigured', 'cpayIsSandbox'));
+        $defaultMethod = 'mpesa';
+        if (!$mpesaConfigured) {
+            if ($cardEnabled) $defaultMethod = 'card';
+            elseif ($walletEnabled) $defaultMethod = 'cpay_wallet';
+            else $defaultMethod = null;
+        }
+
+        return view('borrower.applications.pay-fee', compact('application', 'fee', 'cpayConfigured', 'mpesaConfigured', 'cpayIsSandbox', 'cardEnabled', 'walletEnabled', 'defaultMethod'));
     }
 
     public function initiateFeePayment(Request $request, LoanApplication $application)
@@ -371,6 +380,17 @@ class ApplicationController extends Controller
 
         $user = auth('borrower')->user();
         $method = $request->method;
+        
+        // Validate toggles
+        if ($method === 'mpesa' && !SystemSetting::get('mpesa_payment_enabled', 1)) {
+            return back()->with('error', 'M-Pesa payment is currently disabled.');
+        }
+        if ($method === 'card' && !SystemSetting::get('card_payment_enabled', 1)) {
+            return back()->with('error', 'Card payment is currently disabled.');
+        }
+        if ($method === 'cpay_wallet' && !SystemSetting::get('cpay_wallet_enabled', 1)) {
+            return back()->with('error', 'CPay wallet payment is currently disabled.');
+        }
         $phone = $request->input('phone', $user->phone);
         $email = $request->input('email', $user->email);
 
@@ -621,7 +641,7 @@ class ApplicationController extends Controller
             [
                 'employer_name' => $request->employer_name,
                 'employer_type' => $request->employer_type,
-                'employer_category' => in_array($request->employer_type, ['government','sme']) ? $request->employer_category : null,
+                'employer_category' => in_array($request->employer_type, ['government', 'sme']) ? $request->employer_category : null,
                 'job_title' => $request->job_title,
                 'department' => $request->department,
                 'employment_number' => $request->employment_number,

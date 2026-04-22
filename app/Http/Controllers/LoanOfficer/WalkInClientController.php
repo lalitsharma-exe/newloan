@@ -202,12 +202,15 @@ class WalkInClientController extends Controller
             'department'             => 'nullable|string|max:100',
             'employment_number'      => 'required|string|max:50',
             'contact_number'         => 'required|string|max:30',
+            'employer_category'      => 'nullable|string|max:50',
             'employment_expiry_date' => 'nullable|date',
         ]);
 
         $application->employment()->updateOrCreate(
             ['application_id' => $application->id],
-            $data
+            array_merge($data, [
+                'employer_category' => in_array($data['employer_type'], ['government', 'sme']) ? ($request->employer_category ?? null) : null
+            ])
         );
     }
 

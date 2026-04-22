@@ -108,9 +108,9 @@ $totalSteps = 9;
       <div class="g2">
         <div class="fg"><label class="fl">Employer Name *</label><input type="text" name="employer_name" class="fc" value="{{ old('employer_name',$emp?->employer_name) }}" required></div>
         <div class="fg"><label class="fl">Employer Type *</label><select name="employer_type" id="employer_type" class="fc" required><option value="">—</option>@foreach(['government'=>'Government','private'=>'Private Sector','sme'=>'SMEs'] as $v=>$l)<option value="{{ $v }}" {{ $emp?->employer_type===$v?'selected':'' }}>{{ $l }}</option>@endforeach</select></div>
-        <div class="fg" id="category_wrapper" style="{{ ($emp?->employer_type === 'government') ? '' : 'display:none' }}">
+        <div id="category_wrapper" style="display: {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'block' : 'none' }}">
           <label class="fl">Work Sector / Category *</label>
-          <select name="employer_category" id="employer_category" class="fc" {{ ($emp?->employer_type === 'government') ? 'required' : '' }}>
+          <select name="employer_category" id="employer_category" class="fc" {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'required' : '' }}>
             <option value="">— Select Category —</option>
             @foreach(['Defence','Nss','Police','Lcs','Pensioner','Civil servants','Teacher','SMEs'] as $cat)
               <option value="{{ $cat }}" {{ (old('employer_category', $emp?->employer_category) == $cat) ? 'selected' : '' }}>{{ $cat }}</option>
@@ -719,7 +719,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     if (typeSelect && catWrapper) {
         typeSelect.addEventListener('change', function() {
-            if (this.value === 'government') {
+            if (['government', 'sme'].includes(this.value)) {
                 catWrapper.style.display = 'block';
                 catSelect.setAttribute('required', 'required');
             } else {

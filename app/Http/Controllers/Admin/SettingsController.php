@@ -69,14 +69,21 @@ class SettingsController extends Controller {
 
     public function updatePaymentGateway(Request $r) {
         $r->validate(['gateway_mode' => 'required|in:sandbox,production']);
-        // Save all gateway fields including CPay-specific ones
-        $fields = $r->only(['gateway_mode','gateway_name','gateway_key','gateway_secret','gateway_live_url','cpay_client_code']);
+        // Save all gateway fields including CPay-specific ones and toggles
+        $fields = $r->only(['gateway_mode','gateway_name','gateway_key','gateway_secret','gateway_live_url','cpay_client_code','gateway_wallet_id']);
         foreach ($fields as $key => $value) {
             if ($value !== null && $value !== '') {
                 \App\Models\SystemSetting::set($key, $value, 'payment_gateway');
             }
         }
-        return back()->with('success', 'CPay payment gateway settings saved.');
+        
+        // Handle toggles (checkboxes)
+        $toggles = ['mpesa_payment_enabled', 'card_payment_enabled', 'cpay_wallet_enabled'];
+        foreach ($toggles as $t) {
+            \App\Models\SystemSetting::set($t, $r->has($t) ? 1 : 0, 'payment_gateway');
+        }
+        
+        return back()->with('success', 'Payment gateway settings saved.');
     }
 
     public function updateCreditBureau(Request $r) {

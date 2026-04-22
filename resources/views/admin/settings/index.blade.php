@@ -436,6 +436,31 @@
                 </div>
               </div>
             </div>
+
+            <div class="st-section"><i class="bi bi-toggle-on"></i> Gateway Toggles</div>
+            <div class="g3">
+                <div class="fg">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                        <input type="checkbox" name="mpesa_payment_enabled" value="1" style="width:18px;height:18px;accent-color:var(--p)" {{ \App\Models\SystemSetting::get('mpesa_payment_enabled', 1) ? 'checked' : '' }}>
+                        <span style="font-size:13px;font-weight:600">Enable M-Pesa Lesotho</span>
+                    </label>
+                    <div class="ft">Show M-Pesa option during checkout</div>
+                </div>
+                <div class="fg">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                        <input type="checkbox" name="card_payment_enabled" value="1" style="width:18px;height:18px;accent-color:var(--p)" {{ \App\Models\SystemSetting::get('card_payment_enabled', 1) ? 'checked' : '' }}>
+                        <span style="font-size:13px;font-weight:600">Enable Card Payments</span>
+                    </label>
+                    <div class="ft">Show Visa/Mastercard via CPay</div>
+                </div>
+                <div class="fg">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                        <input type="checkbox" name="cpay_wallet_enabled" value="1" style="width:18px;height:18px;accent-color:var(--p)" {{ \App\Models\SystemSetting::get('cpay_wallet_enabled', 1) ? 'checked' : '' }}>
+                        <span style="font-size:13px;font-weight:600">Enable CPay Wallet</span>
+                    </label>
+                    <div class="ft">Show CPay internal wallet option</div>
+                </div>
+            </div>
           </div>
         </div>
         <div style="display:flex;justify-content:flex-end">

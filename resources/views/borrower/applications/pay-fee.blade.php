@@ -80,10 +80,10 @@
             {{-- M-Pesa --}}
             @if($mpesaConfigured)
             <label style="cursor:pointer;display:block">
-              <input type="radio" name="method" value="mpesa" checked
+              <input type="radio" name="method" value="mpesa" {{ $defaultMethod == 'mpesa' ? 'checked' : '' }} 
                 style="display:none" class="method-radio"
                 onchange="switchMethod('mpesa')">
-              <div class="pay-method-btn active-mpesa" data-m="mpesa">
+              <div class="pay-method-btn {{ $defaultMethod == 'mpesa' ? 'active-mpesa' : '' }}" data-m="mpesa">
                 <span class="badge" style="position:absolute;top:10px;right:-25px;background:#e11d48;color:#fff;font-size:9px;padding:3px 30px;transform:rotate(45deg);font-weight:800">COMING SOON</span>
                 <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-04-12%20at%2011.19.20%20AM.jpeg" class="method-logo" alt="M-Pesa">
                 <div>
@@ -94,19 +94,22 @@
             @endif
 
             {{-- Card --}}
+            @if($cardEnabled)
             <label style="cursor:pointer;display:block">
-              <input type="radio" name="method" value="card" {{ !$mpesaConfigured ? 'checked' : '' }}
+              <input type="radio" name="method" value="card" {{ $defaultMethod == 'card' ? 'checked' : '' }}
                 style="display:none" class="method-radio"
                 onchange="switchMethod('card')">
-              <div class="pay-method-btn {{ !$mpesaConfigured ? 'active-card' : '' }}" data-m="card">
+              <div class="pay-method-btn {{ $defaultMethod == 'card' ? 'active-card' : '' }}" data-m="card">
                 <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-04-12%20at%2011.22.04%20AM.jpeg" class="method-logo" alt="Card">
                 <div>
                   <div style="font-size:13px;font-weight:800;color:var(--dark)">Credit/Debit</div>
                 </div>
               </div>
             </label>
+            @endif
 
             {{-- CPay Wallet --}}
+            @if($cpayConfigured && $walletEnabled)
             <label style="cursor:pointer;display:block">
               <input type="radio" name="method" value="cpay_wallet"
                 style="display:none" class="method-radio"
@@ -118,6 +121,7 @@
                 </div>
               </div>
             </label>
+            @endif
           </div>
         </div>
 

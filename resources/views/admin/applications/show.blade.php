@@ -961,9 +961,9 @@ function sendChatMessage(e) {
                         </select>
                     </div>
                 </div>
-                <div class="fg" id="category_edit_wrapper" style="{{ ($application->employment->employer_type ?? '') === 'government' ? '' : 'display:none' }}">
-                    <label class="fl">Work Sector / Category</label>
-                    <select name="employer_category" class="fc">
+                <div class="fg" id="edit_cat_wrapper" style="display: {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'block' : 'none' }}">
+                    <label class="fl">Work Sector / Category *</label>
+                    <select name="employer_category" id="edit_employer_category" class="fc" {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'required' : '' }}>
                         <option value="">— Select Category —</option>
                         @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher','SMEs'] as $c)
                         <option {{ ($application->employment->employer_category ?? '') === $c ? 'selected' : '' }}>{{ $c }}</option>

@@ -125,31 +125,33 @@
                 <div>
                   <div style="font-size:14px;font-weight:800;color:var(--dark)">M-Pesa</div>
                   <div style="font-size:11px;color:var(--muted);margin-top:2px">STK Push Payment</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">STK Push</div>
                 </div>
               </div>
             </label>
             @endif
 
-            {{-- Card --}}
+            @if($cardEnabled)
             <label style="cursor:pointer;display:block">
-              <input type="radio" name="method" value="card" {{ !$mpesaConfigured ? 'checked' : '' }}
+              <input type="radio" name="method" value="card" {{ $defaultMethod == 'card' ? 'checked' : '' }}
                 style="display:none" class="method-radio"
                 onchange="switchMethod('card','{{ $loan->id }}')">
-              <div class="pay-method-btn" data-m="card" data-loan="{{ $loan->id }}">
+              <div class="pay-method-btn {{ $defaultMethod == 'card' ? 'active-card' : '' }}" data-m="card" data-loan="{{ $loan->id }}">
                 <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-04-12%20at%2011.22.04%20AM.jpeg" class="method-logo" alt="Card">
                 <div>
-                  <div style="font-size:14px;font-weight:800;color:var(--dark)">Credit/Debit</div>
-                  <div style="font-size:11px;color:var(--muted);margin-top:2px">Visa / Mastercard</div>
+                  <div style="font-size:14px;font-weight:800;color:var(--dark)">Card</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">Visa / MC</div>
                 </div>
               </div>
             </label>
+            @endif
 
-            {{-- CPay Wallet --}}
+            @if($cpayConfigured && $walletEnabled)
             <label style="cursor:pointer;display:block">
-              <input type="radio" name="method" value="cpay_wallet"
+              <input type="radio" name="method" value="cpay_wallet" {{ $defaultMethod == 'cpay_wallet' ? 'checked' : '' }}
                 style="display:none" class="method-radio"
                 onchange="switchMethod('cpay_wallet','{{ $loan->id }}')">
-              <div class="pay-method-btn" data-m="cpay_wallet" data-loan="{{ $loan->id }}">
+              <div class="pay-method-btn {{ $defaultMethod == 'cpay_wallet' ? 'active-cpay' : '' }}" data-m="cpay_wallet" data-loan="{{ $loan->id }}">
                 <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp%20Image%202026-04-12%20at%2011.17.16%20AM.jpeg" class="method-logo" alt="CPay">
                 <div>
                   <div style="font-size:14px;font-weight:800;color:var(--dark)">CPay Wallet</div>
@@ -157,6 +159,7 @@
                 </div>
               </div>
             </label>
+            @endif
           </div>
         </div>
 
