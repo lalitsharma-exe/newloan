@@ -125,12 +125,12 @@ Route::prefix('portal')->name('borrower.')->group(function () {
 
             // Card Verification (Step 9 legacy - removed in favor of application fee)
             // Route::get('/{application}/verify-card',    [ApplicationController::class, 'initiateCardVerification'])->name('verify-card');
-            // Route::get('/{application}/card-success',   [ApplicationController::class, 'cardVerificationSuccess'])->name('card-success');
+            // Route::match(['get', 'post'], '/{application}/card-success',   [ApplicationController::class, 'cardVerificationSuccess'])->name('card-success');
 
             // Application Fee (New flow)
             Route::get('/{application}/pay-fee',         [ApplicationController::class, 'showPayFee'])->name('pay-fee');
             Route::post('/{application}/pay-fee',        [ApplicationController::class, 'initiateFeePayment'])->name('pay-fee.initiate');
-            Route::get('/{application}/fee-success',     [ApplicationController::class, 'feePaymentSuccess'])->name('fee-success');
+            Route::match(['get', 'post'], '/{application}/fee-success',     [ApplicationController::class, 'feePaymentSuccess'])->name('fee-success');
         });
 
         /*
@@ -195,9 +195,9 @@ Route::prefix('portal')->name('borrower.')->group(function () {
             Route::get('/status',                   [PaymentController::class, 'checkStatus'])->name('status');
 
             // Payment gateway callback handlers
-            Route::get('/callback/success',         [PaymentController::class, 'callbackSuccess'])->name('callback.success');
-            Route::get('/callback/cancel',          [PaymentController::class, 'callbackCancel'])->name('callback.cancel');
-            Route::get('/callback/failed',          [PaymentController::class, 'callbackFailed'])->name('callback.failed');
+            Route::match(['get', 'post'], '/callback/success',         [PaymentController::class, 'callbackSuccess'])->name('callback.success');
+            Route::match(['get', 'post'], '/callback/cancel',          [PaymentController::class, 'callbackCancel'])->name('callback.cancel');
+            Route::match(['get', 'post'], '/callback/failed',          [PaymentController::class, 'callbackFailed'])->name('callback.failed');
 
             // Receipt
             Route::get('/{payment}/receipt',        [PaymentController::class, 'receipt'])->name('receipt');

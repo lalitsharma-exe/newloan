@@ -24,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin/logout',
             'borrower/logout',
             'officer/logout',
+            'portal/apply/*/fee-success',
+            'portal/payments/callback/*',
         ]);
 
         $middleware->web(append: [
