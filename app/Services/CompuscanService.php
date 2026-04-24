@@ -12,7 +12,7 @@ class CompuscanService
 
     public function __construct()
     {
-        $this->srn = env('COMPUSCAN_SRN', 'CS123456'); // Example
+        $this->srn = env('COMPUSCAN_SRN', 'LSO250');
         $this->tradingName = env('COMPUSCAN_TRADING_NAME', 'MY LOAN PLATFORM');
     }
 
