@@ -328,10 +328,13 @@ class LoanController extends Controller
             'salary_payday'    => 'required|integer|min:1|max:31',
             'payout_method'    => 'required|string',
             'collection_method'=> 'required|string',
+            'term_months'      => 'required|integer|min:1|max:120',
             'edit_reason'      => 'required|string|max:500',
         ]);
 
         $oldPayday = $loan->salary_payday;
+        $oldTerm   = $loan->term_months;
+
         $loan->update([
             'salary_payday'     => $request->salary_payday,
             'payout_method'     => $request->payout_method,
@@ -344,6 +347,7 @@ class LoanController extends Controller
                 'salary_payday'     => $request->salary_payday,
                 'payout_method'     => $request->payout_method,
                 'collection_method' => $request->collection_method,
+                'term_months'       => $request->term_months,
             ]);
         }
 
@@ -361,11 +365,22 @@ class LoanController extends Controller
                 });
         }
 
+        // If term changed, trigger a restructure based on remaining installments
+        if ($oldTerm != $request->term_months) {
+            $paidCount = $loan->installments()->whereIn('status', ['paid', 'waived'])->count();
+            $newRemainingTerm = max(1, (int)$request->term_months - $paidCount);
+            
+            $this->svc->adjustSchedule($loan, [
+                'new_term' => $newRemainingTerm,
+                'reason'   => $request->edit_reason
+            ], auth('admin')->user());
+        }
+
         AuditLog::record(
             'loan.edit_details',
             "Loan {$loan->loan_number} details edited. Reason: {$request->edit_reason}",
             $loan, [],
-            ['payday' => $request->salary_payday, 'payout' => $request->payout_method, 'collection' => $request->collection_method]
+            ['payday' => $request->salary_payday, 'payout' => $request->payout_method, 'collection' => $request->collection_method, 'term' => $request->term_months]
         );
 
         return redirect()->route('admin.loans.show', $loan)->with('success', 'Loan details updated successfully.');

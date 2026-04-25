@@ -38,17 +38,45 @@ class LoanService
     public function adjustSchedule(Loan $loan, array $data, User $admin): void
     {
         $remaining = $loan->installments()->whereIn('status',['pending','partial'])->orderBy('installment_number')->get();
-        $newTerm   = count($remaining);
-        if ($newTerm === 0) return;
+        if ($remaining->isEmpty()) return;
 
-        $product       = $loan->loanProduct;
-        $newRate       = isset($data['interest_rate']) ? (float)$data['interest_rate'] / 100 : $loan->interest_rate / 100;
-        $adminPerMonth = (float) ($product?->admin_fee_fixed ?? 50);
+        $product          = $loan->loanProduct;
+        $newRate          = isset($data['interest_rate']) ? (float)$data['interest_rate'] / 100 : $loan->interest_rate / 100;
+        $adminPerMonth    = (float) ($product?->admin_fee_fixed ?? 50);
+        $initiationRate   = ($product?->initiation_fee_rate ?? 40) / 100;
+        
+        $currentRemainingCount = $remaining->count();
+        $requestedTerm         = isset($data['new_term']) ? (int)$data['new_term'] : $currentRemainingCount;
 
-        // Flat: recalculate on remaining outstanding principal only
+        // ── Step 1: Add or Remove Installments ──
+        if ($requestedTerm > $currentRemainingCount) {
+            // Addition: Add new installments after the last one
+            $lastInst = $remaining->last();
+            $lastNum  = $lastInst->installment_number;
+            $lastDate = \Carbon\Carbon::parse($lastInst->due_date);
+            
+            for ($i = 1; $i <= ($requestedTerm - $currentRemainingCount); $i++) {
+                $newInst = $lastInst->replicate();
+                $newInst->installment_number = $lastNum + $i;
+                $newInst->due_date = $lastDate->copy()->addMonths($i)->toDateString();
+                $newInst->paid_amount = 0;
+                $newInst->status = 'pending';
+                $newInst->save();
+            }
+        } elseif ($requestedTerm < $currentRemainingCount && $requestedTerm > 0) {
+            // Removal: Remove the latest un-paid installments
+            $toRemoveCount = $currentRemainingCount - $requestedTerm;
+            $idsToRemove = $remaining->take(-$toRemoveCount)->pluck('id');
+            LoanInstallment::whereIn('id', $idsToRemove)->delete();
+        }
+
+        // Refresh remaining if we added/removed
+        $remaining = $loan->installments()->whereIn('status',['pending','partial'])->orderBy('installment_number')->get();
+        $newTerm   = $remaining->count();
+        
+        // ── Step 2: Recalculate Amounts ──
         $outstandingPrincipal = $remaining->sum('principal_amount');
-        $initiationRate       = ($product?->initiation_fee_rate ?? 40) / 100;
-
+        
         $interestPerMonth    = round($outstandingPrincipal * $newRate, 2);
         $principalPerMonth   = round($outstandingPrincipal / $newTerm, 2);
         $initiationPerMonth  = round(($outstandingPrincipal * $initiationRate) / $newTerm, 2);
@@ -65,14 +93,18 @@ class LoanService
                 'initiation_fee_amount' => $init,
                 'admin_fee_amount'      => $adminPerMonth,
                 'total_amount'          => $total,
-                'outstanding_amount'    => $total,
+                'outstanding_amount'    => $total - $inst->paid_amount,
             ]);
         }
 
-        // Update loan's monthly_installment to new amount
-        if ($remaining->count() > 0) {
-            $loan->update(['monthly_installment' => $remaining->first()->fresh()->total_amount]);
-        }
+        // ── Step 3: Update Loan Totals ──
+        $allInst = $loan->installments()->get();
+        $loan->update([
+            'term_months'         => $allInst->count(),
+            'monthly_installment' => $remaining->first()->fresh()->total_amount,
+            'maturity_date'       => $allInst->last()->due_date,
+            'total_amount'        => $allInst->sum('total_amount'),
+        ]);
     }
 
     public function recordManualPayment(Loan $loan, array $data, User $admin): Payment

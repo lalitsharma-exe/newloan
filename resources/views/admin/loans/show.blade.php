@@ -2,44 +2,6 @@
 @section('title','Loan '.$loan->loan_number)@section('page-title','Loan '.$loan->loan_number)
 @section('bc')
 <a href="{{ route('admin.loans.index') }}">Loans</a> / Detail
-{{-- EDIT LOAN DETAILS MODAL --}}
-<div class="mo" id="editLoanModal"><div class="mb" style="max-width:560px">
-  <div class="mh"><span class="mt"><i class="bi bi-pencil-square" style="color:var(--info)"></i> Edit Loan Details</span><button class="mc" onclick="closeModal('editLoanModal')">&times;</button></div>
-  <form method="POST" action="{{ route('admin.loans.update-details',$loan) }}">@csrf @method('PATCH')
-    <div class="mbody">
-      <div class="alert a-w"><i class="bi bi-exclamation-triangle-fill"></i> Changes to payday will recalculate instalment due dates from the next unpaid instalment. Verify before saving.</div>
-      <div class="g2" style="gap:16px">
-        <div class="fg">
-          <label class="fl">Salary Pay Day (1–31)</label>
-          <input type="number" name="salary_payday" class="fc" min="1" max="31" value="{{ $loan->salary_payday ?? $loan->application?->salary_payday ?? 25 }}" required>
-          <div class="ft">The day of the month salary is received</div>
-        </div>
-        <div class="fg">
-          <label class="fl">Payout Method</label>
-          <select name="payout_method" class="fc">
-            @foreach(['bank_transfer'=>'Bank Transfer','mobile_money'=>'Mobile Money','cash'=>'Cash','cpay_wallet'=>'CPay Wallet'] as $v=>$l)
-            <option value="{{ $v }}" {{ ($loan->payout_method??'bank_transfer')===$v?'selected':'' }}>{{ $l }}</option>
-            @endforeach
-          </select>
-        </div>
-        <div class="fg">
-          <label class="fl">Collection Method</label>
-          <select name="collection_method" class="fc">
-            @foreach(['salary_deduction'=>'Salary Deduction','card_payment'=>'Card Payment','debit_order'=>'Debit Order','mobile_money'=>'Mobile Money','cash'=>'Cash'] as $v=>$l)
-            <option value="{{ $v }}" {{ ($loan->collection_method??'')===$v?'selected':'' }}>{{ $l }}</option>
-            @endforeach
-          </select>
-        </div>
-        <div class="fg">
-          <label class="fl">Notes / Reason for Change</label>
-          <textarea name="edit_reason" class="fc" rows="2" placeholder="e.g. Client requested payday change" required></textarea>
-        </div>
-      </div>
-    </div>
-    <div class="mf"><button type="button" class="btn btn-o" onclick="closeModal('editLoanModal')">Cancel</button><button type="submit" class="btn btn-i"><i class="bi bi-save"></i> Save Changes</button></div>
-  </form>
-</div></div>
-
 @endsection
 @section('content')
 <div style="display:flex;gap:18px;align-items:flex-start">
@@ -234,12 +196,17 @@
   <div class="mh"><span class="mt"><i class="bi bi-pencil-square" style="color:var(--info)"></i> Edit Loan Details</span><button class="mc" onclick="closeModal('editLoanModal')">&times;</button></div>
   <form method="POST" action="{{ route('admin.loans.update-details',$loan) }}">@csrf @method('PATCH')
     <div class="mbody">
-      <div class="alert a-w"><i class="bi bi-exclamation-triangle-fill"></i> Changes to payday will recalculate instalment due dates from the next unpaid instalment. Verify before saving.</div>
+      <div class="alert a-w"><i class="bi bi-exclamation-triangle-fill"></i> Changes to payday or term will recalculate instalment due dates/amounts. Verify before saving.</div>
       <div class="g2" style="gap:16px">
         <div class="fg">
           <label class="fl">Salary Pay Day (1–31)</label>
           <input type="number" name="salary_payday" class="fc" min="1" max="31" value="{{ $loan->salary_payday ?? $loan->application?->salary_payday ?? 25 }}" required>
           <div class="ft">The day of the month salary is received</div>
+        </div>
+        <div class="fg">
+          <label class="fl">Loan Term (Months)</label>
+          <input type="number" name="term_months" class="fc" min="1" max="120" value="{{ $loan->term_months }}" required>
+          <div class="ft">Editing this will restructure the schedule</div>
         </div>
         <div class="fg">
           <label class="fl">Payout Method</label>

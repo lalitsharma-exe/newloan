@@ -18,12 +18,13 @@
 <div class="card">
   <div class="card-hdr"><span class="card-title">Defaulted & Written-Off Loans ({{ $data['loans']->count() }})</span><form method="POST" action="{{ route('admin.reports.export') }}" style="display:inline">@csrf<input type="hidden" name="type" value="default"><button class="btn btn-o btn-sm"><i class="bi bi-download"></i> CSV</button></form></div>
   <div style="overflow-x:auto"><table class="dt">
-    <thead><tr><th>Loan #</th><th>Borrower</th><th>Phone</th><th>Product</th><th>Principal</th><th>Amount Lost</th><th>Status</th><th>Date</th></tr></thead>
+    <thead><tr><th>Loan #</th><th>Borrower</th><th>District</th><th>Phone</th><th>Product</th><th>Principal</th><th>Amount Lost</th><th>Status</th><th>Date</th></tr></thead>
     <tbody>
     @forelse($data['loans'] as $l)
     <tr>
       <td><a href="{{ route('admin.loans.show',$l) }}" style="font-weight:700;color:var(--p);font-size:12px">{{ $l->loan_number }}</a></td>
       <td style="font-weight:600;font-size:13px">{{ $l->user->name??'—' }}</td>
+      <td class="muted">{{ $l->application->district ?? '—' }}</td>
       <td style="color:var(--p)">{{ $l->user->phone??'—' }}</td>
       <td class="muted">{{ $l->loanProduct->name??'—' }}</td>
       <td>M{{ number_format($l->principal_amount,0) }}</td>
@@ -31,7 +32,7 @@
       <td><span class="badge be">{{ ucfirst(str_replace('_',' ',$l->status)) }}</span></td>
       <td class="muted">{{ $l->updated_at->format('d M Y') }}</td>
     </tr>
-    @empty<tr><td colspan="8"><div class="empty"><i class="bi bi-check-circle"></i><p>No defaults in this period</p></div></td></tr>
+    @empty<tr><td colspan="9"><div class="empty"><i class="bi bi-check-circle"></i><p>No defaults in this period</p></div></td></tr>
     @endforelse
     </tbody>
   </table></div>

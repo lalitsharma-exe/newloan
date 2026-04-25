@@ -108,6 +108,7 @@ h2{font-size:15px;font-weight:700;color:#1e3a5f;margin-bottom:12px;padding-botto
                 <div style="font-size:11px;color:#475569;font-weight:800;text-transform:uppercase;margin-bottom:8px;letter-spacing:0.5px">Banking Details</div>
                 <ul style="list-style:none;font-size:13px;color:#334155;line-height:1.8">
                     <li><span style="color:#64748b;display:inline-block;width:95px">Bank Name:</span> <strong>{{ \App\Models\SystemSetting::get('bank_name', 'Standard Lesotho Bank') }}</strong></li>
+                    <li><span style="color:#64748b;display:inline-block;width:95px">Branch / City:</span> <strong>{{ \App\Models\SystemSetting::get('bank_branch_name', $loan->application->bankDetails->branch_name ?? $loan->application->town ?? 'Maseru') }}</strong></li>
                     <li><span style="color:#64748b;display:inline-block;width:95px">Account Name:</span> <strong>{{ \App\Models\SystemSetting::get('bank_account_name', 'MyLoan Limited') }}</strong></li>
                     <li><span style="color:#64748b;display:inline-block;width:95px">Account No:</span> <strong style="color:#0f172a">{{ \App\Models\SystemSetting::get('bank_account_number', 'XXXXXXXXX') }}</strong></li>
                     <li><span style="color:#64748b;display:inline-block;width:95px">Branch Code:</span> <strong>{{ \App\Models\SystemSetting::get('bank_branch_code', 'XXXX') }}</strong></li>

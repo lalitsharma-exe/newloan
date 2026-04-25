@@ -159,7 +159,7 @@ class ReportService {
         $from = $f['date_from'] ?? now()->startOfYear()->format('Y-m-d');
         $to   = $f['date_to']   ?? now()->format('Y-m-d');
 
-        $q = Loan::with(['user','loanProduct'])->whereIn('status',['defaulted','written_off']);
+        $q = Loan::with(['user','loanProduct','application'])->whereIn('status',['defaulted','written_off']);
         $q->whereDate('updated_at','>=',$from)->whereDate('updated_at','<=',$to);
         $loans = $q->latest()->get();
 
