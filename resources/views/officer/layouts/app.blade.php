@@ -196,7 +196,17 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     <button class="tbtn" id="sbToggle"><i class="bi bi-list"></i></button>
     <div>
       <div class="topbar-title">@yield('page-title','Dashboard')</div>
-      @hasSection('bc')<div class="topbar-bc">{!! $__env->yieldContent('bc') !!}</div>@endif
+      @hasSection('bc')
+      <div class="topbar-bc" id="topbarBc">{!! $__env->yieldContent('bc') !!}</div>
+      <script>
+        (function(){
+          var bc = document.getElementById('topbarBc');
+          if(!bc) return;
+          bc.innerHTML = bc.innerHTML.replace(/\s+\/\s+/g,
+            '<i class="bi bi-chevron-right" style="font-size:10px;color:#b0bdd0;margin:0 4px;vertical-align:middle"></i>');
+        })();
+      </script>
+      @endif
     </div>
     <div class="spacer"></div>
     <div class="flex aic gap2">

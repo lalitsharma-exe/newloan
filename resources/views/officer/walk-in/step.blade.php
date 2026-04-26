@@ -1,7 +1,9 @@
 @extends('officer.layouts.app')
 @section('title','Walk-in Application – Step '.$step)
 @section('page-title','Walk-in Application')
-@section('bc','<a href="'.route('officer.dashboard').'">Dashboard</a> / <a href="'.route('officer.walk-in.create').'">Walk-in</a> / Step {{ $step }}')
+@section('bc')
+<a href="{{ route('officer.dashboard') }}">Dashboard</a> / <a href="{{ route('officer.walk-in.create') }}">Walk-in</a> / Step {{ $step }}
+@endsection
 
 @section('content')
 @php
@@ -263,7 +265,9 @@ $totalSteps = 9;
       </div>
       <div class="fg">
         <label class="fl">Account Type *</label>
-        <select name="account_type" class="fc" required><option value="">—</option><option value="savings" {{ old('account_type',$bank?->account_type)==='savings'?'selected':'' }}>Savings</option><option value="cheque" {{ old('account_type',$bank?->account_type)==='cheque'?'selected':'' }}>Cheque / Current</option></select></div>
+        <select name="account_type" class="fc" required><option value="">—</option><option value="savings" {{ old('account_type',$bank?->account_type)==='savings'?'selected':'' }}>Savings</option><option value="cheque" {{ old('account_type',$bank?->account_type)==='cheque'?'selected':'' }}>Cheque / Current</option></select>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -521,7 +525,21 @@ $totalSteps = 9;
             <button type="button" id="btn_{{ $dtype }}" class="btn btn-p btn-sm" onclick="uploadDoc('{{ $dtype }}', this)" style="height:38px;padding:0 15px">Upload</button>
           </div>
         @else
-          <div style="background:#fff;border:1px solid var(--bor{{-- ═══════════ STEP 9: REVIEW & SUBMIT ═══════════ --}}
+          <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--navy);font-weight:600">
+               <i class="bi bi-file-earmark-check-fill" style="color:var(--ok)"></i>
+               Uploaded
+            </div>
+            <a href="{{ \Illuminate\Support\Facades\Storage::url($existing->path) }}" target="_blank" class="btn btn-o btn-xs">View</a>
+          </div>
+        @endif
+      </div>
+      @endforeach
+    </div>
+  </div>
+</div>
+
+{{-- ═══════════ STEP 9: REVIEW & SUBMIT ═══════════ --}}
 @elseif($step == 9)
 <div class="alert a-ok" style="margin-bottom:20px;border:1px solid rgba(16,185,129,.2)">
   <i class="bi bi-check-circle-fill"></i>
@@ -621,31 +639,23 @@ $totalSteps = 9;
     </div>
   </div>
 </div>
-@endifolid #fbd38d;background:#fffaf0">
-  <div class="card-body" style="padding:15px">
-    <div style="display:flex;gap:12px;align-items:flex-start">
-      <i class="bi bi-exclamation-triangle-fill" style="color:#dd6b20;font-size:18px"></i>
-      <div style="font-size:13px;color:#744210;line-height:1.5">
-        <strong>Officer Declaration:</strong> I confirm that I have interviewed the client ({{ $application->applicant_name }}), verified their original documents, and performed a preliminary affordability check as per the company's lending policy.
-      </div>
-    </div>
-  </div>
-</div>
-
 @endif
 
-<div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;background:#fcfcfc">
-  @if($step > 1)
-  <a href="{{ route('officer.walk-in.step.show', [$application, $step-1]) }}" class="btn btn-o"><i class="bi bi-chevron-left"></i> Back</a>
-  @else<div></div>@endif
+    </div>
 
-  @if($step < 9)
-    <button type="submit" class="btn btn-p">Save & Continue <i class="bi bi-chevron-right"></i></button>
-  @else
-    <button type="button" class="btn btn-ok" onclick="prepareSubmit()"><i class="bi bi-send-fill"></i> Submit for Review</button>
-  @endif
-</div>
+    <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;background:#fcfcfc">
+      @if($step > 1)
+      <a href="{{ route('officer.walk-in.step.show', [$application, $step-1]) }}" class="btn btn-o"><i class="bi bi-chevron-left"></i> Back</a>
+      @else<div></div>@endif
+
+      @if($step < 9)
+        <button type="submit" class="btn btn-p">Save & Continue <i class="bi bi-chevron-right"></i></button>
+      @else
+        <button type="button" class="btn btn-ok" onclick="prepareSubmit()"><i class="bi bi-send-fill"></i> Submit for Review</button>
+      @endif
+    </div>
 </form>
+</div>
 
 <!-- Final Confirmation Modal -->
 <div class="mo" id="submitModal"><div class="mc" style="max-width:440px">
@@ -747,10 +757,6 @@ function prepareSubmit() {
     if (sigPad) {
         document.getElementById('modal_signature_data').value = sigPad.toDataURL('image/png');
     }
-    const notes = document.querySelector('textarea[name="officer_notes"]');
-    if (notes) {
-        document.getElementById('modal_officer_notes').value = notes.value;
-    }
     openModal('submitModal');
 }
 
@@ -810,7 +816,7 @@ function updateBranchCode(opt) {
 document.addEventListener("DOMContentLoaded", function() {
     loadBanks();
 });
-</script>
+
 @if($step == 6)
 // ── AFFORDABILITY CALCULATOR ──
 function calcAfford(){

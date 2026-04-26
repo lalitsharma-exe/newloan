@@ -243,6 +243,13 @@ Route::prefix('portal')->name('borrower.')->group(function () {
         });
 
         /*
+        | ── REFERRALS ──────────────────────────────────────────────
+        */
+        Route::prefix('referrals')->name('referrals.')->group(function () {
+            Route::get('/',                     [\App\Http\Controllers\Borrower\ReferralController::class, 'index'])->name('index');
+        });
+
+        /*
         | ── PROFILE ────────────────────────────────────────────────
         */
         Route::prefix('profile')->name('profile.')->group(function () {

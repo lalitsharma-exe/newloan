@@ -30,10 +30,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\SessionTimeout::class,
+            \App\Http\Middleware\CaptureReferral::class,
         ]);
 
         $middleware->alias([
             'admin.active'      => \App\Http\Middleware\AdminActive::class,
+            'admin.permission'  => \App\Http\Middleware\CheckAdminPermission::class,
             'officer.active'    => \App\Http\Middleware\OfficerActive::class,
             'borrower.active'   => \App\Http\Middleware\BorrowerActive::class,
             'borrower.verified' => \App\Http\Middleware\BorrowerVerified::class,

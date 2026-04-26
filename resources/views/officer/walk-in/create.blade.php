@@ -1,7 +1,9 @@
 @extends('officer.layouts.app')
 @section('title','Register Walk-in Client')
 @section('page-title','Register Walk-in Client')
-@section('bc','<a href="'.route('officer.dashboard').'">Dashboard</a> / Register Walk-in Client')
+@section('bc')
+<a href="{{ route('officer.dashboard') }}">Dashboard</a> / Register Walk-in Client
+@endsection
 
 @section('content')
 <div class="alert a-i" style="margin-bottom:20px">

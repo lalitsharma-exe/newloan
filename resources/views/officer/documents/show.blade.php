@@ -1,7 +1,9 @@
 @extends('officer.layouts.app')
 @section('title','Review Document')
 @section('page-title','Document Review')
-@section('bc','<a href="'.route('officer.documents.index').'">Documents</a> / Review')
+@section('bc')
+<a href="{{ route('officer.documents.index') }}">Documents</a> / Review
+@endsection
 
 @section('content')
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start">

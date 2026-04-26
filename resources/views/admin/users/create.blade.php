@@ -1,162 +1,268 @@
 @extends('admin.layouts.app')
 @section('title','Create User')
 @section('page-title','Create User')
-@section('bc','<a href="'.route('admin.users.index').'">Users</a> / Create')
+@section('bc')
+<a href="{{ route('admin.users.index') }}">Users</a> / Create
+@endsection
+
 @section('content')
-
-<div style="max-width:760px">
-<div class="card">
-  <div class="card-hdr">
-    <span class="card-title"><i class="bi bi-person-plus-fill" style="color:var(--p)"></i> New User</span>
-  </div>
-  <form method="POST" action="{{ route('admin.users.store') }}">
+<div style="max-width:900px;margin:0 auto">
+  <form method="POST" action="{{ route('admin.users.store') }}" id="userForm">
     @csrf
-    <div class="card-body">
 
-      @if($errors->any())
-      <div class="alert a-e" style="margin-bottom:20px">
-        <i class="bi bi-exclamation-triangle-fill" style="flex-shrink:0"></i>
-        <ul style="margin:0;padding-left:16px">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
-      </div>
-      @endif
-
-      {{-- Role selector --}}
-      <div class="fg">
-        <label class="fl">Role *</label>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px" id="roleCards">
-          @foreach([
-            ['admin',        'Admin',        'shield-fill',       '#ef4444', 'Full system access'],
-            ['loan_officer', 'Loan Officer', 'person-badge-fill', '#4f46e5', 'Review applications'],
-            ['borrower',     'Borrower',     'person-fill',       '#10b981', 'Apply for loans'],
-          ] as [$val,$label,$icon,$color,$desc])
-          <label style="cursor:pointer">
-            <input type="radio" name="role" value="{{ $val }}" {{ old('role')===$val?'checked':'' }} style="display:none" class="role-radio" onchange="onRoleChange('{{ $val }}')">
-            <div class="role-card" data-role="{{ $val }}" style="border:2px solid var(--border);border-radius:13px;padding:16px 14px;text-align:center;transition:all .2s;user-select:none">
-              <div style="width:46px;height:46px;border-radius:50%;background:{{ $color }}22;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:20px;color:{{ $color }}">
-                <i class="bi bi-{{ $icon }}"></i>
-              </div>
-              <div style="font-weight:700;font-size:13px">{{ $label }}</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:3px">{{ $desc }}</div>
+    {{-- ── ROLE SELECTION — THE PRIMARY TRIGGER ── --}}
+    <div style="margin-bottom:26px">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">Step 1: Select User Role</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+        @foreach([
+          ['admin', 'Administrator', 'shield-lock-fill', '#ef4444', 'Manage system, staff and settings'],
+          ['loan_officer', 'Loan Officer', 'person-badge-fill', '#4f46e5', 'Review applications and manage clients'],
+          ['borrower', 'Borrower', 'person-fill', '#10b981', 'Apply for loans and manage repayments']
+        ] as [$val, $label, $icon, $color, $desc])
+        <label style="cursor:pointer;margin:0">
+          <input type="radio" name="role" value="{{ $val }}" {{ old('role')===$val?'checked':'' }} class="role-radio" style="display:none" onchange="onRoleChange('{{ $val }}')">
+          <div class="role-card" data-role="{{ $val }}" style="background:#fff;border:2px solid var(--border);border-radius:18px;padding:22px 18px;text-align:center;transition:all .3s ease;height:100%;display:flex;flex-direction:column;align-items:center">
+            <div class="role-icon" style="width:54px;height:54px;border-radius:50%;background:{{ $color }}15;color:{{ $color }};display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px;transition:all .3s">
+              <i class="bi bi-{{ $icon }}"></i>
             </div>
-          </label>
-          @endforeach
-        </div>
-        @error('role')<span class="iv">{{ $message }}</span>@enderror
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-
-        {{-- Name --}}
-        <div class="fg">
-          <label class="fl">Full Name *</label>
-          <input type="text" name="name" class="fc @error('name') err @enderror" value="{{ old('name') }}" placeholder="John Mokoena" required>
-          @error('name')<span class="iv">{{ $message }}</span>@enderror
-        </div>
-
-        {{-- Phone (always required) --}}
-        <div class="fg">
-          <label class="fl">Phone Number * <span style="color:var(--muted);font-weight:400;font-size:11px">(+266XXXXXXXX format)</span></label>
-          <div style="position:relative">
-            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;font-weight:600">+266</span>
-            <input type="tel" name="phone" id="phoneInput"
-              class="fc @error('phone') err @enderror"
-              value="{{ old('phone') }}"
-              placeholder="53797734"
-              style="padding-left:52px"
-              required
-              oninput="formatPhonePreview(this)">
+            <div style="font-size:15px;font-weight:800;color:var(--dark);margin-bottom:6px">{{ $label }}</div>
+            <div style="font-size:11.5px;color:var(--muted);line-height:1.4">{{ $desc }}</div>
+            <div class="role-check" style="margin-top:auto;padding-top:14px;color:var(--p);font-size:18px;opacity:0;transition:all .2s">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
           </div>
-          <div class="ft" id="phonePreview" style="color:var(--p);font-weight:600"></div>
-          @error('phone')<span class="iv">{{ $message }}</span>@enderror
-        </div>
-
-        {{-- Email (optional) --}}
-        <div class="fg">
-          <label class="fl">Email Address <span style="color:var(--muted);font-weight:400;font-size:11px">(optional)</span></label>
-          <input type="email" name="email" class="fc @error('email') err @enderror" value="{{ old('email') }}" placeholder="Leave blank if borrower has no email">
-          @error('email')<span class="iv">{{ $message }}</span>@enderror
-        </div>
-
-        {{-- National ID (shown for borrowers) --}}
-        <div class="fg" id="nationalIdField" style="display:none">
-          <label class="fl">ID Number * <span style="color:var(--muted);font-weight:400;font-size:11px">(National ID)</span></label>
-          <input type="text" name="national_id" class="fc @error('national_id') err @enderror" value="{{ old('national_id') }}" placeholder="e.g. 9001015009087">
-          @error('national_id')<span class="iv">{{ $message }}</span>@enderror
-        </div>
-
-        {{-- Maiden Name (shown for borrowers) --}}
-        <div class="fg" id="maidenNameField" style="display:none">
-          <label class="fl">Maiden Name <span style="color:var(--muted);font-weight:400;font-size:11px">(Name before marriage)</span></label>
-          <input type="text" name="maiden_name" class="fc @error('maiden_name') err @enderror" value="{{ old('maiden_name') }}" placeholder="Optional">
-          @error('maiden_name')<span class="iv">{{ $message }}</span>@enderror
-        </div>
-
-        {{-- Assigned Officer (shown for borrowers) --}}
-        <div class="fg" id="officerField" style="display:none">
-          <label class="fl">Assigned Loan Officer *</label>
-          <select name="assigned_officer_id" class="fc @error('assigned_officer_id') err @enderror">
-            <option value="">— Select Loan Officer —</option>
-            @foreach($officers as $officer)
-            <option value="{{ $officer->id }}" {{ old('assigned_officer_id') == $officer->id ? 'selected' : '' }}>
-              {{ $officer->name }}
-            </option>
-            @endforeach
-          </select>
-          @error('assigned_officer_id')<span class="iv">{{ $message }}</span>@enderror
-        </div>
-
-        {{-- Status --}}
-        <div class="fg">
-          <label class="fl">Status</label>
-          <select name="is_active" class="fc">
-            <option value="1" {{ old('is_active','1')==='1'?'selected':'' }}>Active</option>
-            <option value="0" {{ old('is_active')==='0'?'selected':'' }}>Inactive</option>
-          </select>
-        </div>
-
-        {{-- Password --}}
-        <div class="fg">
-          <label class="fl">Password *</label>
-          <div style="position:relative">
-            <input type="password" name="password" id="pw" class="fc @error('password') err @enderror" placeholder="Min 8 characters" required style="padding-right:42px">
-            <button type="button" onclick="togglePw('pw','eyePw')" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px"><i class="bi bi-eye" id="eyePw"></i></button>
-          </div>
-          @error('password')<span class="iv">{{ $message }}</span>@enderror
-        </div>
-
-        {{-- Confirm Password --}}
-        <div class="fg">
-          <label class="fl">Confirm Password *</label>
-          <div style="position:relative">
-            <input type="password" name="password_confirmation" id="pw2" class="fc" placeholder="Repeat password" required style="padding-right:42px">
-            <button type="button" onclick="togglePw('pw2','eyePw2')" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px"><i class="bi bi-eye" id="eyePw2"></i></button>
-          </div>
-        </div>
-
+        </label>
+        @endforeach
       </div>
-
-      {{-- Borrower note --}}
-      <div id="borrowerNote" style="display:none;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:12px 14px;font-size:12.5px;color:#065f46;margin-top:4px">
-        <i class="bi bi-info-circle-fill" style="margin-right:6px"></i>
-        <strong>Borrower:</strong> Email is optional. Phone number and ID number are required for duplicate prevention and SMS communication.
-        Phone will be stored in <strong>+266XXXXXXXX</strong> format.
-      </div>
-
+      @error('role')<div class="iv" style="text-align:center;margin-top:10px">{{ $message }}</div>@enderror
     </div>
-    <div style="padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px">
-      <a href="{{ route('admin.users.index') }}" class="btn btn-o">Cancel</a>
-      <button type="submit" class="btn btn-p"><i class="bi bi-check-lg"></i> Create User</button>
+
+    {{-- ── FORM CONTENT — DYNAMICALLY SHOWN ── --}}
+    <div id="formContent" style="display:none;animation:fadeIn .4s ease">
+      
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start">
+        
+        {{-- Left Column: Main Data --}}
+        <div>
+          {{-- SECTION: BASIC INFO --}}
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-hdr">
+              <span class="card-title"><i class="bi bi-person-fill" style="color:var(--p);margin-right:6px"></i>Basic Account Information</span>
+            </div>
+            <div class="card-body">
+              <div class="g2">
+                <div class="fg">
+                  <label class="fl">Full Name *</label>
+                  <input type="text" name="name" class="fc @error('name') err @enderror" value="{{ old('name') }}" placeholder="Enter full name" required>
+                  @error('name')<span class="iv">{{ $message }}</span>@enderror
+                </div>
+                <div class="fg">
+                  <label class="fl">Email Address <span style="color:var(--muted);font-weight:400;font-size:11px">(Optional for Borrowers)</span></label>
+                  <input type="email" name="email" class="fc @error('email') err @enderror" value="{{ old('email') }}" placeholder="email@example.com">
+                  @error('email')<span class="iv">{{ $message }}</span>@enderror
+                </div>
+              </div>
+
+              <div class="g2">
+                <div class="fg">
+                  <label class="fl">Phone Number * <span style="color:var(--muted);font-weight:400;font-size:11px">(+266)</span></label>
+                  <div style="position:relative">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700;font-size:13px">+266</span>
+                    <input type="tel" name="phone" id="phoneInput" class="fc @error('phone') err @enderror" value="{{ old('phone') }}" placeholder="58123456" style="padding-left:54px" required oninput="formatPhonePreview(this)">
+                  </div>
+                  <div id="phonePreview" style="font-size:11px;color:var(--p);font-weight:700;margin-top:4px"></div>
+                  @error('phone')<span class="iv">{{ $message }}</span>@enderror
+                </div>
+                <div class="fg">
+                  <label class="fl">Account Status</label>
+                  <select name="is_active" class="fc">
+                    <option value="1" {{ old('is_active','1')==='1'?'selected':'' }}>Active (Can login)</option>
+                    <option value="0" {{ old('is_active')==='0'?'selected':'' }}>Inactive (Blocked)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {{-- SECTION: ROLE SPECIFIC --}}
+          <div id="roleSpecificSection" class="card" style="margin-bottom:20px;display:none">
+            <div class="card-hdr" id="roleSpecificHdr">
+              <span class="card-title"><i class="bi bi-stars" style="color:var(--warn);margin-right:6px"></i>Role Specific Details</span>
+            </div>
+            <div class="card-body">
+              
+              {{-- Borrower Fields --}}
+              <div id="borrowerFields" style="display:none">
+                <div class="g2">
+                  <div class="fg">
+                    <label class="fl">National ID Number *</label>
+                    <input type="text" name="national_id" class="fc @error('national_id') err @enderror" value="{{ old('national_id') }}" placeholder="Enter ID number">
+                    @error('national_id')<span class="iv">{{ $message }}</span>@enderror
+                  </div>
+                  <div class="fg">
+                    <label class="fl">Maiden Name <span style="color:var(--muted);font-weight:400;font-size:11px">(Optional)</span></label>
+                    <input type="text" name="maiden_name" class="fc" value="{{ old('maiden_name') }}" placeholder="Original surname">
+                  </div>
+                </div>
+                <div class="fg">
+                  <label class="fl">Assigned Loan Officer *</label>
+                  <select name="assigned_officer_id" class="fc @error('assigned_officer_id') err @enderror">
+                    <option value="">— Select an Officer —</option>
+                    @foreach($officers as $o)
+                    <option value="{{ $o->id }}" {{ old('assigned_officer_id')==$o->id?'selected':'' }}>{{ $o->name }}</option>
+                    @endforeach
+                  </select>
+                  <div class="ft">This officer will be responsible for reviewing this borrower's applications.</div>
+                </div>
+              </div>
+
+              {{-- Admin Fields --}}
+              <div id="adminFields" style="display:none">
+                <div class="fg">
+                  <label class="fl">Admin Access Role *</label>
+                  <select name="admin_role_id" class="fc @error('admin_role_id') err @enderror">
+                    <option value="">— Select Permissions Level —</option>
+                    @foreach($adminRoles as $ar)
+                    <option value="{{ $ar->id }}" {{ old('admin_role_id')==$ar->id?'selected':'' }}>{{ $ar->name }} {{ $ar->is_super_admin?'(Super Admin)':'' }}</option>
+                    @endforeach
+                  </select>
+                  <div class="ft">Defines what this administrator can see and modify in the dashboard.</div>
+                  @error('admin_role_id')<span class="iv">{{ $message }}</span>@enderror
+                </div>
+              </div>
+
+              {{-- Loan Officer Fields --}}
+              <div id="officerFields" style="display:none">
+                <div class="alert a-i" style="margin:0">
+                  <i class="bi bi-info-circle-fill"></i>
+                  <div>Loan Officers have their own portal and do not require additional configuration here. They will be able to review applications assigned to them.</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {{-- Right Column: Security/Photo --}}
+        <div>
+          <div class="card" style="margin-bottom:20px;background:#fdfdfd">
+            <div class="card-hdr">
+              <span class="card-title"><i class="bi bi-shield-lock-fill" style="color:var(--err);margin-right:6px"></i>Security</span>
+            </div>
+            <div class="card-body">
+              <div class="fg">
+                <label class="fl">Password *</label>
+                <div style="position:relative">
+                  <input type="password" name="password" id="pw" class="fc @error('password') err @enderror" placeholder="Min 8 characters" required style="padding-right:42px">
+                  <button type="button" onclick="togglePw('pw','e1')" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px"><i class="bi bi-eye" id="e1"></i></button>
+                </div>
+                @error('password')<span class="iv">{{ $message }}</span>@enderror
+              </div>
+              <div class="fg">
+                <label class="fl">Confirm Password *</label>
+                <div style="position:relative">
+                  <input type="password" name="password_confirmation" id="pw2" class="fc" placeholder="Repeat password" required style="padding-right:42px">
+                  <button type="button" onclick="togglePw('pw2','e2')" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px"><i class="bi bi-eye" id="e2"></i></button>
+                </div>
+              </div>
+              <button type="button" onclick="generateRandomPw()" class="btn btn-o btn-xs" style="width:100%;justify-content:center;margin-top:4px"><i class="bi bi-shuffle"></i> Generate Strong Password</button>
+            </div>
+          </div>
+
+          <div style="background:var(--p);color:#fff;border-radius:18px;padding:24px;text-align:center;box-shadow:0 10px 25px rgba(30,51,112,0.2)">
+            <div style="font-size:13px;font-weight:600;margin-bottom:16px;opacity:.9">Ready to proceed?</div>
+            <button type="submit" class="btn btn-ok" style="width:100%;justify-content:center;padding:12px;font-size:15px">
+              <i class="bi bi-person-plus-fill"></i> Create Account
+            </button>
+            <a href="{{ route('admin.users.index') }}" style="display:block;margin-top:14px;color:#fff;text-decoration:none;font-size:12.5px;font-weight:600;opacity:.7" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.7'">Cancel & Go Back</a>
+          </div>
+        </div>
+
+      </div>
     </div>
   </form>
 </div>
-</div>
 
 <style>
-.role-radio:checked + .role-card { border-color: var(--p) !important; background: rgba(26,92,46,.06); }
-.role-card:hover { border-color: #a7f3d0 !important; }
+.role-radio:checked + .role-card {
+  border-color: var(--p) !important;
+  background: rgba(30,51,112,.03) !important;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(0,0,0,.06);
+}
+.role-radio:checked + .role-card .role-icon {
+  background: var(--p) !important;
+  color: #fff !important;
+  transform: scale(1.1);
+}
+.role-radio:checked + .role-card .role-check {
+  opacity: 1 !important;
+}
+.role-card:hover:not(.role-radio:checked + .role-card) {
+  border-color: #b0bdd0 !important;
+  transform: translateY(-2px);
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
 <script>
+function onRoleChange(role) {
+  const formContent = document.getElementById('formContent');
+  formContent.style.display = 'block';
+  
+  // Update Role Specific UI
+  const roleSection = document.getElementById('roleSpecificSection');
+  const roleHdr     = document.getElementById('roleSpecificHdr');
+  const bFields     = document.getElementById('borrowerFields');
+  const aFields     = document.getElementById('adminFields');
+  const oFields     = document.getElementById('officerFields');
+  
+  // Reset all
+  roleSection.style.display = 'block';
+  bFields.style.display = 'none';
+  aFields.style.display = 'none';
+  oFields.style.display = 'none';
+  
+  // Set required flags
+  document.querySelector('[name=assigned_officer_id]').required = false;
+  document.querySelector('[name=national_id]').required = false;
+  document.querySelector('[name=admin_role_id]').required = false;
+
+  if (role === 'borrower') {
+    bFields.style.display = 'block';
+    roleHdr.innerHTML = '<span class="card-title"><i class="bi bi-person-fill" style="color:#10b981;margin-right:6px"></i>Borrower Specific Details</span>';
+    document.querySelector('[name=assigned_officer_id]').required = true;
+    document.querySelector('[name=national_id]').required = true;
+  } else if (role === 'admin') {
+    aFields.style.display = 'block';
+    roleHdr.innerHTML = '<span class="card-title"><i class="bi bi-shield-lock-fill" style="color:#ef4444;margin-right:6px"></i>Administrative Access</span>';
+    document.querySelector('[name=admin_role_id]').required = true;
+  } else if (role === 'loan_officer') {
+    oFields.style.display = 'block';
+    roleHdr.innerHTML = '<span class="card-title"><i class="bi bi-person-badge-fill" style="color:#4f46e5;margin-right:6px"></i>Officer Profile</span>';
+  }
+
+  // Smooth scroll to form if it was just shown
+  if (formContent.style.opacity === '0' || formContent.style.display === 'none') {
+    setTimeout(() => formContent.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+}
+
+function formatPhonePreview(el) {
+  const digits = el.value.replace(/[^0-9]/g, '');
+  const preview = document.getElementById('phonePreview');
+  if (digits.length === 8) {
+    preview.textContent = '✓ Saved as: +266 ' + digits;
+    preview.style.color = 'var(--ok)';
+  } else if (digits.length > 8) {
+    preview.textContent = 'Maximum 8 digits after prefix';
+    preview.style.color = 'var(--err)';
+  } else {
+    preview.textContent = digits.length > 0 ? 'Need ' + (8 - digits.length) + ' more digit(s)' : '';
+    preview.style.color = 'var(--p)';
+  }
+}
+
 function togglePw(id, iconId) {
   const f = document.getElementById(id);
   const i = document.getElementById(iconId);
@@ -164,39 +270,20 @@ function togglePw(id, iconId) {
   else                       { f.type = 'password'; i.className = 'bi bi-eye'; }
 }
 
-function onRoleChange(role) {
-  document.querySelectorAll('.role-card').forEach(c => {
-    c.style.borderColor = 'var(--border)';
-    c.style.background  = '';
-  });
-  const active = document.querySelector(`.role-card[data-role="${role}"]`);
-  if (active) { active.style.borderColor = 'var(--p)'; active.style.background = 'rgba(26,92,46,.06)'; }
-
-  const isBorrower = role === 'borrower';
-  document.getElementById('officerField').style.display   = isBorrower ? '' : 'none';
-  document.getElementById('nationalIdField').style.display = isBorrower ? '' : 'none';
-  document.getElementById('maidenNameField').style.display = isBorrower ? '' : 'none';
-  document.getElementById('borrowerNote').style.display    = isBorrower ? '' : 'none';
-
-  // Make assigned_officer_id required only for borrower
-  document.querySelector('[name=assigned_officer_id]').required = isBorrower;
-  document.querySelector('[name=national_id]').required          = isBorrower;
+function generateRandomPw() {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+  let pw = "";
+  for (let i = 0; i < 12; i++) pw += chars.charAt(Math.floor(Math.random() * chars.length));
+  document.getElementById('pw').value = pw;
+  document.getElementById('pw2').value = pw;
+  document.getElementById('pw').type = 'text';
+  document.getElementById('e1').className = 'bi bi-eye-slash';
 }
 
-function formatPhonePreview(el) {
-  const digits = el.value.replace(/[^0-9]/g, '');
-  const preview = document.getElementById('phonePreview');
-  if (digits.length === 8) {
-    preview.textContent = 'Will be saved as: +266' + digits;
-  } else if (digits.length > 8) {
-    preview.textContent = '';
-  } else {
-    preview.textContent = digits.length > 0 ? 'Enter remaining ' + (8 - digits.length) + ' digit(s)' : '';
-  }
-}
-
-// Init on page load for old() values
-const checked = document.querySelector('.role-radio:checked');
-if (checked) onRoleChange(checked.value);
+// Handle old() value on load
+window.addEventListener('load', () => {
+  const checked = document.querySelector('.role-radio:checked');
+  if (checked) onRoleChange(checked.value);
+});
 </script>
 @endsection

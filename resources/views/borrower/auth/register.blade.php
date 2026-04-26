@@ -154,6 +154,14 @@ body{background:linear-gradient(160deg,#070e24 0%,#0d1b3e 40%,#162552 70%,#0d1b3
         </div>
       </div>
 
+      <div class="fg">
+        <label class="fl">Referral Code <span style="color:#9aaccf;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <div class="field-wrap">
+          <i class="bi bi-gift-fill field-icon"></i>
+          <input type="text" name="referral_code" class="fc" value="{{ old('referral_code', session('referral_code')) }}" placeholder="Enter code if you have one">
+        </div>
+      </div>
+
       <button type="submit" class="btn-submit">
         <i class="bi bi-person-plus-fill"></i> Create My Account
       </button>

@@ -291,6 +291,7 @@ select.fc { cursor: pointer; }
   <a href="{{ route('borrower.loans.index') }}" class="navbtn {{ request()->routeIs('borrower.loans.*') ? 'active' : '' }}"><i class="bi bi-bank"></i> Loans</a>
   <a href="{{ route('borrower.payments.index') }}" class="navbtn {{ request()->routeIs('borrower.payments.*') ? 'active' : '' }}"><i class="bi bi-credit-card"></i> Payments</a>
   <a href="{{ route('borrower.documents.index') }}" class="navbtn {{ request()->routeIs('borrower.documents.*') ? 'active' : '' }}"><i class="bi bi-folder2"></i> Documents</a>
+  <a href="{{ route('borrower.referrals.index') }}" class="navbtn {{ request()->routeIs('borrower.referrals.*') ? 'active' : '' }}"><i class="bi bi-gift"></i> Refer & Earn</a>
 
   <div class="nav-sp"></div>
 

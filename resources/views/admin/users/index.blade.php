@@ -159,6 +159,9 @@
           @else
             <span class="badge bs"><i class="bi bi-person-fill" style="font-size:10px"></i> Borrower</span>
           @endif
+          @if($user->adminRole)
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;font-weight:600">{{ $user->adminRole->name }}</div>
+          @endif
         </td>
         <td>
           <div style="display:flex;align-items:center;gap:7px">

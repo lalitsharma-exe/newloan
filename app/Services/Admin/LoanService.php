@@ -1,10 +1,54 @@
 <?php
 namespace App\Services\Admin;
 
-use App\Models\{Loan, LoanInstallment, Payment, User};
+use App\Models\{Loan, LoanInstallment, Payment, User, Referral};
 
 class LoanService
 {
+    public function validateReferral(Loan $loan): void
+    {
+        $borrower = $loan->user;
+        $referral = Referral::where('referred_id', $borrower->id)->where('status', 'pending')->first();
+        
+        if (!$referral) return;
+
+        // Check if it's the 1st loan
+        $loanCount = Loan::where('user_id', $borrower->id)->count();
+        
+        if ($loanCount === 1) {
+            $referral->update([
+                'status'        => 'validated',
+                'loan_id'       => $loan->id,
+                'is_first_loan' => true,
+            ]);
+        } else {
+            $referral->update([
+                'status'          => 'rejected',
+                'is_repeat_loan'  => true,
+                'rejected_reason' => 'Repeat loan detected (First loan only rule)',
+            ]);
+        }
+    }
+
+    public function checkReferralQualification(Loan $loan): void
+    {
+        $referral = Referral::where('loan_id', $loan->id)
+            ->where('status', 'validated')
+            ->first();
+
+        if (!$referral) return;
+
+        // Check if the FIRST installment is paid
+        $firstInst = $loan->installments()->orderBy('installment_number')->first();
+        
+        if ($firstInst && $firstInst->status === 'paid') {
+            $referral->update([
+                'status'       => 'qualified',
+                'qualified_at' => now(),
+            ]);
+        }
+    }
+
     public function getPaginated(array $filters, int $perPage = 15)
     {
         $q = Loan::with(['user', 'loanProduct']);
@@ -37,18 +81,34 @@ class LoanService
 
     public function adjustSchedule(Loan $loan, array $data, User $admin): void
     {
-        $remaining = $loan->installments()->whereIn('status',['pending','partial'])->orderBy('installment_number')->get();
+        // 1. Identify remaining unpaid installments (those we are allowed to change)
+        $remaining = $loan->installments()
+            ->whereIn('status', ['pending', 'partial', 'overdue'])
+            ->orderBy('installment_number')
+            ->get();
+            
         if ($remaining->isEmpty()) return;
 
-        $product          = $loan->loanProduct;
-        $newRate          = isset($data['interest_rate']) ? (float)$data['interest_rate'] / 100 : $loan->interest_rate / 100;
-        $adminPerMonth    = (float) ($product?->admin_fee_fixed ?? 50);
-        $initiationRate   = ($product?->initiation_fee_rate ?? 40) / 100;
+        // 2. Frozen installments (already paid/waived)
+        $frozen = $loan->installments()
+            ->whereIn('status', ['paid', 'waived'])
+            ->orderBy('installment_number')
+            ->get();
+
+        // 3. Determine Remaining Principal to redistribute
+        // Total Principal to be distributed = (Original Loan Principal) - (Principal already covered in paid installments)
+        $paidPrincipal = $frozen->sum('principal_amount');
+        $outstandingPrincipal = max(0, $loan->principal_amount - $paidPrincipal);
+
+        $product        = $loan->loanProduct;
+        $newRate        = isset($data['interest_rate']) ? (float)$data['interest_rate'] / 100 : $loan->interest_rate / 100;
+        $adminPerMonth  = (float) ($product?->admin_fee_fixed ?? 50);
+        $initiationRate = ($product?->initiation_fee_rate ?? 40) / 100;
         
         $currentRemainingCount = $remaining->count();
         $requestedTerm         = isset($data['new_term']) ? (int)$data['new_term'] : $currentRemainingCount;
 
-        // ── Step 1: Add or Remove Installments ──
+        // ── Step 1: Adjust installment count ──
         if ($requestedTerm > $currentRemainingCount) {
             // Addition: Add new installments after the last one
             $lastInst = $remaining->last();
@@ -60,6 +120,7 @@ class LoanService
                 $newInst->installment_number = $lastNum + $i;
                 $newInst->due_date = $lastDate->copy()->addMonths($i)->toDateString();
                 $newInst->paid_amount = 0;
+                $newInst->outstanding_amount = 0; // Will be set in Step 2
                 $newInst->status = 'pending';
                 $newInst->save();
             }
@@ -70,21 +131,32 @@ class LoanService
             LoanInstallment::whereIn('id', $idsToRemove)->delete();
         }
 
-        // Refresh remaining if we added/removed
-        $remaining = $loan->installments()->whereIn('status',['pending','partial'])->orderBy('installment_number')->get();
-        $newTerm   = $remaining->count();
+        // Refresh remaining list after additions/removals
+        $remaining = $loan->installments()
+            ->whereIn('status', ['pending', 'partial', 'overdue'])
+            ->orderBy('installment_number')
+            ->get();
+            
+        $newTermCount = $remaining->count();
+        if ($newTermCount === 0) return;
         
-        // ── Step 2: Recalculate Amounts ──
-        $outstandingPrincipal = $remaining->sum('principal_amount');
-        
+        // ── Step 2: Recalculate components for the new remaining term ──
+        // Principal is spread evenly. Interest/Admin are per month. Initiation is also spread.
         $interestPerMonth    = round($outstandingPrincipal * $newRate, 2);
-        $principalPerMonth   = round($outstandingPrincipal / $newTerm, 2);
-        $initiationPerMonth  = round(($outstandingPrincipal * $initiationRate) / $newTerm, 2);
+        $principalPerMonth   = round($outstandingPrincipal / $newTermCount, 2);
+        
+        $totalInitiation     = round($loan->principal_amount * $initiationRate, 2);
+        $paidInitiation      = $frozen->sum('initiation_fee_amount');
+        $remainingInitiation = max(0, $totalInitiation - $paidInitiation);
+        $initiationPerMonth  = round($remainingInitiation / $newTermCount, 2);
 
         foreach ($remaining as $idx => $inst) {
-            $isLast = ($idx === $newTerm - 1);
-            $prin   = $isLast ? round($outstandingPrincipal - $principalPerMonth * ($newTerm - 1), 2) : $principalPerMonth;
-            $init   = $isLast ? round(($outstandingPrincipal * $initiationRate) - $initiationPerMonth * ($newTerm - 1), 2) : $initiationPerMonth;
+            $isLast = ($idx === $newTermCount - 1);
+            
+            // Handle precision by putting residue in last installment
+            $prin   = $isLast ? round($outstandingPrincipal - $principalPerMonth * ($newTermCount - 1), 2) : $principalPerMonth;
+            $init   = $isLast ? round($remainingInitiation - $initiationPerMonth * ($newTermCount - 1), 2) : $initiationPerMonth;
+            
             $total  = round($prin + $interestPerMonth + $adminPerMonth + $init, 2);
 
             $inst->update([
@@ -93,17 +165,18 @@ class LoanService
                 'initiation_fee_amount' => $init,
                 'admin_fee_amount'      => $adminPerMonth,
                 'total_amount'          => $total,
-                'outstanding_amount'    => $total - $inst->paid_amount,
+                'outstanding_amount'    => round(max(0, $total - $inst->paid_amount), 2),
             ]);
         }
 
-        // ── Step 3: Update Loan Totals ──
+        // ── Step 3: Update Loan Metadata ──
         $allInst = $loan->installments()->get();
         $loan->update([
             'term_months'         => $allInst->count(),
-            'monthly_installment' => $remaining->first()->fresh()->total_amount,
-            'maturity_date'       => $allInst->last()->due_date,
-            'total_amount'        => $allInst->sum('total_amount'),
+            'monthly_installment' => $remaining->first()?->total_amount ?? $loan->monthly_installment,
+            'maturity_date'       => $allInst->last()?->due_date ?? $loan->maturity_date,
+            'total_amount'        => round($allInst->sum('total_amount'), 2),
+            'outstanding_balance' => round($allInst->sum('outstanding_amount'), 2),
         ]);
     }
 
@@ -195,6 +268,9 @@ class LoanService
         if ($loan->outstanding_balance <= 0 || $loan->installments()->whereNotIn('status',['paid','waived'])->count() === 0) {
             $loan->update(['status' => 'paid_off', 'last_payment_date' => now()]);
         }
+
+        // Referral System: Check if this payment qualifies a referral
+        $this->checkReferralQualification($loan);
 
         return $payment;
     }

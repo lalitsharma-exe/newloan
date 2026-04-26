@@ -168,6 +168,9 @@ class PaymentWebhookController extends Controller
             $loan->update(['status' => 'paid_off', 'last_payment_date' => now()]);
         }
 
+        // Referral System: Check if this payment qualifies a referral
+        $this->loanService->checkReferralQualification($loan);
+
         AuditLog::record(
             'payment.gateway_verified',
             "CPay payment M{$payment->amount} verified for loan {$loan->loan_number}. TXN: {$parsed['cpay_txn_id']}",

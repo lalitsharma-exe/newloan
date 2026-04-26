@@ -63,7 +63,23 @@ class AuthController extends Controller
             'role'              => 'borrower',
             'is_active'         => true,
             'email_verified_at' => now(),
+            'referral_code'     => \App\Models\User::generateReferralCode(),
         ]);
+
+        // Handle Referral
+        $refCode = $request->referral_code ?? session('referral_code') ?? $request->cookie('referral_code');
+        if ($refCode) {
+            $referrer = \App\Models\User::where('referral_code', $refCode)->first();
+            if ($referrer && $referrer->canRefer()) {
+                \App\Models\Referral::create([
+                    'referrer_id'   => $referrer->id,
+                    'referred_id'   => $user->id,
+                    'referral_code' => $refCode,
+                    'status'        => 'pending',
+                ]);
+            }
+            session()->forget('referral_code');
+        }
 
         // Pre-fill draft application with registration data
         $nameParts = explode(' ', trim($user->name), 2);

@@ -142,6 +142,9 @@ class LoanController extends Controller
             $loan->application->update(['status' => 'disbursed', 'decided_at' => now()]);
         }
 
+        // Referral System: Validate referral if it exists
+        $this->svc->validateReferral($loan);
+
         AuditLog::record(
             'loan.disburse',
             "Loan {$loan->loan_number} disbursed via {$method}. Ref: {$reference}" .
@@ -194,7 +197,9 @@ class LoanController extends Controller
     {
         $request->validate(['installment_id' => 'required|exists:loan_installments,id', 'reason' => 'required|string|max:300']);
         $inst = $loan->installments()->findOrFail($request->installment_id);
-        $inst->update(['status' => 'waived', 'notes' => $request->reason]);
+        $amountWaived = $inst->outstanding_amount;
+        $inst->update(['status' => 'waived', 'notes' => $request->reason, 'outstanding_amount' => 0]);
+        $loan->decrement('outstanding_balance', $amountWaived);
         AuditLog::record('loan.waive_installment', "Installment #{$inst->installment_number} waived on {$loan->loan_number}", $loan);
         return back()->with('success', "Installment #{$inst->installment_number} waived.");
     }
@@ -206,6 +211,7 @@ class LoanController extends Controller
         $inst->increment('late_fee', $request->fee);
         $inst->increment('total_amount', $request->fee);
         $inst->increment('outstanding_amount', $request->fee);
+        $loan->increment('outstanding_balance', $request->fee);
         AuditLog::record('loan.add_late_fee', "Late fee M{$request->fee} on installment #{$inst->installment_number} of {$loan->loan_number}", $loan);
         return back()->with('success', "Late fee M{$request->fee} added.");
     }
@@ -353,16 +359,21 @@ class LoanController extends Controller
 
         // If payday changed, update future (unpaid) instalment due dates
         if ($oldPayday != $request->salary_payday) {
+            $lastDate = null;
             $loan->installments()
                 ->whereNotIn('status', ['paid', 'waived'])
                 ->get()
-                ->each(function ($inst) use ($request) {
-                    $inst->update([
-                        'due_date' => $inst->due_date->setDay(
-                            min((int) $request->salary_payday, $inst->due_date->daysInMonth)
-                        ),
-                    ]);
+                ->each(function ($inst) use ($request, &$lastDate) {
+                    $newDate = $inst->due_date->setDay(
+                        min((int) $request->salary_payday, $inst->due_date->daysInMonth)
+                    );
+                    $inst->update(['due_date' => $newDate]);
+                    $lastDate = $newDate;
                 });
+            
+            if ($lastDate) {
+                $loan->update(['maturity_date' => $lastDate]);
+            }
         }
 
         // If term changed, trigger a restructure based on remaining installments
@@ -374,6 +385,9 @@ class LoanController extends Controller
                 'new_term' => $newRemainingTerm,
                 'reason'   => $request->edit_reason
             ], auth('admin')->user());
+            
+            // Re-fetch to ensure we have the updated term count
+            $loan->refresh();
         }
 
         AuditLog::record(

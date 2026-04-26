@@ -27,7 +27,8 @@ class UserController extends Controller
     public function create()
     {
         $officers = User::where('role', 'loan_officer')->where('is_active', true)->orderBy('name')->get();
-        return view('admin.users.create', compact('officers'));
+        $adminRoles = \App\Models\AdminRole::orderBy('name')->get();
+        return view('admin.users.create', compact('officers', 'adminRoles'));
     }
 
     public function store(Request $request)
@@ -66,6 +67,7 @@ class UserController extends Controller
         $data = $request->all();
         $data['phone']     = $phone;
         $data['is_active'] = $request->input('is_active', '1') === '1';
+        $data['admin_role_id'] = ($request->role === 'admin') ? $request->admin_role_id : null;
 
         $user = $this->svc->create($data);
 
@@ -90,7 +92,8 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $officers = User::where('role', 'loan_officer')->where('is_active', true)->orderBy('name')->get();
-        return view('admin.users.edit', compact('user', 'officers'));
+        $adminRoles = \App\Models\AdminRole::orderBy('name')->get();
+        return view('admin.users.edit', compact('user', 'officers', 'adminRoles'));
     }
 
     public function update(Request $request, User $user)
@@ -119,6 +122,7 @@ class UserController extends Controller
         $data              = $request->all();
         $data['phone']     = $phone;
         $data['is_active'] = $request->input('is_active', '1') === '1';
+        $data['admin_role_id'] = ($request->role === 'admin') ? $request->admin_role_id : null;
 
         $this->svc->update($user, $data);
         return redirect()->route('admin.users.show', $user)->with('success', 'User updated successfully.');

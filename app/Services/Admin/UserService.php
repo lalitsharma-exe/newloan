@@ -20,7 +20,7 @@ class UserService
                   ->orWhere('national_id','like', "%$s%")
             );
         }
-        return $q->latest()->paginate($perPage);
+        return $q->with('adminRole')->latest()->paginate($perPage);
     }
 
     public function getStats(): array
@@ -47,6 +47,7 @@ class UserService
             'assigned_officer_id' => $d['assigned_officer_id'] ?? null,
             'password'            => Hash::make($d['password']),
             'is_active'           => $d['is_active'] ?? true,
+            'admin_role_id'       => $d['admin_role_id'] ?? null,
             'email_verified_at'   => now(),
         ]);
     }
@@ -63,6 +64,7 @@ class UserService
             'role'                => $d['role'],
             'assigned_officer_id' => $d['assigned_officer_id'] ?? $u->assigned_officer_id,
             'is_active'           => $d['is_active'] ?? $u->is_active,
+            'admin_role_id'       => ($d['role'] === 'admin') ? ($d['admin_role_id'] ?? $u->admin_role_id) : null,
         ];
         if (!empty($d['password'])) {
             $up['password'] = Hash::make($d['password']);

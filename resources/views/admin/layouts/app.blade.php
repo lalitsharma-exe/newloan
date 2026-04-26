@@ -146,23 +146,56 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     </div>
   </div>
   <nav class="sb-nav">
+    @php $u = auth('admin')->user(); @endphp
     <div class="nav-lbl">Overview</div>
+    @if($u->hasAdminPermission('dashboard'))
     <div class="nav-item"><a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard')?'active':'' }}"><i class="bi bi-grid-fill"></i> Dashboard</a></div>
+    @endif
     <div class="nav-lbl">Lending</div>
+    @if($u->hasAdminPermission('applications.view'))
     <div class="nav-item"><a href="{{ route('admin.applications.index') }}" class="{{ request()->routeIs('admin.applications.*')?'active':'' }}"><i class="bi bi-file-earmark-text-fill"></i> Applications</a></div>
+    @endif
+    @if($u->hasAdminPermission('loans.view'))
     <div class="nav-item"><a href="{{ route('admin.loans.index') }}" class="{{ request()->routeIs('admin.loans.*')?'active':'' }}"><i class="bi bi-bank2"></i> Loan Management</a></div>
+    @endif
+    @if($u->hasAdminPermission('payments.view'))
     <div class="nav-item"><a href="{{ route('admin.payments.index') }}" class="{{ request()->routeIs('admin.payments.*')?'active':'' }}"><i class="bi bi-credit-card-fill"></i> Payments</a></div>
+    @endif
+    @if($u->hasAdminPermission('credit_bureau'))
     <div class="nav-item"><a href="{{ route('admin.credit.index') }}" class="{{ request()->routeIs('admin.credit.*')?'active':'' }}"><i class="bi bi-shield-check-fill"></i> Credit Bureau</a></div>
+    @endif
+    @if($u->hasAdminPermission('compuscan'))
     <div class="nav-item"><a href="{{ route('admin.compuscan.index') }}" class="{{ request()->routeIs('admin.compuscan.*')?'active':'' }}"><i class="bi bi-cloud-arrow-up-fill"></i> Compuscan (CCI)</a></div>
+    @endif
     <div class="nav-lbl">Reports</div>
+    @if($u->hasAdminPermission('reports'))
     <div class="nav-item"><a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*')?'active':'' }}"><i class="bi bi-bar-chart-fill"></i> Reports</a></div>
+    @endif
+    @if($u->hasAdminPermission('referrals.view'))
+    <div class="nav-item"><a href="{{ route('admin.referrals.index') }}" class="{{ request()->routeIs('admin.referrals.*')?'active':'' }}"><i class="bi bi-gift-fill"></i> Referrals</a></div>
+    @endif
+    @if($u->hasAdminPermission('bulk_sms'))
+    <div class="nav-item"><a href="{{ route('admin.bulk-sms.index') }}" class="{{ request()->routeIs('admin.bulk-sms.*')?'active':'' }}"><i class="bi bi-chat-dots-fill"></i> Bulk SMS</a></div>
+    @endif
     <div class="nav-lbl">Config</div>
+    @if($u->hasAdminPermission('users.view'))
     <div class="nav-item"><a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.index')?'active':'' }}"><i class="bi bi-people-fill"></i> Users</a></div>
     <div class="nav-item"><a href="{{ route('admin.users.profile-requests') }}" class="{{ request()->routeIs('admin.users.profile-requests')?'active':'' }}"><i class="bi bi-person-gear"></i> Profile Requests</a></div>
+    @endif
+    @if($u->hasAdminPermission('roles.manage'))
+    <div class="nav-item"><a href="{{ route('admin.roles.index') }}" class="{{ request()->routeIs('admin.roles.*')?'active':'' }}"><i class="bi bi-shield-lock-fill"></i> Roles & Permissions</a></div>
+    @endif
+    @if($u->hasAdminPermission('products.manage'))
     <div class="nav-item"><a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*')?'active':'' }}"><i class="bi bi-box-fill"></i> Loan Products</a></div>
+    @endif
+    @if($u->hasAdminPermission('banks.manage'))
     <div class="nav-item"><a href="{{ route('admin.banks.index') }}" class="{{ request()->routeIs('admin.banks.*')?'active':'' }}"><i class="bi bi-bank"></i> Manage Banks</a></div>
+    @endif
+    @if($u->hasAdminPermission('settings'))
     <div class="nav-item"><a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*')?'active':'' }}"><i class="bi bi-gear-fill"></i> Settings</a></div>
+    @endif
     <div class="nav-lbl">System</div>
+    @if($u->hasAdminPermission('notifications'))
     <div class="nav-item">
       <a href="{{ route('admin.notifications.index') }}" class="{{ request()->routeIs('admin.notifications.*')?'active':'' }}">
         <i class="bi bi-bell-fill"></i> Notifications
@@ -172,7 +205,11 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
         @endif
       </a>
     </div>
+    @endif
+
+    @if($u->hasAdminPermission('audit_log'))
     <div class="nav-item"><a href="{{ route('admin.audit.index') }}" class="{{ request()->routeIs('admin.audit.*')?'active':'' }}"><i class="bi bi-journal-text"></i> Audit Log</a></div>
+    @endif
     
     <div style="margin-top:20px;padding:0 22px;margin-bottom:10px">
       <button onclick="openModal('logoutModal')" style="width:100%;background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s" onmouseover="this.style.background='rgba(239,68,68,.2)'" onmouseout="this.style.background='rgba(239,68,68,.1)'">

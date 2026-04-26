@@ -58,12 +58,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         /*
         | ── DASHBOARD ──────────────────────────────────────────────
         */
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-        // AJAX widget refreshes
-        Route::get('/dashboard/stats',            [DashboardController::class, 'stats'])->name('dashboard.stats');
-        Route::get('/dashboard/chart-data',       [DashboardController::class, 'chartData'])->name('dashboard.chart');
-        Route::get('/dashboard/notifications',    [DashboardController::class, 'notifications'])->name('dashboard.notifications');
+        Route::middleware('admin.permission:dashboard')->group(function () {
+            Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+            // AJAX widget refreshes
+            Route::get('/dashboard/stats',            [DashboardController::class, 'stats'])->name('dashboard.stats');
+            Route::get('/dashboard/chart-data',       [DashboardController::class, 'chartData'])->name('dashboard.chart');
+            Route::get('/dashboard/notifications',    [DashboardController::class, 'notifications'])->name('dashboard.notifications');
+        });
 
         /*
         | ── APPLICATION MANAGEMENT ─────────────────────────────────
@@ -113,11 +114,49 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{application}/loan-request', [ApplicationController::class, 'updateLoanRequest'])->name('update-loan-request');
 
             // AJAX Chat
-            Route::get('/{application}/messages', [ApplicationController::class, 'getMessages'])->name('messages.get');
-            Route::post('/{application}/messages', [ApplicationController::class, 'sendMessage'])->name('messages.send');
+            Route::middleware('admin.permission:applications.manage')->group(function () {
+                // Status transitions
+                Route::post('/{application}/approve',             [ApplicationController::class, 'approve'])->name('approve');
+                Route::post('/{application}/decline',             [ApplicationController::class, 'decline'])->name('decline');
+                Route::post('/{application}/hold',                [ApplicationController::class, 'hold'])->name('hold');
+                Route::post('/{application}/reinstate',           [ApplicationController::class, 'reinstate'])->name('reinstate');
+                Route::post('/{application}/request-info',        [ApplicationController::class, 'requestInfo'])->name('request-info');
+                Route::post('/{application}/mark-under-review',   [ApplicationController::class, 'markUnderReview'])->name('mark-under-review');
 
-            // Repayment schedule preview
-            Route::get('/{application}/schedule-preview',    [ApplicationController::class, 'schedulePreview'])->name('schedule-preview');
+                // Term overrides & scoring
+                Route::post('/{application}/override-terms',      [ApplicationController::class, 'overrideTerms'])->name('override-terms');
+                Route::post('/{application}/set-risk-score',      [ApplicationController::class, 'setRiskScore'])->name('set-risk-score');
+                Route::post('/{application}/auto-risk-score',     [ApplicationController::class, 'autoRiskScore'])->name('auto-risk-score');
+
+                // Officer assignment
+                Route::post('/{application}/assign-officer',      [OfficerAssignmentController::class, 'assign'])->name('assign-officer');
+                Route::post('/{application}/unassign-officer',    [OfficerAssignmentController::class, 'unassign'])->name('unassign-officer');
+
+                // Notes
+                Route::post('/{application}/notes',               [ApplicationController::class, 'addNote'])->name('notes.store');
+                Route::delete('/{application}/notes/{note}',      [ApplicationController::class, 'deleteNote'])->name('notes.destroy');
+
+                // Documents (admin view/verify)
+                Route::get('/{application}/documents',            [DocumentController::class, 'index'])->name('documents.index');
+                Route::post('/{application}/documents/{doc}/verify', [DocumentController::class, 'verify'])->name('documents.verify');
+                Route::post('/{application}/documents/{doc}/reject',  [DocumentController::class, 'reject'])->name('documents.reject');
+                Route::get('/{application}/documents/{doc}/download',  [DocumentController::class, 'download'])->name('documents.download');
+                Route::get('/{application}/documents/{doc}/view',  [DocumentController::class, 'view'])->name('documents.view');
+                Route::post('/{application}/documents/upload', [ApplicationController::class, 'uploadDocument'])->name('documents.upload');
+                Route::post('/{application}/affordability', [ApplicationController::class, 'updateAffordability'])->name('update-affordability');
+                Route::post('/{application}/employment', [ApplicationController::class, 'updateEmployment'])->name('update-employment');
+                Route::post('/{application}/bank-details', [ApplicationController::class, 'updateBankDetails'])->name('update-bank-details');
+                Route::post('/{application}/personal', [ApplicationController::class, 'updatePersonal'])->name('update-personal');
+                Route::post('/{application}/address', [ApplicationController::class, 'updateAddress'])->name('update-address');
+                Route::post('/{application}/loan-request', [ApplicationController::class, 'updateLoanRequest'])->name('update-loan-request');
+
+                // AJAX Chat
+                Route::get('/{application}/messages', [ApplicationController::class, 'getMessages'])->name('messages.get');
+                Route::post('/{application}/messages', [ApplicationController::class, 'sendMessage'])->name('messages.send');
+
+                // Repayment schedule preview
+                Route::get('/{application}/schedule-preview',    [ApplicationController::class, 'schedulePreview'])->name('schedule-preview');
+            });
 
             // Experian Template
             Route::get('/{application}/experian-template', [ApplicationController::class, 'experianTemplate'])->name('experian-template');
@@ -126,76 +165,69 @@ Route::prefix('admin')->name('admin.')->group(function () {
         /*
         | ── LOAN MANAGEMENT ────────────────────────────────────────
         */
-        Route::prefix('loans')->name('loans.')->group(function () {
-
+        Route::prefix('loans')->name('loans.')->middleware('admin.permission:loans.view')->group(function () {
             Route::get('/',             [LoanController::class, 'index'])->name('index');
             Route::get('/export',       [LoanController::class, 'export'])->name('export');
             Route::get('/overdue',      [LoanController::class, 'overdue'])->name('overdue');
 
-            // ── Static feature routes (BEFORE /{loan} wildcard) ──
-            Route::get('/bulk-repayment',  [LoanController::class, 'bulkRepayment'])->name('bulk-repayment');
-            Route::post('/bulk-repayment', [LoanController::class, 'bulkRepayment'])->name('bulk-repayment.post');
-            Route::get('/import',          [LoanController::class, 'importLoans'])->name('import');
-            Route::post('/import',         [LoanController::class, 'importLoans'])->name('import.post');
-            Route::get('/collection-sheet',[LoanController::class, 'collectionSheet'])->name('collection-sheet');
-            Route::get('/repayment-chart', [LoanController::class, 'repaymentChart'])->name('repayment-chart');
-            Route::get('/lookup',          [LoanController::class, 'lookup'])->name('lookup');
-
             Route::get('/{loan}',                   [LoanController::class, 'show'])->name('show');
-
-            // Schedule management
             Route::get('/{loan}/schedule',          [LoanController::class, 'schedule'])->name('schedule');
-            Route::post('/{loan}/adjust-schedule',  [LoanController::class, 'adjustSchedule'])->name('adjust-schedule');
-            Route::post('/{loan}/waive-installment',[LoanController::class, 'waiveInstallment'])->name('waive-installment');
-            Route::post('/{loan}/add-late-fee',     [LoanController::class, 'addLateFee'])->name('add-late-fee');
-
-            // Payments
-            Route::post('/{loan}/record-payment',   [LoanController::class, 'recordPayment'])->name('record-payment');
-            Route::post('/{loan}/reverse-payment',  [LoanController::class, 'reversePayment'])->name('reverse-payment');
-
-            // Loan lifecycle
-            // ── DISBURSEMENT: GET = confirmation screen, POST = execute ──
-            Route::get('/{loan}/disburse',          [LoanController::class, 'disbursementConfirm'])->name('disburse.confirm');
-            Route::post('/{loan}/disburse',         [LoanController::class, 'disburse'])->name('disburse');
-            Route::post('/{loan}/close',            [LoanController::class, 'close'])->name('close');
-            Route::post('/{loan}/write-off',        [LoanController::class, 'writeOff'])->name('write-off');
-            Route::post('/{loan}/restructure',      [LoanController::class, 'restructure'])->name('restructure');
-            Route::post('/{loan}/mark-defaulted',   [LoanController::class, 'markDefaulted'])->name('mark-defaulted');
-            Route::patch('/{loan}/update-details',  [LoanController::class, 'updateDetails'])->name('update-details');
-
-            // Documents
             Route::get('/{loan}/agreement',              [LoanController::class, 'agreement'])->name('agreement');
             Route::get('/{loan}/statement',              [LoanController::class, 'statement'])->name('statement');
             Route::get('/{loan}/receipt/{payment}',      [LoanController::class, 'receipt'])->name('receipt');
             Route::get('/{loan}/settlement-quotation',   [LoanController::class, 'settlementQuotation'])->name('settlement-quotation');
             Route::get('/{loan}/settlement-letter',      [LoanController::class, 'settlementLetter'])->name('settlement-letter');
+
+            Route::middleware('admin.permission:loans.manage')->group(function() {
+                Route::get('/bulk-repayment',  [LoanController::class, 'bulkRepayment'])->name('bulk-repayment');
+                Route::post('/bulk-repayment', [LoanController::class, 'bulkRepayment'])->name('bulk-repayment.post');
+                Route::get('/import',          [LoanController::class, 'importLoans'])->name('import');
+                Route::post('/import',         [LoanController::class, 'importLoans'])->name('import.post');
+                Route::get('/collection-sheet',[LoanController::class, 'collectionSheet'])->name('collection-sheet');
+                Route::get('/repayment-chart', [LoanController::class, 'repaymentChart'])->name('repayment-chart');
+                Route::get('/lookup',          [LoanController::class, 'lookup'])->name('lookup');
+                Route::post('/{loan}/adjust-schedule',  [LoanController::class, 'adjustSchedule'])->name('adjust-schedule');
+                Route::post('/{loan}/waive-installment',[LoanController::class, 'waiveInstallment'])->name('waive-installment');
+                Route::post('/{loan}/add-late-fee',     [LoanController::class, 'addLateFee'])->name('add-late-fee');
+                Route::post('/{loan}/record-payment',   [LoanController::class, 'recordPayment'])->name('record-payment');
+                Route::post('/{loan}/reverse-payment',  [LoanController::class, 'reversePayment'])->name('reverse-payment');
+                Route::post('/{loan}/close',            [LoanController::class, 'close'])->name('close');
+                Route::post('/{loan}/write-off',        [LoanController::class, 'writeOff'])->name('write-off');
+                Route::post('/{loan}/restructure',      [LoanController::class, 'restructure'])->name('restructure');
+                Route::post('/{loan}/mark-defaulted',   [LoanController::class, 'markDefaulted'])->name('mark-defaulted');
+                Route::patch('/{loan}/update-details',  [LoanController::class, 'updateDetails'])->name('update-details');
+            });
+
+            Route::middleware('admin.permission:loans.disburse')->group(function() {
+                Route::get('/{loan}/disburse',          [LoanController::class, 'disbursementConfirm'])->name('disburse.confirm');
+                Route::post('/{loan}/disburse',         [LoanController::class, 'disburse'])->name('disburse');
+            });
         });
 
         /*
         | ── PAYMENT TRACKING ───────────────────────────────────────
         */
-        Route::prefix('payments')->name('payments.')->group(function () {
-
-            // ── Static routes FIRST (before any {payment} wildcard) ──
+        Route::prefix('payments')->name('payments.')->middleware('admin.permission:payments.view')->group(function () {
             Route::get('/',                     [PaymentController::class, 'index'])->name('index');
             Route::get('/export',               [PaymentController::class, 'export'])->name('export');
             Route::get('/pending',              [PaymentController::class, 'pending'])->name('pending');
-            Route::get('/reconciliation',       [PaymentController::class, 'reconciliation'])->name('reconciliation');
-            Route::post('/reconcile',           [PaymentController::class, 'reconcile'])->name('reconcile');
-            Route::post('/bulk-verify',         [PaymentController::class, 'bulkVerify'])->name('bulk-verify');
-            Route::post('/bulk-reject',         [PaymentController::class, 'bulkReject'])->name('bulk-reject');
-
-            // ── Wildcard routes LAST ──
             Route::get('/{payment}',            [PaymentController::class, 'show'])->name('show');
-            Route::post('/{payment}/verify',    [PaymentController::class, 'verify'])->name('verify');
-            Route::post('/{payment}/reject',    [PaymentController::class, 'reject'])->name('reject');
-            Route::post('/{payment}/reverse',   [PaymentController::class, 'reverse'])->name('reverse');
+
+            Route::middleware('admin.permission:payments.manage')->group(function() {
+                Route::get('/reconciliation',       [PaymentController::class, 'reconciliation'])->name('reconciliation');
+                Route::post('/reconcile',           [PaymentController::class, 'reconcile'])->name('reconcile');
+                Route::post('/bulk-verify',         [PaymentController::class, 'bulkVerify'])->name('bulk-verify');
+                Route::post('/bulk-reject',         [PaymentController::class, 'bulkReject'])->name('bulk-reject');
+                Route::post('/{payment}/verify',    [PaymentController::class, 'verify'])->name('verify');
+                Route::post('/{payment}/reject',    [PaymentController::class, 'reject'])->name('reject');
+                Route::post('/{payment}/reverse',   [PaymentController::class, 'reverse'])->name('reverse');
+            });
         });
 
         /*
         | ── REPORTS ────────────────────────────────────────────────
         */
-        Route::prefix('reports')->name('reports.')->group(function () {
+        Route::prefix('reports')->name('reports.')->middleware('admin.permission:reports')->group(function () {
 
             Route::get('/', [ReportController::class, 'index'])->name('index');
 
@@ -223,30 +255,55 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         /*
+        | ── REFERRALS ──────────────────────────────────────────────
+        */
+        Route::prefix('referrals')->name('referrals.')->middleware('admin.permission:referrals.view')->group(function () {
+            Route::get('/',                          [\App\Http\Controllers\Admin\ReferralController::class, 'index'])->name('index');
+            Route::middleware('admin.permission:referrals.manage')->group(function() {
+                Route::post('/{referral}/pay',           [\App\Http\Controllers\Admin\ReferralController::class, 'markAsPaid'])->name('mark-paid');
+                Route::post('/{referral}/credit-loan',   [\App\Http\Controllers\Admin\ReferralController::class, 'creditToLoan'])->name('credit-loan');
+                Route::post('/{referral}/pay-mpesa',     [\App\Http\Controllers\Admin\ReferralController::class, 'payViaMpesa'])->name('pay-mpesa');
+            });
+        });
+
+        /*
+        | ── ADMIN ROLES & PERMISSIONS ──────────────────────────────
+        */
+        Route::prefix('roles')->name('roles.')->middleware('admin.permission:roles.manage')->group(function () {
+            Route::get('/',              [\App\Http\Controllers\Admin\AdminRoleController::class, 'index'])->name('index');
+            Route::get('/create',        [\App\Http\Controllers\Admin\AdminRoleController::class, 'create'])->name('create');
+            Route::post('/',             [\App\Http\Controllers\Admin\AdminRoleController::class, 'store'])->name('store');
+            Route::get('/{role}/edit',   [\App\Http\Controllers\Admin\AdminRoleController::class, 'edit'])->name('edit');
+            Route::put('/{role}',        [\App\Http\Controllers\Admin\AdminRoleController::class, 'update'])->name('update');
+            Route::delete('/{role}',     [\App\Http\Controllers\Admin\AdminRoleController::class, 'destroy'])->name('destroy');
+        });
+
+        /*
         | ── USER MANAGEMENT ────────────────────────────────────────
         */
-        Route::prefix('users')->name('users.')->group(function () {
+        Route::prefix('users')->name('users.')->middleware('admin.permission:users.view')->group(function () {
 
             Route::get('/',                         [UserController::class, 'index'])->name('index');
-            Route::get('/create',                   [UserController::class, 'create'])->name('create');
-            Route::post('/',                        [UserController::class, 'store'])->name('store');
-            Route::get('/export',                   [UserController::class, 'export'])->name('export');
-            Route::post('/import',                  [UserController::class, 'import'])->name('import');
-            Route::get('/import-template',          [UserController::class, 'importTemplate'])->name('import-template');
+            
+            Route::middleware('admin.permission:users.manage')->group(function() {
+                Route::get('/create',                   [UserController::class, 'create'])->name('create');
+                Route::post('/',                        [UserController::class, 'store'])->name('store');
+                Route::get('/export',                   [UserController::class, 'export'])->name('export');
+                Route::post('/import',                  [UserController::class, 'import'])->name('import');
+                Route::get('/import-template',          [UserController::class, 'importTemplate'])->name('import-template');
 
-            // Profile Change Requests (Moved above {user} to prevent misrouting)
-            Route::get('/profile-requests',         [UserController::class, 'profileRequests'])->name('profile-requests');
-            Route::post('/profile-requests/{request}', [UserController::class, 'handleProfileRequest'])->name('profile-requests.action');
+                // Profile Change Requests (Moved above {user} to prevent misrouting)
+                Route::get('/profile-requests',         [UserController::class, 'profileRequests'])->name('profile-requests');
+                Route::post('/profile-requests/{request}', [UserController::class, 'handleProfileRequest'])->name('profile-requests.action');
+            });
 
             Route::get('/{user}',                   [UserController::class, 'show'])->name('show');
-            Route::get('/{user}/edit',              [UserController::class, 'edit'])->name('edit');
-            Route::put('/{user}',                   [UserController::class, 'update'])->name('update');
-            Route::delete('/{user}',                [UserController::class, 'destroy'])->name('destroy');
-
-            // Status & access
+            
+            Route::middleware('admin.permission:users.manage')->group(function() {
             Route::post('/{user}/toggle-status',    [UserController::class, 'toggleStatus'])->name('toggle-status');
-            Route::post('/{user}/reset-password',   [UserController::class, 'resetPassword'])->name('reset-password');
-            Route::post('/{user}/impersonate',      [UserController::class, 'impersonate'])->name('impersonate');  // admin only
+                Route::post('/{user}/reset-password',   [UserController::class, 'resetPassword'])->name('reset-password');
+                Route::post('/{user}/impersonate',      [UserController::class, 'impersonate'])->name('impersonate');  // admin only
+            });
 
             // Activity
             Route::get('/{user}/activity',          [UserController::class, 'activity'])->name('activity');
@@ -258,8 +315,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         /*
         | ── LOAN PRODUCTS ──────────────────────────────────────────
         */
-        Route::prefix('products')->name('products.')->group(function () {
-
+        Route::prefix('products')->name('products.')->middleware('admin.permission:products.manage')->group(function () {
             Route::get('/',                 [ProductController::class, 'index'])->name('index');
             Route::get('/create',           [ProductController::class, 'create'])->name('create');
             Route::post('/',                [ProductController::class, 'store'])->name('store');
@@ -267,23 +323,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{product}/edit',   [ProductController::class, 'edit'])->name('edit');
             Route::put('/{product}',        [ProductController::class, 'update'])->name('update');
             Route::delete('/{product}',     [ProductController::class, 'destroy'])->name('destroy');
-
-            // Toggle active/inactive
             Route::post('/{product}/toggle', [ProductController::class, 'toggle'])->name('toggle');
-
-            // Analytics for this product
             Route::get('/{product}/stats',   [ProductController::class, 'stats'])->name('stats');
         });
 
         /*
         | ── CREDIT BUREAU ──────────────────────────────────────────
         */
-        Route::prefix('credit-bureau')->name('credit.')->group(function () {
-
+        Route::prefix('credit-bureau')->name('credit.')->middleware('admin.permission:credit_bureau')->group(function () {
             Route::get('/',                             [CreditBureauController::class, 'index'])->name('index');
             Route::get('/reports',                      [CreditBureauController::class, 'reports'])->name('reports');
             Route::get('/reports/{report}',             [CreditBureauController::class, 'viewReport'])->name('view-report');
-
             Route::post('/pull-report',                 [CreditBureauController::class, 'pullReport'])->name('pull-report');
             Route::post('/submit-monthly',              [CreditBureauController::class, 'submitMonthly'])->name('submit-monthly');
             Route::get('/monthly-submissions',          [CreditBureauController::class, 'monthlySubmissions'])->name('monthly-submissions');
@@ -293,7 +343,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         /*
         | ── COMPUSCAN (CCI) ──────────────────────────────────────────
         */
-        Route::prefix('compuscan')->name('compuscan.')->group(function () {
+        Route::prefix('compuscan')->name('compuscan.')->middleware('admin.permission:compuscan')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\CompuscanController::class, 'index'])->name('index');
             Route::post('/generate', [\App\Http\Controllers\Admin\CompuscanController::class, 'generate'])->name('generate');
         });
@@ -301,11 +351,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         /*
         | ── SYSTEM SETTINGS ────────────────────────────────────────
         */
-        Route::prefix('settings')->name('settings.')->group(function () {
-
+        Route::prefix('settings')->name('settings.')->middleware('admin.permission:settings')->group(function () {
             Route::get('/', [SettingsController::class, 'index'])->name('index');
-
-            // Grouped setting saves
             Route::post('/general',          [SettingsController::class, 'updateGeneral'])->name('general');
             Route::post('/company',          [SettingsController::class, 'updateCompany'])->name('company');
             Route::post('/payment-gateway',  [SettingsController::class, 'updatePaymentGateway'])->name('payment-gateway');
@@ -313,8 +360,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/notifications',    [SettingsController::class, 'updateNotifications'])->name('notifications');
             Route::post('/security',         [SettingsController::class, 'updateSecurity'])->name('security');
             Route::post('/email-templates',  [SettingsController::class, 'updateEmailTemplates'])->name('email-templates');
-
-            // Test connections
             Route::post('/test-email',       [SettingsController::class, 'testEmail'])->name('test-email');
             Route::post('/test-sms',         [SettingsController::class, 'testSms'])->name('test-sms');
             Route::post('/test-gateway',     [SettingsController::class, 'testGateway'])->name('test-gateway');
@@ -323,10 +368,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         /*
         | ── BANK MANAGEMENT ────────────────────────────────────────
         */
-        Route::prefix('banks')->name('banks.')->group(function () {
+        Route::prefix('banks')->name('banks.')->middleware('admin.permission:banks.manage')->group(function () {
             Route::get('/',                 [BankController::class, 'index'])->name('index');
             Route::post('/',                [BankController::class, 'store'])->name('store');
             Route::put('/{bank}',           [BankController::class, 'update'])->name('update');
+            Route::delete('/{bank}',        [BankController::class, 'destroy'])->name('destroy');
+            Route::get('/{bank}/branches',               [BankController::class, 'branches'])->name('branches');
+            Route::post('/{bank}/branches',              [BankController::class, 'storeBranch'])->name('branches.store');
+            Route::put('/{bank}/branches/{branch}',      [BankController::class, 'updateBranch'])->name('branches.update');
+            Route::delete('/{bank}/branches/{branch}',   [BankController::class, 'destroyBranch'])->name('branches.destroy');
             Route::delete('/{bank}',        [BankController::class, 'destroy'])->name('destroy');
 
             Route::get('/{bank}/branches',               [BankController::class, 'branches'])->name('branches');
@@ -336,9 +386,20 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         /*
+        | ── BULK SMS ──────────────────────────────────────────────
+        */
+        Route::prefix('bulk-sms')->name('bulk-sms.')->middleware('admin.permission:bulk_sms')->group(function () {
+            Route::get('/',                     [\App\Http\Controllers\Admin\BulkSmsController::class, 'index'])->name('index');
+            Route::get('/create',               [\App\Http\Controllers\Admin\BulkSmsController::class, 'create'])->name('create');
+            Route::post('/',                    [\App\Http\Controllers\Admin\BulkSmsController::class, 'store'])->name('store');
+            Route::get('/{campaign}',           [\App\Http\Controllers\Admin\BulkSmsController::class, 'show'])->name('show');
+            Route::get('/{campaign}/refresh',   [\App\Http\Controllers\Admin\BulkSmsController::class, 'refresh'])->name('refresh');
+        });
+
+        /*
         | ── NOTIFICATIONS ──────────────────────────────────────────
         */
-        Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::prefix('notifications')->name('notifications.')->middleware('admin.permission:notifications')->group(function () {
             Route::get('/',                         [NotificationController::class, 'index'])->name('index');
             Route::post('/{id}/read',               [NotificationController::class, 'markRead'])->name('read');
             Route::post('/mark-all-read',           [NotificationController::class, 'markAllRead'])->name('read-all');
@@ -348,7 +409,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         /*
         | ── AUDIT LOG ──────────────────────────────────────────────
         */
-        Route::prefix('audit-log')->name('audit.')->group(function () {
+        Route::prefix('audit-log')->name('audit.')->middleware('admin.permission:audit_log')->group(function () {
             Route::get('/',             [AuditLogController::class, 'index'])->name('index');
             Route::get('/export',       [AuditLogController::class, 'export'])->name('export');
             Route::get('/{log}',        [AuditLogController::class, 'show'])->name('show');

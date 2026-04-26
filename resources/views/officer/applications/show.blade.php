@@ -1,7 +1,9 @@
 @extends('officer.layouts.app')
 @section('title','Application #'.$application->application_number)
 @section('page-title','Application Review')
-@section('bc','<a href="'.route('officer.applications.assigned').'">Applications</a> / #'.$application->application_number)
+@section('bc')
+<a href="{{ route('officer.applications.assigned') }}">Applications</a> / #{{ $application->application_number }}
+@endsection
 
 @section('content')
 @php

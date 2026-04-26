@@ -1,7 +1,9 @@
 @extends('officer.layouts.app')
 @section('title', $client->name)
 @section('page-title','Client Profile')
-@section('bc','<a href="'.route('officer.clients.index').'">Clients</a> / '.$client->name)
+@section('bc')
+<a href="{{ route('officer.clients.index') }}">Clients</a> / {{ $client->name }}
+@endsection
 
 @section('content')
 
