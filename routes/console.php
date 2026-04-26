@@ -13,3 +13,6 @@ Schedule::command('loans:apply-penalties')->dailyAt('01:00');
 
 // Send payment reminders 2 days before payday
 Schedule::command('loans:send-reminders')->dailyAt('09:00');
+
+// Process MyBill payday auto-deductions
+Schedule::command('mybill:process-paydays')->dailyAt('06:00');

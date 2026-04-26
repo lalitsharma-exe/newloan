@@ -26,6 +26,11 @@ class User extends Authenticatable {
     public function referredBy() { return $this->hasOne(Referral::class, 'referred_id'); }
     public function adminRole()  { return $this->belongsTo(AdminRole::class, 'admin_role_id'); }
 
+    // ── MyBill relationships ──────────────────────────────────────
+    public function myBillLimit()        { return $this->hasOne(MyBillLimit::class); }
+    public function myBillLoans()        { return $this->hasMany(MyBillLoan::class); }
+    public function myBillPaydayEvents() { return $this->hasMany(MyBillPaydayEvent::class); }
+
     /**
      * Check if this admin user has a specific permission.
      * Super admins always return true.

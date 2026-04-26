@@ -416,6 +416,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         /*
+        | ── MYBILL — Bill-payment product ─────────────────────────
+        */
+        Route::middleware('admin.permission:mybill')->prefix('mybill')->name('mybill.')->group(function () {
+            Route::get('/',                  [\App\Http\Controllers\Admin\MyBillController::class, 'dashboard'])->name('dashboard');
+            Route::get('/loans',             [\App\Http\Controllers\Admin\MyBillController::class, 'loans'])->name('loans');
+            Route::get('/loans/{loan}',      [\App\Http\Controllers\Admin\MyBillController::class, 'showLoan'])->name('loans.show');
+            Route::get('/limits',            [\App\Http\Controllers\Admin\MyBillController::class, 'limits'])->name('limits');
+            Route::patch('/limits/{limit}',  [\App\Http\Controllers\Admin\MyBillController::class, 'updateLimit'])->name('limits.update');
+            Route::post('/payday',           [\App\Http\Controllers\Admin\MyBillController::class, 'triggerPayday'])->name('payday');
+            Route::get('/export',            [\App\Http\Controllers\Admin\MyBillController::class, 'export'])->name('export');
+        });
+
+        /*
         | ── PROFILE (admin's own account) ──────────────────────────
         */
         Route::prefix('profile')->name('profile.')->group(function () {

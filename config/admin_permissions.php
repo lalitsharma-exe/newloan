@@ -22,6 +22,10 @@ return [
         'compuscan'            => 'Compuscan (CCI) Access',
     ],
 
+    'Bill Payments' => [
+        'mybill'               => 'MyBill Management',
+    ],
+
     'Reports & Marketing' => [
         'reports'              => 'View Reports',
         'referrals.view'       => 'View Referrals',

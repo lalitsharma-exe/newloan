@@ -167,6 +167,10 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     @if($u->hasAdminPermission('compuscan'))
     <div class="nav-item"><a href="{{ route('admin.compuscan.index') }}" class="{{ request()->routeIs('admin.compuscan.*')?'active':'' }}"><i class="bi bi-cloud-arrow-up-fill"></i> Compuscan (CCI)</a></div>
     @endif
+    <div class="nav-lbl">Bill Payments</div>
+    @if($u->hasAdminPermission('mybill'))
+    <div class="nav-item"><a href="{{ route('admin.mybill.dashboard') }}" class="{{ request()->routeIs('admin.mybill.*')?'active':'' }}"><i class="bi bi-lightning-charge-fill"></i> MyBill</a></div>
+    @endif
     <div class="nav-lbl">Reports</div>
     @if($u->hasAdminPermission('reports'))
     <div class="nav-item"><a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*')?'active':'' }}"><i class="bi bi-bar-chart-fill"></i> Reports</a></div>

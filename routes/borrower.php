@@ -250,6 +250,22 @@ Route::prefix('portal')->name('borrower.')->group(function () {
         });
 
         /*
+        | ── MYBILL — Credit bill-payment ──────────────────────────
+        */
+        Route::prefix('mybill')->name('mybill.')->group(function () {
+            Route::get('/',                    [\App\Http\Controllers\Borrower\MyBillController::class, 'index'])->name('index');
+            Route::get('/purchase/{category}', [\App\Http\Controllers\Borrower\MyBillController::class, 'showPurchase'])->name('purchase');
+            Route::post('/quote',              [\App\Http\Controllers\Borrower\MyBillController::class, 'quote'])->name('quote');
+            Route::post('/lookup-meter',       [\App\Http\Controllers\Borrower\MyBillController::class, 'lookupMeter'])->name('lookup-meter');
+            Route::post('/lookup-insurance',   [\App\Http\Controllers\Borrower\MyBillController::class, 'lookupInsurance'])->name('lookup-insurance');
+            Route::post('/event-details',      [\App\Http\Controllers\Borrower\MyBillController::class, 'eventDetails'])->name('event-details');
+            Route::post('/confirm',            [\App\Http\Controllers\Borrower\MyBillController::class, 'confirm'])->name('confirm');
+            Route::post('/purchase',           [\App\Http\Controllers\Borrower\MyBillController::class, 'store'])->name('store');
+            Route::get('/loans/{loan}',        [\App\Http\Controllers\Borrower\MyBillController::class, 'show'])->name('show');
+            Route::get('/history',             [\App\Http\Controllers\Borrower\MyBillController::class, 'history'])->name('history');
+        });
+
+        /*
         | ── PROFILE ────────────────────────────────────────────────
         */
         Route::prefix('profile')->name('profile.')->group(function () {
