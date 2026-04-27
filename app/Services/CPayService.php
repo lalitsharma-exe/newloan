@@ -396,8 +396,8 @@ class CPayService
         $status = strtoupper($data['paymentRequestStatus'] ?? $data['transactionStatus'] ?? $data['status'] ?? '');
 
         return [
-            'cpay_txn_id' => $data['cPayTransactionId'] ?? null,
-            'our_ref'     => $data['extTransactionId']  ?? $data['transactionId'] ?? null,
+            'cpay_txn_id' => $data['cPayTransactionId'] ?? $data['CPayTransactionId'] ?? null,
+            'our_ref'     => $data['extTransactionId']  ?? $data['transactionId'] ?? $data['ExtTransactionId'] ?? null,
             'amount'      => (float) ($data['amount'] ?? 0),
             'status'      => $status,
             'is_success'  => $status === 'PROCESSED',

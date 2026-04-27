@@ -188,13 +188,6 @@ class ApplicationController extends Controller
     {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
 
-        // ── APPLICATION FEE HURDLE ──────────────────────────────────
-        $fee = (float) \App\Models\SystemSetting::get('application_fee', 0);
-        if ($fee > 0 && !$application->fee_paid) {
-            return redirect()->route('borrower.apply.pay-fee', $application)
-                ->with('info', 'Please pay the application fee of M' . number_format($fee, 2) . ' to submit your application.');
-        }
-
         $signaturePath = $application->signature_path;
         if ($request->filled('signature_data')) {
             $data = $request->input('signature_data');
@@ -212,10 +205,19 @@ class ApplicationController extends Controller
             }
         }
 
+        // Save signature so it isn't lost if they are redirected to payment
+        $application->update(['signature_path' => $signaturePath]);
+
+        // ── APPLICATION FEE HURDLE ──────────────────────────────────
+        $fee = (float) \App\Models\SystemSetting::get('application_fee', 0);
+        if ($fee > 0 && !$application->fee_paid) {
+            return redirect()->route('borrower.apply.pay-fee', $application)
+                ->with('info', 'Please pay the application fee of M' . number_format($fee, 2) . ' to submit your application.');
+        }
+
         $application->update([
             'status' => 'submitted',
-            'submitted_at' => now(),
-            'signature_path' => $signaturePath
+            'submitted_at' => now()
         ]);
         return redirect()->route('borrower.apply.submitted', $application);
     }
@@ -457,14 +459,16 @@ class ApplicationController extends Controller
             ]);
         }
 
-        // Mark application fee as paid
+        // Mark application fee as paid and automatically submit it
         $application->update([
             'fee_paid' => true,
             'fee_amount_paid' => $payment ? $payment->amount : \App\Models\SystemSetting::get('application_fee'),
+            'status' => 'submitted',
+            'submitted_at' => now(),
         ]);
 
-        return redirect()->route('borrower.apply.step.show', [$application, 9])
-            ->with('success', 'Application fee of M' . number_format($application->fee_amount_paid, 2) . ' paid successfully! You can now submit your application.');
+        return redirect()->route('borrower.apply.submitted', $application)
+            ->with('success', 'Application fee of M' . number_format($application->fee_amount_paid, 2) . ' paid successfully! Your application has been submitted.');
     }
 
     // ── Private save helpers ─────────────────────────────────────

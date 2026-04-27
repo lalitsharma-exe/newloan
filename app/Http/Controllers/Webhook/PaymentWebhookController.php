@@ -124,9 +124,11 @@ class PaymentWebhookController extends Controller
                 $application->update([
                     'fee_paid' => true,
                     'fee_amount_paid' => $payment->amount,
-                    'step' => max($application->step, 10)
+                    'step' => max($application->step, 10),
+                    'status' => 'submitted',
+                    'submitted_at' => now(),
                 ]);
-                Log::info('CPay webhook: marked application fee as paid', ['app_id' => $application->id]);
+                Log::info('CPay webhook: marked application fee as paid and submitted', ['app_id' => $application->id]);
             } elseif ($isVer || !$application->card_tokenised) {
                 $application->update([
                     'card_tokenised' => true,
