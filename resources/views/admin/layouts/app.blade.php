@@ -12,7 +12,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;display:flex}
 /* SIDEBAR */
-.sb{width:var(--sb);min-height:100vh;background:#0d1b3e;position:fixed;left:0;top:0;z-index:1000;display:flex;flex-direction:column}
+.sb{width:var(--sb);height:100vh;background:#0d1b3e;position:fixed;left:0;top:0;z-index:1000;display:flex;flex-direction:column}
 .sb-logo{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px}
 .sb-logo img{height:36px;width:auto;object-fit:contain}
 .sb-logo .sub{color:rgba(255,255,255,.4);font-size:11px;margin-top:1px}
