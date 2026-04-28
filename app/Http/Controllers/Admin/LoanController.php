@@ -267,7 +267,11 @@ class LoanController extends Controller
         return view('admin.loans.settlement-quotation', compact('loan','outstanding','validUntil'));
     }
 
-    public function settlementLetter(Loan $loan) { $loan->load(['user','loanProduct']); return view('admin.loans.settlement-letter', compact('loan')); }
+    public function settlementLetter(Loan $loan) { 
+        $loan->load(['user','loanProduct']); 
+        $totalPaid = $loan->payments()->where('status', 'verified')->sum('amount');
+        return view('admin.loans.settlement-letter', compact('loan', 'totalPaid')); 
+    }
 
     public function export(Request $request)
     {

@@ -271,8 +271,8 @@ select.fc { cursor: pointer; }
   body { padding-bottom: 70px; }
   .wrap { padding: 16px 14px; }
   .g2, .g3 { grid-template-columns: 1fr; }
-  .topnav .navbtn:not(.icon-btn):not(.mybill-mobile):not(.nav-user) { display: none; }
-  .mybill-mobile { display: inline-flex !important; }
+  .topnav .navbtn:not(.icon-btn):not(.mobile-show):not(.nav-user) { display: none; }
+  .mobile-show { display: inline-flex !important; }
   .nav-user-name { display: none; }
   .nav-divider { display: none; }
 }
@@ -298,7 +298,8 @@ select.fc { cursor: pointer; }
   <div class="nav-sp"></div>
 
   <a href="{{ route('borrower.apply.start') }}" class="navbtn apply"><i class="bi bi-plus-circle-fill"></i> Apply Now</a>
-  <a href="{{ route('borrower.mybill.index') }}" class="navbtn mybill-mobile" style="display:none;background:rgba(43,75,173,.1);color:var(--blue);border-radius:8px;font-weight:700"><i class="bi bi-lightning-charge-fill"></i> MyBill</a>
+  <a href="{{ route('borrower.referrals.index') }}" class="navbtn mobile-show" style="display:none;background:rgba(255,255,255,.1);color:#fff;border-radius:8px;font-weight:600"><i class="bi bi-gift"></i> Refer</a>
+  <a href="{{ route('borrower.mybill.index') }}" class="navbtn mobile-show" style="display:none;background:rgba(255,193,7,.2);color:#ffc107;border-radius:8px;font-weight:700"><i class="bi bi-lightning-charge-fill"></i> MyBill</a>
 
   @php
     try { $bUnread = \App\Models\Notification::where('user_id', auth('borrower')->id())->where('is_read',false)->count(); } catch(\Exception $e){ $bUnread=0; }
