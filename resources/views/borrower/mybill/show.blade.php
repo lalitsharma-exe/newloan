@@ -4,39 +4,50 @@
 
 @if(session('success'))<div class="alert a-ok mb-3"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>@endif
 
-@php
-  $icons = ['electricity'=>'lightning-charge-fill','airtime'=>'phone-fill','insurance'=>'shield-fill','ticket'=>'ticket-perforated-fill'];
-  $colors = ['electricity'=>'#f59e0b','airtime'=>'#06b6d4','insurance'=>'#8b5cf6','ticket'=>'#ec4899'];
-@endphp
-
 <div style="max-width:560px;margin:0 auto">
   {{-- Back link --}}
-  <a href="{{ route('borrower.mybill.index') }}" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;margin-bottom:20px">
+  <a href="{{ route('borrower.mybill.index') }}" style="display:inline-flex;align-items:center;gap:8px;color:#64748b;text-decoration:none;font-size:14px;font-weight:600;margin-bottom:24px;transition:color .2s" onmouseover="this.style.color='#0f172a'" onmouseout="this.style.color='#64748b'">
     <i class="bi bi-arrow-left"></i> Back to MyBill
   </a>
 
-  {{-- Status Banner --}}
-  <div style="background:{{ $loan->status === 'settled' ? 'linear-gradient(135deg,#ecfdf5,#d1fae5)' : ($loan->status === 'active' ? 'linear-gradient(135deg,#fffbeb,#fef3c7)' : 'linear-gradient(135deg,#fef2f2,#fecaca)') }};border-radius:16px;padding:24px;margin-bottom:20px;text-align:center">
-    <div style="width:56px;height:56px;border-radius:50%;background:{{ $loan->status === 'settled' ? '#10b981' : ($loan->status === 'active' ? '#f59e0b' : '#ef4444') }};display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px;color:#fff">
-      <i class="bi bi-{{ $loan->status === 'settled' ? 'check-lg' : ($loan->status === 'active' ? 'clock-history' : 'x-lg') }}"></i>
+  {{-- Status Header --}}
+  <div style="background:#fff;border:1px solid #f1f5f9;border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.02)">
+    <div style="width:64px;height:64px;border-radius:50%;background:#f8fafc;border:1px solid #f1f5f9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;color:{{ $loan->status === 'settled' ? '#10b981' : ($loan->status === 'active' ? '#f59e0b' : '#ef4444') }}">
+      <i class="bi bi-{{ $loan->status === 'settled' ? 'shield-check' : ($loan->status === 'active' ? 'hourglass-split' : 'exclamation-circle') }}"></i>
     </div>
-    <div style="font-size:18px;font-weight:800;color:{{ $loan->status === 'settled' ? '#065f46' : ($loan->status === 'active' ? '#92400e' : '#991b1b') }}">
-      {{ $loan->status === 'settled' ? 'Fully Settled' : ($loan->status === 'active' ? 'Awaiting Payday' : ucfirst($loan->status)) }}
+    <div style="font-size:20px;font-weight:900;color:#0f172a">
+      {{ $loan->status === 'settled' ? 'Fully Settled' : ($loan->status === 'active' ? 'Payment Pending' : ucfirst($loan->status)) }}
     </div>
-    <div style="font-size:12px;color:{{ $loan->status === 'settled' ? '#059669' : ($loan->status === 'active' ? '#d97706' : '#dc2626') }};margin-top:4px">
+    <div style="font-size:13px;color:#64748b;margin-top:4px">
       {{ $loan->loan_number }} · {{ $loan->created_at->format('d M Y, H:i') }}
     </div>
+    
+    @if($loan->bill_category === 'electricity')
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid #f1f5f9;display:flex;justify-content:center">
+        <img src="/assets/logos/lec_logo.png" style="height:28px">
+      </div>
+    @elseif($loan->bill_category === 'airtime')
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid #f1f5f9;display:flex;justify-content:center;gap:16px">
+        <img src="/assets/logos/vodacom.png" style="height:18px">
+        <img src="/assets/logos/econet.png" style="height:18px">
+      </div>
+    @elseif($loan->bill_category === 'insurance')
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid #f1f5f9;display:flex;justify-content:center">
+        <i class="bi bi-shield-fill-check" style="color:#8b5cf6;font-size:28px"></i>
+      </div>
+    @elseif($loan->bill_category === 'ticket')
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid #f1f5f9;display:flex;justify-content:center">
+        <i class="bi bi-ticket-perforated-fill" style="color:#ec4899;font-size:28px"></i>
+      </div>
+    @endif
   </div>
 
   {{-- Transaction Details --}}
-  <div style="background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px">
-    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-      <div style="width:36px;height:36px;border-radius:10px;background:{{ $colors[$loan->bill_category] }}15;display:flex;align-items:center;justify-content:center">
-        <i class="bi bi-{{ $icons[$loan->bill_category] }}" style="color:{{ $colors[$loan->bill_category] }};font-size:16px"></i>
-      </div>
-      <span style="font-weight:700;font-size:15px">{{ ucfirst($loan->bill_category) }} Payment</span>
-      <span style="margin-left:auto;font-size:11px;padding:3px 10px;border-radius:6px;font-weight:700;background:{{ $loan->tier === '30' ? 'rgba(43,75,173,.1)' : '#f3f4f6' }};color:{{ $loan->tier === '30' ? 'var(--blue)' : '#6b7280' }}">
-        {{ $loan->tier === '30' ? 'Standard 30%' : 'No-Upfront 40%' }}
+  <div style="background:#fff;border:1px solid #f1f5f9;border-radius:24px;overflow:hidden;margin-bottom:24px;box-shadow:0 4px 20px rgba(0,0,0,0.02)">
+    <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-weight:800;font-size:16px;color:#0f172a">{{ ucfirst($loan->bill_category) }} Purchase</span>
+      <span style="font-size:10px;padding:4px 10px;border-radius:100px;font-weight:700;background:#f8fafc;border:1px solid #f1f5f9;color:#64748b;text-transform:uppercase;letter-spacing:0.5px">
+        {{ $loan->tier === '30' ? 'Standard Tier' : 'No-Upfront Tier' }}
       </span>
     </div>
 
@@ -110,22 +121,22 @@
 
   {{-- Repayment History --}}
   @if($loan->repayments->isNotEmpty())
-  <div style="background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden">
-    <div style="padding:14px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:14px">
-      <i class="bi bi-clock-history" style="color:var(--blue)"></i> Payment History
+  <div style="background:#fff;border:1px solid #f1f5f9;border-radius:24px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.02)">
+    <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;font-weight:800;font-size:15px;color:#0f172a">
+      Payment History
     </div>
     @foreach($loan->repayments as $rep)
-    <div style="display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid #f1f5f9;font-size:13px">
-      <div style="width:32px;height:32px;border-radius:8px;background:{{ $rep->deduction_type === 'upfront' ? 'rgba(43,75,173,.1)' : 'rgba(16,185,129,.1)' }};display:flex;align-items:center;justify-content:center;margin-right:12px;flex-shrink:0">
-        <i class="bi bi-{{ $rep->deduction_type === 'upfront' ? 'arrow-up-circle' : 'calendar-check' }}" style="color:{{ $rep->deduction_type === 'upfront' ? 'var(--blue)' : '#10b981' }};font-size:14px"></i>
+    <div style="display:flex;align-items:center;padding:16px 24px;border-bottom:1px solid #f8fafc;font-size:14px">
+      <div style="width:40px;height:40px;border-radius:12px;background:#f8fafc;border:1px solid #f1f5f9;display:flex;align-items:center;justify-content:center;margin-right:16px;flex-shrink:0;color:#64748b">
+        <i class="bi bi-{{ $rep->deduction_type === 'upfront' ? 'credit-card-2-front' : 'calendar-check' }}"></i>
       </div>
       <div style="flex:1">
-        <div style="font-weight:600">{{ ucfirst($rep->deduction_type) }} Payment</div>
-        <div style="font-size:11px;color:var(--muted)">{{ $rep->processed_at?->format('d M Y, H:i') ?? $rep->created_at->format('d M Y, H:i') }}</div>
+        <div style="font-weight:700;color:#1e293b">{{ ucfirst($rep->deduction_type) }} Payment</div>
+        <div style="font-size:12px;color:#64748b">{{ $rep->processed_at?->format('d M Y, H:i') ?? $rep->created_at->format('d M Y, H:i') }}</div>
       </div>
       <div style="text-align:right">
-        <div style="font-weight:700;color:#10b981">M {{ number_format($rep->amount, 2) }}</div>
-        <div style="font-size:10px;color:{{ $rep->status === 'success' ? '#059669' : '#dc2626' }}">{{ ucfirst($rep->status) }}</div>
+        <div style="font-weight:800;color:#0f172a">M {{ number_format($rep->amount, 2) }}</div>
+        <div style="font-size:10px;font-weight:700;color:{{ $rep->status === 'success' ? '#10b981' : '#ef4444' }};text-transform:uppercase;letter-spacing:0.5px">{{ $rep->status }}</div>
       </div>
     </div>
     @endforeach
@@ -134,8 +145,8 @@
 </div>
 
 <style>
-.alert{padding:12px 16px;border-radius:11px;font-size:13px;display:flex;align-items:center;gap:9px}
-.a-ok{background:rgba(16,185,129,.08);color:#065f46;border:1px solid rgba(16,185,129,.2)}
-.mb-3{margin-bottom:16px}
+.alert{padding:16px 20px;border-radius:16px;font-size:14px;display:flex;align-items:center;gap:12px;font-weight:600}
+.a-ok{background:#f0fdf4;color:#166534;border:1px solid #dcfce7}
+.mb-3{margin-bottom:24px}
 </style>
 @endsection

@@ -9,10 +9,14 @@ class ApplicationService
 {
     public function getPaginated(array $filters, int $perPage = 15)
     {
-        $q = LoanApplication::with(['user', 'loanProduct', 'assignedOfficer'])
-            ->where('status', '!=', 'draft');
+        $q = LoanApplication::with(['user', 'loanProduct', 'assignedOfficer']);
 
-        if (!empty($filters['status']))    $q->where('status', $filters['status']);
+        if (isset($filters['status']) && $filters['status'] === 'draft') {
+            $q->where('status', 'draft');
+        } else {
+            $q->where('status', '!=', 'draft');
+            if (!empty($filters['status']))    $q->where('status', $filters['status']);
+        }
         if (!empty($filters['product']))   $q->where('loan_product_id', $filters['product']);
         if (!empty($filters['date_from'])) $q->whereDate('created_at', '>=', $filters['date_from']);
         if (!empty($filters['date_to']))   $q->whereDate('created_at', '<=', $filters['date_to']);
@@ -35,6 +39,7 @@ class ApplicationService
         return [
             'total'          => LoanApplication::where('status', '!=', 'draft')->count(),
             'pending'        => LoanApplication::whereIn('status', ['submitted','under_review','info_requested','on_hold'])->count(),
+            'drafts'         => LoanApplication::where('status', 'draft')->count(),
             'approved_today' => LoanApplication::whereDate('decided_at', today())->where('status', 'approved')->count(),
             'declined_today' => LoanApplication::whereDate('decided_at', today())->where('status', 'declined')->count(),
         ];

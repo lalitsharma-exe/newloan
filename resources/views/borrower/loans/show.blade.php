@@ -13,6 +13,9 @@
       <a href="{{ route('borrower.loans.settlement',$loan) }}" class="btn btn-o btn-sm"><i class="bi bi-file-earmark-pdf"></i> Settlement</a>
       <a href="{{ route('borrower.payments.make') }}" class="btn btn-p btn-sm"><i class="bi bi-cash"></i> Make Payment</a>
     @endif
+    @if(in_array($loan->status,['paid_off','closed']))
+      <a href="{{ route('borrower.loans.settlement-letter',$loan) }}" class="btn btn-o btn-sm"><i class="bi bi-patch-check"></i> Settlement Letter</a>
+    @endif
   </div>
 </div>
 

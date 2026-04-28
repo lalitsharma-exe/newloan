@@ -233,7 +233,7 @@ class LoanController extends Controller
     public function writeOff(Request $request, Loan $loan)
     {
         $request->validate(['reason' => 'required|string|max:500']);
-        $loan->update(['status' => 'written_off', 'closed_reason' => $request->reason, 'closed_at' => now(), 'closed_by' => auth('admin')->id()]);
+        $this->svc->writeOffLoan($loan, $request->reason, auth('admin')->user());
         AuditLog::record('loan.write_off', "Loan {$loan->loan_number} written off: {$request->reason}", $loan);
         return redirect()->route('admin.loans.show', $loan)->with('success', 'Loan written off.');
     }

@@ -8,7 +8,7 @@
 
 @php
 $isPending = in_array($application->status, ['submitted','under_review','info_requested','on_hold']);
-$badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0f2fe'],'info_requested'=>['#d97706','#fef3c7'],'on_hold'=>['#d97706','#fef3c7'],'approved'=>['#059669','#d1fae5'],'declined'=>['#dc2626','#fee2e2'],'disbursed'=>['#2563eb','#dbeafe']];
+$badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0f2fe'],'info_requested'=>['#d97706','#fef3c7'],'on_hold'=>['#d97706','#fef3c7'],'approved'=>['#059669','#d1fae5'],'declined'=>['#dc2626','#fee2e2'],'disbursed'=>['#2563eb','#dbeafe'],'draft'=>['#64748b','#f1f5f9']];
 [$tc,$bc] = $badgeMap[$application->status] ?? ['#64748b','#f1f5f9'];
 $a = $application->affordability;
 $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability($application);
@@ -36,6 +36,12 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span style="background:{{ $bc }};color:{{ $tc }};font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px">{{ ucfirst(str_replace('_',' ',$application->status)) }}</span>
+    @if($application->status === 'draft')
+      <form method="POST" action="{{ route('admin.applications.verify-payment',$application) }}" style="display:inline" onsubmit="return confirm('Have you manually verified that the borrower has paid the application fee? This will submit the application for review.')">
+        @csrf
+        <button class="btn btn-p btn-sm"><i class="bi bi-shield-check"></i> Verify Payment & Submit</button>
+      </form>
+    @endif
     @if($isPending)
       <button onclick="openModal('aModal')" class="btn btn-ok btn-sm"><i class="bi bi-check-lg"></i> Approve</button>
       <button onclick="openModal('dModal')" class="btn btn-e btn-sm"><i class="bi bi-x-lg"></i> Decline</button>
@@ -83,6 +89,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
     <button class="tab"        data-tg="app" data-t="docs"      onclick="switchTab('app','docs')"><i class="bi bi-files"></i> Documents <span style="background:var(--bg);color:var(--muted);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:2px">{{ $application->documents->count() }}</span></button>
 
     <button class="tab"        data-tg="app" data-t="notes"     onclick="switchTab('app','notes')"><i class="bi bi-chat-text"></i> Internal Notes <span style="background:var(--bg);color:var(--muted);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:2px">{{ $application->notes->count() }}</span></button>
+    <button class="tab"        data-tg="app" data-t="scoring"   onclick="switchTab('app','scoring')"><i class="bi bi-shield-check"></i> Scoring Decision</button>
     <button class="tab"        data-tg="app" data-t="schedule"  onclick="switchTab('app','schedule')"><i class="bi bi-table"></i> Schedule</button>
   </div>
 
@@ -140,7 +147,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" style="margin-top:16px">
       <div class="card-hdr">
           <span class="card-title">Bank Details</span>
           <button class="btn btn-sm btn-o" style="margin-left:auto" onclick="openModal('editBankModal')">
@@ -207,6 +214,107 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
       </div>
     </div>
     @endif
+  </div>
+
+  {{-- ── SCORING TAB ─────────────────────────────────────────── --}}
+  <div class="tpanel" data-pg="app" data-p="scoring">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+      
+      {{-- Credit Score Card --}}
+      <div class="card">
+        <div class="card-hdr" style="background:#f8fafc">
+          <span class="card-title"><i class="bi bi-bank" style="color:#4f46e5"></i> Credit Score (Ability to Pay)</span>
+          <span style="margin-left:auto;font-weight:800;font-size:20px;color:#4f46e5">{{ $credit['total'] }} / 100</span>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;justify-content:center;margin-bottom:20px">
+            <div style="background:#eef2ff;color:#4f46e5;padding:8px 24px;border-radius:20px;font-weight:800;font-size:14px;letter-spacing:1px">
+               {{ $credit['label'] }}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            @foreach([
+              'Repayment History'   => ['pts' => $credit['breakdown']['repayment_history'], 'max' => 35],
+              'Affordability'        => ['pts' => $credit['breakdown']['affordability'], 'max' => 20],
+              'Loan-to-Income'       => ['pts' => $credit['breakdown']['loan_to_income'], 'max' => 10],
+              'Employment Stability' => ['pts' => $credit['breakdown']['employment_stability'], 'max' => 15],
+              'Existing Debt'        => ['pts' => $credit['breakdown']['debt_burden'], 'max' => 10],
+              'Data Completeness'    => ['pts' => $credit['breakdown']['data_completeness'], 'max' => 5],
+              'Age Factor'           => ['pts' => $credit['breakdown']['age_factor'], 'max' => 5],
+            ] as $label => $val)
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:13px;color:var(--muted)">{{ $label }}</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:100px;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden">
+                  <div style="width:{{ ($val['pts']/$val['max'])*100 }}%;height:100%;background:#4f46e5"></div>
+                </div>
+                <span style="font-size:13px;font-weight:700;min-width:25px;text-align:right">{{ $val['pts'] }}</span>
+              </div>
+            </div>
+            @endforeach
+          </div>
+        </div>
+      </div>
+
+      {{-- Fraud Score Card --}}
+      <div class="card">
+        <div class="card-hdr" style="background:#fef2f2">
+          <span class="card-title"><i class="bi bi-shield-lock" style="color:#dc2626"></i> Fraud Score (Trust Factor)</span>
+          <span style="margin-left:auto;font-weight:800;font-size:20px;color:#dc2626">{{ $fraud['total'] }} / 100</span>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;justify-content:center;margin-bottom:20px">
+            <div style="background:#fef2f2;color:#dc2626;padding:8px 24px;border-radius:20px;font-weight:800;font-size:14px;letter-spacing:1px">
+               {{ $fraud['label'] }}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            @if(empty($fraud['breakdown']))
+              <div style="text-align:center;padding:20px;color:#059669;font-weight:600">
+                <i class="bi bi-check-circle-fill"></i> No fraud risks detected
+              </div>
+            @else
+              @foreach($fraud['breakdown'] as $risk => $pts)
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:#fff5f5;border-radius:8px">
+                <span style="font-size:13px;font-weight:600;color:#991b1b">{{ ucfirst(str_replace('_',' ',$risk)) }}</span>
+                <span style="color:#dc2626;font-weight:800">{{ is_numeric($pts) ? $pts : 'CRITICAL' }}</span>
+              </div>
+              @endforeach
+            @endif
+            <div style="margin-top:auto;font-size:11px;color:var(--muted);border-top:1px solid #f1f5f9;padding-top:10px">
+              Calculated based on Identity, Device, Location and Behavior heuristics.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    {{-- Final Decision Engine --}}
+    <div class="card" style="border:2px solid {{ $decision['color'] ?? '#64748b' }}">
+      <div class="card-body" style="display:flex;align-items:center;gap:30px;padding:30px">
+        <div style="width:80px;height:80px;border-radius:50%;background:{{ $decision['color'] ?? '#64748b' }}15;display:flex;align-items:center;justify-content:center;color:{{ $decision['color'] ?? '#64748b' }};font-size:40px">
+          <i class="bi bi-{{ $decision['status'] === 'DECLINE' ? 'x-circle' : ($decision['status'] === 'MANUAL REVIEW' ? 'eye' : 'check-circle') }}"></i>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:2px">Decision Engine Output</div>
+          <div style="font-size:32px;font-weight:900;color:{{ $decision['color'] ?? '#64748b' }};margin:4px 0">{{ $decision['status'] }}</div>
+          @if(isset($decision['reason']))
+            <div style="color:#ef4444;font-weight:600;font-size:14px"><i class="bi bi-info-circle"></i> {{ $decision['reason'] }}</div>
+          @endif
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Recommended Action:</div>
+          @if($decision['status'] === 'DECLINE')
+            <button class="btn btn-e" onclick="openModal('dModal')">Decline Application</button>
+          @elseif($decision['status'] === 'FULL APPROVAL')
+            <button class="btn btn-ok" onclick="openModal('aModal')">Approve Full Amount</button>
+          @else
+            <button class="btn btn-o" onclick="openModal('aModal')">Review & Adjust Terms</button>
+          @endif
+        </div>
+      </div>
+    </div>
   </div>
 
   {{-- ── AFFORDABILITY TAB ─────────────────────────────────────── --}}
@@ -602,8 +710,16 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
   <form method="POST" action="{{ route('admin.applications.approve',$application) }}">@csrf
     <div class="mbody">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div class="fg"><label class="fl">Approved Amount (M) *</label><input type="number" name="approved_amount" class="fc" value="{{ $application->requested_amount }}" step="0.01" min="1" required oninput="liveCalc()"></div>
-        <div class="fg"><label class="fl">Term (months) *</label><input type="number" name="approved_term" class="fc" id="mTerm" value="{{ $application->requested_term }}" min="1" max="120" required oninput="liveCalc()"></div>
+        <div class="fg">
+          <label class="fl">Approved Amount (M) *</label>
+          <input type="number" name="approved_amount" class="fc" value="{{ $application->requested_amount }}" step="0.01" min="{{ $application->loanProduct?->min_amount ?? 1 }}" max="{{ $application->loanProduct?->max_amount ?? 999999 }}" required oninput="liveCalc()">
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Product Limits: M{{ number_format($application->loanProduct?->min_amount??0,0) }} - M{{ number_format($application->loanProduct?->max_amount??0,0) }}</div>
+        </div>
+        <div class="fg">
+          <label class="fl">Term (months) *</label>
+          <input type="number" name="approved_term" class="fc" id="mTerm" value="{{ $application->requested_term }}" min="{{ $application->loanProduct?->min_term_months ?? 1 }}" max="{{ $application->loanProduct?->max_term_months ?? 120 }}" required oninput="liveCalc()">
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Product Limits: {{ $application->loanProduct?->min_term_months ?? 1 }} - {{ $application->loanProduct?->max_term_months ?? 120 }} months</div>
+        </div>
         <div class="fg"><label class="fl">Interest Rate (%/month) *</label><input type="number" name="interest_rate" class="fc" id="mRate" value="{{ $application->loanProduct?->interest_rate }}" step="0.01" min="0" required oninput="liveCalc()"></div>
         <div class="fg"><label class="fl">Disbursement Date *</label><input type="date" name="disbursement_date" class="fc" value="{{ now()->addDay()->format('Y-m-d') }}" required></div>
       </div>

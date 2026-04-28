@@ -40,4 +40,12 @@ class LoanController extends Controller
         $validUntil = $validDate->format('d M Y');
         return view('admin.loans.settlement-quotation', compact('loan','outstanding','validUntil'));
     }
+
+    public function settlementLetter(Loan $loan) {
+        abort_if($loan->user_id !== auth('borrower')->id(), 403);
+        abort_if(!in_array($loan->status, ['paid_off', 'closed']), 403);
+        $loan->load(['user','loanProduct']);
+        $totalPaid = $loan->payments()->where('status', 'verified')->sum('amount');
+        return view('admin.loans.settlement-letter', compact('loan', 'totalPaid'));
+    }
 }

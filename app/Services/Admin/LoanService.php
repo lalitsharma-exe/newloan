@@ -277,12 +277,42 @@ class LoanService
 
     public function closeLoan(Loan $loan, string $reason, User $admin): void
     {
+        // 1. Zero out the loan balance
         $loan->update([
-            'status'       => 'closed',
-            'closed_at'    => now(),
-            'closed_reason'=> $reason,
-            'closed_by'    => $admin->id,
+            'status'              => 'closed',
+            'outstanding_balance' => 0,
+            'closed_at'           => now(),
+            'closed_reason'       => $reason,
+            'closed_by'           => $admin->id,
         ]);
+
+        // 2. Waive all unpaid installments
+        $loan->installments()
+            ->whereNotIn('status', ['paid', 'waived'])
+            ->update([
+                'status'             => 'waived',
+                'outstanding_amount' => 0
+            ]);
+    }
+
+    public function writeOffLoan(Loan $loan, string $reason, User $admin): void
+    {
+        // 1. Mark as written off and zero balance
+        $loan->update([
+            'status'              => 'written_off',
+            'outstanding_balance' => 0,
+            'closed_at'           => now(),
+            'closed_reason'       => $reason,
+            'closed_by'           => $admin->id,
+        ]);
+
+        // 2. Waive all unpaid installments
+        $loan->installments()
+            ->whereNotIn('status', ['paid', 'waived'])
+            ->update([
+                'status'             => 'waived',
+                'outstanding_amount' => 0
+            ]);
     }
 
     // ── Bulk repayment: record up to 30 payments at once ──────────────────────

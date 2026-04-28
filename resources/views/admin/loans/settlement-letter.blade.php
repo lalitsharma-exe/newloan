@@ -2,145 +2,156 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Settlement Letter — {{ $loan->loan_number }}</title>
+<title>Settlement Confirmation Letter — {{ $loan->loan_number }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{background:#f3f4f6;padding:30px}
-.doc{max-width:620px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.1)}
-.header{background:#065f46;color:#fff;padding:28px 36px;display:flex;justify-content:space-between;align-items:flex-start}
-.header h1{font-size:22px;font-weight:800}
-.header p{font-size:12px;opacity:.7;margin-top:3px}
-.header-right{text-align:right;font-size:12px;opacity:.8}
-.body{padding:36px}
-.cleared-badge{background:#d1fae5;border:2px solid #10b981;border-radius:10px;padding:16px 20px;text-align:center;margin-bottom:28px}
-.cleared-badge .icon{font-size:36px;margin-bottom:6px}
-.cleared-badge h2{font-size:18px;font-weight:800;color:#065f46}
-.cleared-badge p{font-size:13px;color:#047857;margin-top:4px}
-.date-line{font-size:13px;color:#6b7280;margin-bottom:24px}
-.letter-body{font-size:14px;color:#374151;line-height:1.8;margin-bottom:24px}
-.letter-body strong{color:#1f2937}
-.summary{background:#f8fafc;border-radius:10px;padding:16px 20px;margin:20px 0}
-.summary-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid #e2e8f0}
-.summary-row:last-child{border-bottom:none;font-weight:700;font-size:14px;color:#065f46}
-.signature-area{margin-top:36px;padding-top:20px;border-top:1px dashed #e2e8f0;display:flex;justify-content:space-between}
-.sig-block{font-size:12px;color:#6b7280}
-.sig-block .line{border-top:1px solid #374151;width:160px;margin-bottom:6px;margin-top:32px}
-.footer{border-top:1px solid #e2e8f0;padding:14px 36px;font-size:11px;color:#9ca3af;display:flex;justify-content:space-between;align-items:center}
+:root {
+    --primary: #065f46;
+    --success: #10b981;
+    --border: #e2e8f0;
+    --bg-light: #f8fafc;
+    --text-dark: #0f172a;
+    --text-muted: #64748b;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter', sans-serif}
+body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
+.doc{max-width:700px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.08);position:relative}
+.doc::before {content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg, #059669, #10b981)}
+
+.header{padding:40px 40px 30px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--border)}
+.logo-area img {height:55px;width:auto;display:block}
+.header-info {text-align:right}
+.header-info h1 {font-size:20px;font-weight:800;color:var(--primary);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.meta-row {font-size:12px;color:var(--text-muted);margin-bottom:4px}
+.meta-row strong {color:var(--text-dark);font-weight:700}
+
+.body{padding:40px}
+
+.cleared-banner {background:#ecfdf5;border:1px solid #a7f3d0;border-radius:16px;padding:24px;text-align:center;margin-bottom:40px}
+.cleared-icon {font-size:40px;margin-bottom:12px}
+.cleared-banner h2 {font-size:22px;font-weight:800;color:#065f46;text-transform:uppercase;letter-spacing:1px}
+.cleared-banner p {font-size:14px;color:#047857;margin-top:6px}
+
+.letter-content {font-size:15px;line-height:1.8;color:#334155;margin-bottom:40px}
+.letter-content p {margin-bottom:20px}
+.letter-content strong {color:var(--text-dark)}
+
+.summary-card {background:var(--bg-light);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:40px}
+.summary-title {font-size:11px;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.summary-row {display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.03)}
+.summary-row:last-child {border-bottom:none;padding-top:12px;margin-top:4px;border-top:1px solid var(--border);font-weight:800;color:var(--primary)}
+
+.sig-section {display:flex;justify-content:space-between;align-items:flex-end;padding-top:30px;border-top:1px dashed var(--border)}
+.sig-details {font-size:12px;color:var(--text-muted)}
+.sig-name {font-size:15px;font-weight:800;color:var(--primary);margin-top:10px}
+
+.footer {background:var(--bg-light);padding:20px 40px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-muted);border-top:1px solid var(--border)}
+.btn-print {background:#fff;border:1px solid var(--border);padding:8px 18px;border-radius:8px;font-size:12px;font-weight:700;color:var(--text-dark);cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 2px 4px rgba(0,0,0,0.05)}
+
 @media print{
     body{background:#fff;padding:0}
-    .doc{box-shadow:none}
-    .header{background:#fff !important;color:#065f46 !important;padding:20px 0;border-bottom:2px solid #e2e8f0}
-    .header-right{color:#374151 !important}
-    .footer button{display:none}
+    .doc{box-shadow:none;border-radius:0;max-width:none}
+    .btn-print {display:none}
+    .footer {background:#fff}
 }
 </style>
 </head>
 <body>
 <div class="doc">
     <div class="header">
-        <div>
-            <h1>MyLoan Limited</h1>
-            <p>Settlement Confirmation Letter</p>
+        <div class="logo-area">
+            <img src="{{ asset(config('app.logo')) }}" alt="MyLoan Logo">
         </div>
-        <div class="header-right">
-            <div>Ref: {{ $loan->loan_number }}</div>
-            <div>Date: {{ now()->format('d M Y') }}</div>
+        <div class="header-info">
+            <h1>Settlement Letter</h1>
+            <div class="meta-row">Loan Reference: <strong>{{ $loan->loan_number }}</strong></div>
+            <div class="meta-row">Date Issued: <strong>{{ now()->format('d M Y') }}</strong></div>
         </div>
     </div>
+
     <div class="body">
-        <div class="cleared-badge">
-            <div class="icon">✅</div>
-            <h2>LOAN FULLY SETTLED</h2>
-            <p>This confirms that all obligations under loan {{ $loan->loan_number }} have been satisfied.</p>
+        <div class="cleared-banner">
+            <div class="cleared-icon">🛡️</div>
+            <h2>Loan Account Fully Settled</h2>
+            <p>This document serves as final confirmation of account closure.</p>
         </div>
 
-        <div class="date-line">{{ now()->format('d F Y') }}</div>
-
-        <div class="letter-body">
+        <div class="letter-content">
             <p>Dear <strong>{{ $loan->user?->name }}</strong>,</p>
-            <br>
+            
             <p>
-                We are pleased to confirm that your loan account with MyLoan Limited has been
-                <strong>fully settled and closed</strong> as of
-                <strong>{{ $loan->closed_at?->format('d M Y') ?? now()->format('d M Y') }}</strong>.
+                We are pleased to formally confirm that your loan account with <strong>MyLoan Limited</strong> has been 
+                <strong>fully settled and closed</strong> as of <strong>{{ $loan->closed_at?->format('d M Y') ?? now()->format('d M Y') }}</strong>.
             </p>
-            <br>
+
             <p>
-                All payments due under this agreement have been received in full and your loan account
-                now carries a <strong>zero balance</strong>. No further payments are required.
+                All financial obligations under the loan agreement (Ref: <strong>{{ $loan->loan_number }}</strong>) have been met in full. 
+                Your account now reflects a <strong>zero balance</strong>, and no further payments are required.
             </p>
-            <br>
+
             <p>
-                This letter serves as your official confirmation of settlement and may be used as proof
-                that you have fulfilled all obligations under loan reference <strong>{{ $loan->loan_number }}</strong>.
+                This letter may be used as official proof of settlement for any financial or regulatory purposes. 
+                We appreciate the opportunity to have served your financial needs.
             </p>
         </div>
 
-        @php
-            $sigVal = \App\Models\SystemSetting::get('director_signature');
-            $sigDataUrl = null;
-            if ($sigVal && \Illuminate\Support\Facades\Storage::disk('public')->exists($sigVal)) {
-                $sigDataUrl = 'data:image/png;base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($sigVal));
-            }
-            $directorName = \App\Models\SystemSetting::get('director_name', 'Tjale Maila');
-            $directorTitle = \App\Models\SystemSetting::get('director_title', 'Managing Director');
-            $companyName = \App\Models\SystemSetting::get('app_name', 'MyLoan Limited');
-        @endphp
-
-        <div class="summary">
-            <div style="font-weight:700;color:#1e3a5f;margin-bottom:10px;font-size:13px">LOAN SUMMARY</div>
-            <div class="summary-row"><span>Loan Reference</span><span>{{ $loan->loan_number }}</span></div>
+        <div class="summary-card">
+            <div class="summary-title">Final Loan Summary</div>
+            <div class="summary-row"><span>Agreement Number</span><strong>{{ $loan->loan_number }}</strong></div>
             <div class="summary-row"><span>Loan Product</span><span>{{ $loan->loanProduct?->name ?? '—' }}</span></div>
             <div class="summary-row"><span>Original Principal</span><span>M {{ number_format($loan->principal_amount, 2) }}</span></div>
             <div class="summary-row"><span>Total Amount Repaid</span><span>M {{ number_format($totalPaid, 2) }}</span></div>
-            <div class="summary-row"><span>Settlement Date</span><span>{{ $loan->closed_at?->format('d M Y') ?? now()->format('d M Y') }}</span></div>
-            <div class="summary-row"><span>Outstanding Balance</span><span>M 0.00 — CLEARED</span></div>
+            <div class="summary-row"><span>Final Settlement Date</span><span>{{ $loan->closed_at?->format('d M Y') ?? now()->format('d M Y') }}</span></div>
+            <div class="summary-row"><span>Outstanding Balance</span><span style="color:var(--success)">M 0.00 (CLEARED)</span></div>
         </div>
 
-        <p style="font-size:14px;color:#374151;line-height:1.7">
-            We thank you for your business and wish you continued financial success.
-            Should you require any further assistance please contact our offices.
-        </p>
-
-        <div class="signature-area">
-            <div class="sig-block">
+        <div class="sig-section">
+            <div class="sig-details">
+                @php
+                    $sigVal = \App\Models\SystemSetting::get('director_signature');
+                    $sigDataUrl = null;
+                    if ($sigVal && \Illuminate\Support\Facades\Storage::disk('public')->exists($sigVal)) {
+                        $sigDataUrl = 'data:image/png;base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($sigVal));
+                    }
+                    $directorName = \App\Models\SystemSetting::get('director_name', 'Tjale Maila');
+                    $directorTitle = \App\Models\SystemSetting::get('director_title', 'Managing Director');
+                @endphp
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Authorised Signatory:</div>
                 @if($sigDataUrl)
-                    <div style="margin-top:10px;height:40px;margin-bottom:10px">
-                        <img src="{{ $sigDataUrl }}" style="max-height:40px;max-width:200px" alt="Signature">
-                    </div>
+                    <img src="{{ $sigDataUrl }}" style="height:60px;max-width:200px;object-fit:contain;display:block" alt="Signature">
                 @else
-                    <div class="line"></div>
-                    <div>Authorised Signatory</div>
+                    <div style="height:60px;width:180px;border-bottom:1px solid var(--text-dark);margin-bottom:10px"></div>
                 @endif
-                <div style="font-weight:600;color:#1e3a5f;margin-top:6px;font-size:13px">{{ $directorName }}</div>
+                <div class="sig-name">{{ $directorName }}</div>
                 <div>{{ $directorTitle }}</div>
-                <div style="margin-top:2px">{{ $companyName }}</div>
+                <div style="font-weight:700;color:var(--primary);margin-top:2px">MyLoan Limited</div>
             </div>
-            <div class="sig-block" style="text-align:right">
+            <div class="sig-stamp">
                 @php
                     $qrVal = \App\Models\SystemSetting::get('system_qr');
                     $qrDataUrl = null;
                     if ($qrVal && \Illuminate\Support\Facades\Storage::disk('public')->exists($qrVal)) {
-                        try {
-                            $qrDataUrl = 'data:image/png;base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($qrVal));
-                        } catch (\Exception $e) {}
+                        try { $qrDataUrl = 'data:image/png;base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($qrVal)); } catch (\Exception $e) {}
                     }
                 @endphp
                 @if($qrDataUrl)
                     <div style="text-align:center">
-                        <img src="{{ $qrDataUrl }}" style="width:80px;height:80px;object-fit:contain;" alt="System QR">
-                        <div style="font-size:7px;color:#9ca3af;margin-top:4px;text-transform:uppercase;letter-spacing:0.5px">Digital Authentication</div>
+                        <img src="{{ $qrDataUrl }}" style="width:100px;height:100px" alt="QR Authentication">
+                        <div style="font-size:8px;color:var(--text-muted);margin-top:6px;text-transform:uppercase;letter-spacing:1px">Verified Digital Doc</div>
                     </div>
                 @else
-                    <div style="margin-top:32px;margin-bottom:6px;font-size:13px;color:#374151">Official Stamp</div>
-                    <div style="width:80px;height:80px;border:2px dashed #d1d5db;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9ca3af;margin-left:auto">STAMP</div>
+                    <div style="width:100px;height:100px;border-radius:50%;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:10px;text-align:center;text-transform:uppercase;font-weight:700;letter-spacing:1px">Official<br>Stamp</div>
                 @endif
             </div>
         </div>
     </div>
+
     <div class="footer">
-        <span>MyLoan Limited · Maseru, Lesotho · Generated {{ now()->format('d M Y H:i') }}</span>
-        <button onclick="window.print()" style="border:1px solid #d1d5db;background:#fff;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:12px">🖨 Print</button>
+        <div>MyLoan Limited · Maseru, Lesotho · Generated at {{ now()->format('H:i') }}</div>
+        <button class="btn-print" onclick="window.print()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg>
+            Print Letter
+        </button>
     </div>
 </div>
 </body>

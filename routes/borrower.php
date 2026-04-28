@@ -174,6 +174,7 @@ Route::prefix('portal')->name('borrower.')->group(function () {
             Route::get('/{loan}/agreement', [LoanController::class, 'downloadAgreement'])->name('agreement');
             Route::get('/{loan}/statement', [LoanController::class, 'statement'])->name('statement');
             Route::get('/{loan}/settlement', [LoanController::class, 'settlement'])->name('settlement');
+            Route::get('/{loan}/settlement-letter', [LoanController::class, 'settlementLetter'])->name('settlement-letter');
         });
 
         /*

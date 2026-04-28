@@ -5,20 +5,30 @@
 @if(session('error'))<div class="alert a-e mb-3"><i class="bi bi-exclamation-triangle-fill"></i> {{ session('error') }}</div>@endif
 
 {{-- Header --}}
-<div style="display:flex;align-items:center;gap:14px;margin-bottom:24px">
-  <a href="{{ route('borrower.mybill.index') }}" style="width:38px;height:38px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;font-size:16px;transition:all .2s" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-    <i class="bi bi-arrow-left"></i>
-  </a>
-  <div>
-    <h2 style="font-size:20px;font-weight:800;margin:0">
-      @php
-        $icons = ['electricity'=>'lightning-charge-fill','airtime'=>'phone-fill','insurance'=>'shield-fill','ticket'=>'ticket-perforated-fill'];
-        $colors = ['electricity'=>'#f59e0b','airtime'=>'#06b6d4','insurance'=>'#8b5cf6','ticket'=>'#ec4899'];
-      @endphp
-      <i class="bi bi-{{ $icons[$category] }}" style="color:{{ $colors[$category] }}"></i>
-      Pay {{ ucfirst($category) }} on Credit
-    </h2>
-    <div style="font-size:12px;color:var(--muted)">Available: M {{ number_format($limit->available_amount, 2) }}</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px">
+  <div style="display:flex;align-items:center;gap:16px">
+    <a href="{{ route('borrower.mybill.index') }}" style="width:40px;height:40px;border-radius:12px;background:#fff;border:1px solid #f1f5f9;display:flex;align-items:center;justify-content:center;color:#64748b;text-decoration:none;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,0.02)">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+      <h2 style="font-size:22px;font-weight:900;margin:0;color:#0f172a">
+        Pay {{ ucfirst($category) }}
+      </h2>
+      <div style="font-size:12.5px;color:var(--muted)">Account Available: <strong style="color:#0f172a">M {{ number_format($limit->available_amount, 2) }}</strong></div>
+    </div>
+  </div>
+  
+  <div style="display:flex;align-items:center;gap:12px">
+    @if($category === 'electricity')
+      <img src="/assets/logos/lec_logo.png" style="height:32px" onerror="this.style.display='none'">
+    @elseif($category === 'airtime')
+      <img src="/assets/logos/vodacom.png" style="height:20px" onerror="this.style.display='none'">
+      <img src="/assets/logos/econet.png" style="height:20px" onerror="this.style.display='none'">
+    @elseif($category === 'insurance')
+      <i class="bi bi-shield-fill-check" style="color:#8b5cf6;font-size:28px"></i>
+    @elseif($category === 'ticket')
+      <i class="bi bi-ticket-perforated-fill" style="color:#ec4899;font-size:28px"></i>
+    @endif
   </div>
 </div>
 

@@ -83,6 +83,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{application}/decline',             [ApplicationController::class, 'decline'])->name('decline');
             Route::post('/{application}/hold',                [ApplicationController::class, 'hold'])->name('hold');
             Route::post('/{application}/reinstate',           [ApplicationController::class, 'reinstate'])->name('reinstate');
+            Route::post('/{application}/verify-payment',      [ApplicationController::class, 'verifyPayment'])->name('verify-payment');
             Route::post('/{application}/request-info',        [ApplicationController::class, 'requestInfo'])->name('request-info');
             Route::post('/{application}/mark-under-review',   [ApplicationController::class, 'markUnderReview'])->name('mark-under-review');
 
@@ -106,6 +107,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{application}/documents/{doc}/download',  [DocumentController::class, 'download'])->name('documents.download');
             Route::get('/{application}/documents/{doc}/view',  [DocumentController::class, 'view'])->name('documents.view');
             Route::post('/{application}/documents/upload', [ApplicationController::class, 'uploadDocument'])->name('documents.upload');
+            
+            // Update Routes (POST for saving, GET for fallback redirect)
             Route::post('/{application}/affordability', [ApplicationController::class, 'updateAffordability'])->name('update-affordability');
             Route::post('/{application}/employment', [ApplicationController::class, 'updateEmployment'])->name('update-employment');
             Route::post('/{application}/bank-details', [ApplicationController::class, 'updateBankDetails'])->name('update-bank-details');
@@ -113,43 +116,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{application}/address', [ApplicationController::class, 'updateAddress'])->name('update-address');
             Route::post('/{application}/loan-request', [ApplicationController::class, 'updateLoanRequest'])->name('update-loan-request');
 
-            // AJAX Chat
+            // GET fallbacks to prevent 405 errors
+            Route::get('/{application}/affordability', fn($a) => redirect()->route('admin.applications.show', $a));
+            Route::get('/{application}/employment',    fn($a) => redirect()->route('admin.applications.show', $a));
+            Route::get('/{application}/bank-details',  fn($a) => redirect()->route('admin.applications.show', $a));
+            Route::get('/{application}/personal',      fn($a) => redirect()->route('admin.applications.show', $a));
+            Route::get('/{application}/address',       fn($a) => redirect()->route('admin.applications.show', $a));
+            Route::get('/{application}/loan-request',  fn($a) => redirect()->route('admin.applications.show', $a));
+
+            // AJAX Chat & Management
             Route::middleware('admin.permission:applications.manage')->group(function () {
-                // Status transitions
-                Route::post('/{application}/approve',             [ApplicationController::class, 'approve'])->name('approve');
-                Route::post('/{application}/decline',             [ApplicationController::class, 'decline'])->name('decline');
-                Route::post('/{application}/hold',                [ApplicationController::class, 'hold'])->name('hold');
-                Route::post('/{application}/reinstate',           [ApplicationController::class, 'reinstate'])->name('reinstate');
-                Route::post('/{application}/request-info',        [ApplicationController::class, 'requestInfo'])->name('request-info');
-                Route::post('/{application}/mark-under-review',   [ApplicationController::class, 'markUnderReview'])->name('mark-under-review');
-
-                // Term overrides & scoring
-                Route::post('/{application}/override-terms',      [ApplicationController::class, 'overrideTerms'])->name('override-terms');
-                Route::post('/{application}/set-risk-score',      [ApplicationController::class, 'setRiskScore'])->name('set-risk-score');
-                Route::post('/{application}/auto-risk-score',     [ApplicationController::class, 'autoRiskScore'])->name('auto-risk-score');
-
-                // Officer assignment
-                Route::post('/{application}/assign-officer',      [OfficerAssignmentController::class, 'assign'])->name('assign-officer');
-                Route::post('/{application}/unassign-officer',    [OfficerAssignmentController::class, 'unassign'])->name('unassign-officer');
-
-                // Notes
-                Route::post('/{application}/notes',               [ApplicationController::class, 'addNote'])->name('notes.store');
-                Route::delete('/{application}/notes/{note}',      [ApplicationController::class, 'deleteNote'])->name('notes.destroy');
-
-                // Documents (admin view/verify)
-                Route::get('/{application}/documents',            [DocumentController::class, 'index'])->name('documents.index');
-                Route::post('/{application}/documents/{doc}/verify', [DocumentController::class, 'verify'])->name('documents.verify');
-                Route::post('/{application}/documents/{doc}/reject',  [DocumentController::class, 'reject'])->name('documents.reject');
-                Route::get('/{application}/documents/{doc}/download',  [DocumentController::class, 'download'])->name('documents.download');
-                Route::get('/{application}/documents/{doc}/view',  [DocumentController::class, 'view'])->name('documents.view');
-                Route::post('/{application}/documents/upload', [ApplicationController::class, 'uploadDocument'])->name('documents.upload');
-                Route::post('/{application}/affordability', [ApplicationController::class, 'updateAffordability'])->name('update-affordability');
-                Route::post('/{application}/employment', [ApplicationController::class, 'updateEmployment'])->name('update-employment');
-                Route::post('/{application}/bank-details', [ApplicationController::class, 'updateBankDetails'])->name('update-bank-details');
-                Route::post('/{application}/personal', [ApplicationController::class, 'updatePersonal'])->name('update-personal');
-                Route::post('/{application}/address', [ApplicationController::class, 'updateAddress'])->name('update-address');
-                Route::post('/{application}/loan-request', [ApplicationController::class, 'updateLoanRequest'])->name('update-loan-request');
-
                 // AJAX Chat
                 Route::get('/{application}/messages', [ApplicationController::class, 'getMessages'])->name('messages.get');
                 Route::post('/{application}/messages', [ApplicationController::class, 'sendMessage'])->name('messages.send');

@@ -19,8 +19,8 @@
   $cards = [
     ['Total',          $stats['total'],          'collection-fill',    '#4f46e5','rgba(79,70,229,.1)', ''],
     ['Pending Review', $stats['pending'],         'hourglass-split',    '#f59e0b','rgba(245,158,11,.1)', 'submitted'],
+    ['Manual Verification', $stats['drafts'],    'credit-card-2-front','#6366f1','rgba(99,102,241,.1)', 'draft'],
     ['Approved Today', $stats['approved_today'],  'check-circle-fill',  '#10b981','rgba(16,185,129,.1)','approved'],
-    ['Declined Today', $stats['declined_today'],  'x-circle-fill',      '#ef4444','rgba(239,68,68,.1)', 'declined'],
   ];
   @endphp
   @foreach($cards as [$label,$val,$icon,$color,$bg,$status])
@@ -50,7 +50,7 @@
       <label class="fl">Status</label>
       <select name="status" class="fc">
         <option value="">All Statuses</option>
-        @foreach(['submitted'=>'Submitted','under_review'=>'Under Review','info_requested'=>'Info Requested','on_hold'=>'On Hold','approved'=>'Approved','declined'=>'Declined','disbursed'=>'Disbursed'] as $v=>$l)
+        @foreach(['submitted'=>'Submitted','under_review'=>'Under Review','info_requested'=>'Info Requested','on_hold'=>'On Hold','approved'=>'Approved','declined'=>'Declined','disbursed'=>'Disbursed','draft'=>'Draft / Manual Verification'] as $v=>$l)
         <option value="{{ $v }}" {{ ($filters['status']??'')===$v?'selected':'' }}>{{ $l }}</option>
         @endforeach
       </select>

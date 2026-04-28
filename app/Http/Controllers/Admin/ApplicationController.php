@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\{LoanApplication, LoanProduct, User};
 use App\Services\Admin\ApplicationService;
-use App\Services\RiskScoringService;
+use App\Services\Admin\ScoringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ApplicationController extends Controller
 {
-    public function __construct(private ApplicationService $svc) {}
+    public function __construct(
+        private ApplicationService $svc,
+        private ScoringService $scoring
+    ) {}
 
     public function index(Request $request)
     {
@@ -80,8 +83,19 @@ class ApplicationController extends Controller
             'affordability','employment','bankDetails','nextOfKin',
             'creditReport','loan','assignedOfficer',
         ]);
+
+        $credit = $this->scoring->calculateCreditScore($application);
+        $fraud  = $this->scoring->calculateFraudScore($application);
+        $decision = $this->scoring->getDecision($credit['total'], $fraud['total'], $fraud['has_default'] ?? false);
+
+        // Persist scores
+        $application->update([
+            'credit_score' => $credit['total'],
+            'fraud_score'  => $fraud['total'],
+        ]);
+
         $officers = User::where('role','loan_officer')->where('is_active',true)->orderBy('name')->get();
-        return view('admin.applications.show', compact('application','officers'));
+        return view('admin.applications.show', compact('application','officers', 'credit', 'fraud', 'decision'));
     }
 
     public function updateAffordability(Request $request, LoanApplication $application)
@@ -207,6 +221,27 @@ class ApplicationController extends Controller
         return redirect()->back()->with('success', 'Loan request details updated successfully.');
     }
 
+    public function verifyPayment(Request $request, LoanApplication $application)
+    {
+        abort_if($application->status !== 'draft', 403);
+        
+        $application->update([
+            'status'       => 'submitted',
+            'fee_paid'     => true,
+            'submitted_at' => now(),
+        ]);
+
+        $application->notes()->create([
+            'created_by'  => auth('admin')->id(),
+            'type'        => 'status',
+            'content'     => 'Application manually verified and submitted by admin.',
+            'is_internal' => true,
+        ]);
+
+        return redirect()->route('admin.applications.show', $application)
+                         ->with('success', 'Application payment verified and submitted successfully.');
+    }
+
     public function approve(Request $request, LoanApplication $application)
     {
         $request->validate([
@@ -216,7 +251,13 @@ class ApplicationController extends Controller
             'disbursement_date' => 'required|date|after_or_equal:today',
             'notes'             => 'nullable|string',
         ]);
-        $this->svc->approve($application, $request->all(), auth('admin')->user());
+
+        try {
+            $this->svc->approve($application, $request->all(), auth('admin')->user());
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+
         return redirect()->route('admin.applications.show', $application)
                          ->with('success', 'Application approved and loan created successfully.');
     }
