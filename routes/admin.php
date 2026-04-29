@@ -404,6 +404,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/limits',            [\App\Http\Controllers\Admin\MyBillController::class, 'limits'])->name('limits');
             Route::patch('/limits/{limit}',  [\App\Http\Controllers\Admin\MyBillController::class, 'updateLimit'])->name('limits.update');
             Route::post('/payday',           [\App\Http\Controllers\Admin\MyBillController::class, 'triggerPayday'])->name('payday');
+            Route::post('/settings',         [\App\Http\Controllers\Admin\MyBillController::class, 'updateSettings'])->name('settings.update');
             Route::get('/export',            [\App\Http\Controllers\Admin\MyBillController::class, 'export'])->name('export');
         });
 

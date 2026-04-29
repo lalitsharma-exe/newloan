@@ -35,6 +35,8 @@
   </div>
 </div>
 
+@if(session('success'))<div style="padding:12px 16px;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;border-radius:8px;margin-bottom:20px;font-size:14px"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>@endif
+
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;margin-bottom:24px">
   
   {{-- Category Breakdown --}}
@@ -70,36 +72,47 @@
     </div>
   </div>
 
-  {{-- Tier Distribution --}}
+  {{-- Global Settings Card --}}
   <div class="card" style="padding:20px">
-    <h3 style="font-size:15px;font-weight:700;margin-bottom:20px"><i class="bi bi-layers-fill" style="color:var(--blue)"></i> Tier Selection</h3>
-    
-    @php
-      $t30 = $stats['by_tier']['30'] ?? 0;
-      $t40 = $stats['by_tier']['40'] ?? 0;
-      $tTot = max(1, $t30 + $t40);
-    @endphp
-    
-    <div style="margin-bottom:24px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:13px;font-weight:600;color:var(--blue)">Standard (30%)</span>
-        <span style="font-size:13px;font-weight:800">{{ number_format($t30) }}</span>
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px"><i class="bi bi-gear-fill" style="color:#64748b"></i> MyBill Global Settings</h3>
+    <form method="POST" action="{{ route('admin.mybill.settings.update') }}">
+      @csrf
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px">
+        <label style="display:block;font-size:12px;font-weight:700;color:#475569;margin-bottom:8px">DEFAULT CREDIT LIMIT (M)</label>
+        <div style="display:flex;gap:10px">
+          <input type="number" name="default_limit" value="{{ (int) \App\Models\SystemSetting::get('mybill_default_limit', 1000) }}" class="fc" step="1" min="0" max="10000" required>
+          <button type="submit" class="btn btn-p">Update</button>
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-top:8px">This limit will be automatically assigned to all <strong>new</strong> users when they first access MyBill.</div>
       </div>
-      <div style="background:#f1f5f9;height:8px;border-radius:4px;overflow:hidden">
-        <div style="background:var(--blue);height:100%;width:{{ ($t30/$tTot)*100 }}%"></div>
-      </div>
-      <div style="font-size:11px;color:#64748b;margin-top:4px">Client pays 10% upfront</div>
-    </div>
+    </form>
 
-    <div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:13px;font-weight:600;color:#64748b">No-Upfront (40%)</span>
-        <span style="font-size:13px;font-weight:800">{{ number_format($t40) }}</span>
+    {{-- Tier Distribution info below settings --}}
+    <div style="border-top:1px solid #f1f5f9;padding-top:16px;margin-top:16px">
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:12px">Tier Distribution</h4>
+      @php
+        $t30 = $stats['by_tier']['30'] ?? 0;
+        $t40 = $stats['by_tier']['40'] ?? 0;
+        $tTot = max(1, $t30 + $t40);
+      @endphp
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+          <span style="font-weight:600">Standard (30%)</span>
+          <span style="font-weight:800">{{ number_format($t30) }}</span>
+        </div>
+        <div style="background:#f1f5f9;height:6px;border-radius:3px;overflow:hidden">
+          <div style="background:var(--blue);height:100%;width:{{ ($t30/$tTot)*100 }}%"></div>
+        </div>
       </div>
-      <div style="background:#f1f5f9;height:8px;border-radius:4px;overflow:hidden">
-        <div style="background:#94a3b8;height:100%;width:{{ ($t40/$tTot)*100 }}%"></div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+          <span style="font-weight:600;color:#64748b">No-Upfront (40%)</span>
+          <span style="font-weight:800">{{ number_format($t40) }}</span>
+        </div>
+        <div style="background:#f1f5f9;height:6px;border-radius:3px;overflow:hidden">
+          <div style="background:#94a3b8;height:100%;width:{{ ($t40/$tTot)*100 }}%"></div>
+        </div>
       </div>
-      <div style="font-size:11px;color:#64748b;margin-top:4px">0% upfront, fully financed</div>
     </div>
   </div>
 </div>

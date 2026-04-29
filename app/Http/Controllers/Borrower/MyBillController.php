@@ -61,7 +61,7 @@ class MyBillController extends Controller
      */
     public function quote(Request $request)
     {
-        $request->validate(['bill_value' => 'required|numeric|min:1|max:500']);
+        $request->validate(['bill_value' => 'required|numeric|min:1|max:5000']);
         return response()->json($this->svc->getQuote((float) $request->bill_value));
     }
 
@@ -104,7 +104,7 @@ class MyBillController extends Controller
     public function confirm(Request $request)
     {
         $request->validate([
-            'bill_value'    => 'required|numeric|min:1|max:500',
+            'bill_value'    => 'required|numeric|min:1|max:5000',
             'bill_category' => 'required|in:electricity,airtime,insurance,ticket',
             'tier'          => 'required|in:30,40',
         ]);
@@ -134,7 +134,7 @@ class MyBillController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'bill_value'           => 'required|numeric|min:1|max:500',
+            'bill_value'           => 'required|numeric|min:1|max:5000',
             'bill_category'        => 'required|in:electricity,airtime,insurance,ticket',
             'tier'                 => 'required|in:30,40',
             'meter_number'         => 'nullable|string|min:5',

@@ -139,4 +139,18 @@ class MyBillController extends Controller
             'Content-Disposition' => 'attachment; filename="mybill-loans-' . now()->format('Y-m-d') . '.csv"',
         ]);
     }
+
+    /**
+     * Update global MyBill settings.
+     */
+    public function updateSettings(Request $request)
+    {
+        $request->validate([
+            'default_limit' => 'required|numeric|min:0|max:10000',
+        ]);
+
+        \App\Models\SystemSetting::set('mybill_default_limit', $request->default_limit, 'mybill');
+
+        return back()->with('success', "Default MyBill limit updated to M{$request->default_limit}. All NEW users will now start with this limit.");
+    }
 }

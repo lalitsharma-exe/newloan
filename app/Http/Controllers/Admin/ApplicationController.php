@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\{LoanApplication, LoanProduct, User};
 use App\Services\Admin\ApplicationService;
 use App\Services\Admin\ScoringService;
+use App\Services\RiskScoringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 

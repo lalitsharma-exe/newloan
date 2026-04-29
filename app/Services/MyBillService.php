@@ -72,10 +72,12 @@ class MyBillService
      */
     public function getLimit(User $user): MyBillLimit
     {
+        $defaultLimit = (float) \App\Models\SystemSetting::get('mybill_default_limit', 1000.00);
+        
         return MyBillLimit::firstOrCreate(
             ['user_id' => $user->id],
             [
-                'total_limit'  => 500.00,
+                'total_limit'  => $defaultLimit,
                 'used_amount'  => 0.00,
                 'activated_at' => now(),
             ]

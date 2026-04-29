@@ -2,235 +2,234 @@
 @section('title','MyBill')
 @section('content')
 
+{{-- Background Auras --}}
+<div style="position:fixed; top:20%; right:10%; width:400px; height:400px; background:rgba(59,130,246,0.04); filter:blur(100px); border-radius:50%; z-index:-1"></div>
+<div style="position:fixed; bottom:10%; left:5%; width:300px; height:300px; background:rgba(16,185,129,0.03); filter:blur(80px); border-radius:50%; z-index:-1"></div>
+
 {{-- Flash messages --}}
-@if(session('success'))<div class="alert a-ok mb-3"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>@endif
-@if(session('error'))<div class="alert a-e mb-3"><i class="bi bi-exclamation-triangle-fill"></i> {{ session('error') }}</div>@endif
+@if(session('success'))
+    <div class="glass-alert-light a-ok mb-4"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
+@endif
 
-{{-- Credit Limit Hero (Mature Version) --}}
-<div style="background:#0f172a;border-radius:24px;padding:40px;margin-bottom:32px;color:#fff;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.1)">
-  <div style="position:absolute;top:0;right:0;width:300px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.03));"></div>
-  <div style="display:flex;justify-content:space-between;align-items:flex-end">
-    <div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-        <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 12px #10b981"></div>
-        <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px">Available Credit</div>
-      </div>
-      <div style="font-size:42px;font-weight:800;letter-spacing:-1px">M {{ number_format($limit->available_amount, 2) }}</div>
-    </div>
-    <div style="text-align:right">
-      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px">Total Limit</div>
-      <div style="font-size:18px;font-weight:700">M {{ number_format($limit->total_limit, 2) }}</div>
-    </div>
-  </div>
+{{-- Credit Limit Hero (Premium Card Style) --}}
+<div class="credit-hero-card">
+    <div style="position:relative; z-index:2">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start">
+            <div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px">
+                    <div style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981"></div>
+                    <span style="font-size:11px; font-weight:800; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:2px">Available Balance</span>
+                </div>
+                <div style="font-size:48px; font-weight:900; color:#fff; letter-spacing:-1.5px; line-height:1">
+                    M {{ number_format($limit->available_amount, 2) }}
+                </div>
+            </div>
+            <div style="text-align:right">
+                <div style="font-size:11px; color:rgba(255,255,255,0.5); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px">Spending Limit</div>
+                <div style="font-size:22px; font-weight:800; color:#fff">M {{ number_format($limit->total_limit, 2) }}</div>
+            </div>
+        </div>
 
-  {{-- Limit progress bar --}}
-  @php $pct = $limit->total_limit > 0 ? min(100, ($limit->used_amount / $limit->total_limit) * 100) : 0; @endphp
-  <div style="margin-top:30px">
-    <div style="background:rgba(255,255,255,0.1);border-radius:100px;height:8px;overflow:hidden">
-      <div style="background:linear-gradient(90deg,#10b981,#34d399);height:100%;width:{{ 100 - $pct }}%;border-radius:100px;transition:width 1s cubic-bezier(0.4, 0, 0.2, 1)"></div>
+        @php $pct = $limit->total_limit > 0 ? min(100, ($limit->used_amount / $limit->total_limit) * 100) : 0; @endphp
+        <div style="margin-top:40px">
+            <div style="background:rgba(255,255,255,0.1); border-radius:100px; height:10px; overflow:hidden; border:1px solid rgba(255,255,255,0.05)">
+                <div style="background:linear-gradient(90deg, #3b82f6, #60a5fa); height:100%; width:{{ 100 - $pct }}%; border-radius:100px; transition:width 1.5s ease"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:14px; color:rgba(255,255,255,0.7); font-weight:700">
+                <span>Used: M {{ number_format($limit->used_amount, 2) }}</span>
+                <span style="color:#60a5fa">{{ 100 - round($pct) }}% Credit Available</span>
+            </div>
+        </div>
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:12px;color:rgba(255,255,255,0.5)">
-      <span>Used: M {{ number_format($limit->used_amount, 2) }}</span>
-      <span>Remaining: {{ 100 - round($pct) }}%</span>
-    </div>
-  </div>
 </div>
 
-{{-- Quick Buy Cards (Mature & Branded) --}}
-<div style="margin-bottom:32px">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-    <h3 style="font-size:18px;font-weight:800;color:#1e293b;margin:0">Pay a Bill on Credit</h3>
-    <span style="font-size:12px;color:var(--muted);font-weight:500">Select a category to start</span>
-  </div>
-  
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+{{-- Featured Categories (Image Based Design) --}}
+<div style="margin-bottom:40px">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:28px">
+        <h3 style="font-size:22px; font-weight:900; color:#0f172a; margin:0; letter-spacing:-0.5px">Featured Services</h3>
+        <span style="font-size:12px; color:#94a3b8; font-weight:700; text-transform:uppercase; letter-spacing:1px">CPay Integrated</span>
+    </div>
     
-    {{-- Electricity --}}
-    <a href="{{ route('borrower.mybill.purchase', 'electricity') }}" class="bill-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
-        <div style="width:48px;height:48px;border-radius:14px;background:#f8fafc;border:1px solid #f1f5f9;display:flex;align-items:center;justify-content:center">
-          <i class="bi bi-lightning-charge-fill" style="color:#f59e0b;font-size:20px"></i>
-        </div>
-        <img src="/assets/logos/lec_logo.png" style="height:24px;opacity:0.9" onerror="this.src='https://placehold.co/80x30?text=LEC'">
-      </div>
-      <div style="font-size:16px;font-weight:800;color:#1e293b;margin-bottom:4px">Electricity</div>
-      <div style="font-size:12.5px;color:var(--muted);line-height:1.5">Purchase LEC prepaid tokens instantly on credit.</div>
-      <div class="card-footer">
-        <span>Get Started</span>
-        <i class="bi bi-chevron-right"></i>
-      </div>
-    </a>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:24px">
+        
+        {{-- Electricity --}}
+        <a href="{{ route('borrower.mybill.purchase', 'electricity') }}" class="image-card" style="background-image: url('/assets/mybill/electricity.png')">
+            <div class="image-card-overlay">
+                <div style="flex:1">
+                    <h4 class="card-title">Prepaid Electricity</h4>
+                    <p class="card-desc">Instant LEC token generation with automatic meter lookup.</p>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div class="card-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706)">Get Token</div>
+                    <div style="font-size:11px; font-weight:800; color:rgba(255,255,255,0.7); text-transform:uppercase">LEC Partner</div>
+                </div>
+            </div>
+        </a>
 
-    {{-- Airtime --}}
-    <a href="{{ route('borrower.mybill.purchase', 'airtime') }}" class="bill-card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
-        <div style="width:48px;height:48px;border-radius:14px;background:#f8fafc;border:1px solid #f1f5f9;display:flex;align-items:center;justify-content:center">
-          <i class="bi bi-phone-fill" style="color:#0ea5e9;font-size:20px"></i>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <img src="/assets/logos/vodacom.png" style="height:18px" onerror="this.src='https://placehold.co/60x20?text=Vodacom'">
-          <img src="/assets/logos/econet.png" style="height:18px" onerror="this.src='https://placehold.co/60x20?text=Econet'">
-        </div>
-      </div>
-      <div style="font-size:16px;font-weight:800;color:#1e293b;margin-bottom:4px">Airtime & Data</div>
-      <div style="font-size:12.5px;color:var(--muted);line-height:1.5">Top up Vodacom or Econet bundles anytime.</div>
-      <div class="card-footer">
-        <span>Get Started</span>
-        <i class="bi bi-chevron-right"></i>
-      </div>
-    </a>
+        {{-- Airtime --}}
+        <a href="{{ route('borrower.mybill.purchase', 'airtime') }}" class="image-card" style="background-image: url('/assets/mybill/airtime.png')">
+            <div class="image-card-overlay">
+                <div style="flex:1">
+                    <h4 class="card-title">Airtime & Data</h4>
+                    <p class="card-desc">Top up Vodacom or Econet bundles directly to any number.</p>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div class="card-btn" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8)">Buy Bundle</div>
+                    <div style="display:flex; gap:6px">
+                        <div style="font-size:10px; font-weight:800; color:#fff; background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:4px">VCL</div>
+                        <div style="font-size:10px; font-weight:800; color:#fff; background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:4px">ETL</div>
+                    </div>
+                </div>
+            </div>
+        </a>
 
-    {{-- Insurance --}}
-    <a href="{{ route('borrower.mybill.purchase', 'insurance') }}" class="bill-card">
-      <div style="width:48px;height:48px;border-radius:14px;background:#f8fafc;border:1px solid #f1f5f9;display:flex;align-items:center;justify-content:center;margin-bottom:20px">
-        <i class="bi bi-shield-fill-check" style="color:#8b5cf6;font-size:20px"></i>
-      </div>
-      <div style="font-size:16px;font-weight:800;color:#1e293b;margin-bottom:4px">Insurance</div>
-      <div style="font-size:12.5px;color:var(--muted);line-height:1.5">Pay your insurance premiums and stay covered.</div>
-      <div class="card-footer">
-        <span>Get Started</span>
-        <i class="bi bi-chevron-right"></i>
-      </div>
-    </a>
+        {{-- Insurance --}}
+        <a href="{{ route('borrower.mybill.purchase', 'insurance') }}" class="image-card" style="background-image: url('/assets/mybill/insurance.png')">
+            <div class="image-card-overlay">
+                <div style="flex:1">
+                    <h4 class="card-title">Insurance Premiums</h4>
+                    <p class="card-desc">Secure your family's future by paying premiums on credit.</p>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div class="card-btn" style="background: linear-gradient(135deg, #10b981, #059669)">Pay Policy</div>
+                    <div style="font-size:11px; font-weight:800; color:rgba(255,255,255,0.7); text-transform:uppercase">Trusted</div>
+                </div>
+            </div>
+        </a>
 
-    {{-- Tickets --}}
-    <a href="{{ route('borrower.mybill.purchase', 'ticket') }}" class="bill-card">
-      <div style="width:48px;height:48px;border-radius:14px;background:#f8fafc;border:1px solid #f1f5f9;display:flex;align-items:center;justify-content:center;margin-bottom:20px">
-        <i class="bi bi-ticket-perforated-fill" style="color:#ec4899;font-size:20px"></i>
-      </div>
-      <div style="font-size:16px;font-weight:800;color:#1e293b;margin-bottom:4px">Event Tickets</div>
-      <div style="font-size:12.5px;color:var(--muted);line-height:1.5">Book concerts and event tickets on credit.</div>
-      <div class="card-footer">
-        <span>Get Started</span>
-        <i class="bi bi-chevron-right"></i>
-      </div>
-    </a>
+        {{-- Tickets --}}
+        <a href="{{ route('borrower.mybill.purchase', 'ticket') }}" class="image-card" style="background-image: url('/assets/mybill/tickets.png')">
+            <div class="image-card-overlay">
+                <div style="flex:1">
+                    <h4 class="card-title">Events & Tickets</h4>
+                    <p class="card-desc">Don't miss out. Book concert and event tickets instantly.</p>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div class="card-btn" style="background: linear-gradient(135deg, #ec4899, #be185d)">Book Ticket</div>
+                    <div style="font-size:11px; font-weight:800; color:rgba(255,255,255,0.7); text-transform:uppercase">Live Events</div>
+                </div>
+            </div>
+        </a>
 
-  </div>
+    </div>
 </div>
 
-{{-- How It Works (Mature Section) --}}
-<div style="background:#fff;border:1px solid #f1f5f9;border-radius:24px;padding:32px;margin-bottom:32px;box-shadow:0 4px 20px rgba(0,0,0,0.02)">
-  <div style="text-align:center;max-width:500px;margin:0 auto 32px">
-    <h3 style="font-size:18px;font-weight:800;color:#1e293b;margin-bottom:8px">How MyBill Works</h3>
-    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin:0">Get the essentials you need today and pay back automatically on your next payday.</p>
-  </div>
-  
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px">
-    @foreach([
-      ['01', 'Choose a Bill', 'Select electricity, airtime, or insurance.'],
-      ['02', 'Flexible Fees', 'Choose to pay 10% upfront or nothing now.'],
-      ['03', 'Instant Payment', 'We pay the provider and you get your tokens.'],
-      ['04', 'Auto Repayment', 'Full amount is deducted on your next salary day.'],
-    ] as [$num, $title, $text])
-    <div style="position:relative">
-      <div style="font-size:40px;font-weight:900;color:#f1f5f9;position:absolute;top:-10px;left:-5px;z-index:0;line-height:1">{{ $num }}</div>
-      <div style="position:relative;z-index:1">
-        <div style="font-size:14px;font-weight:800;color:#1e293b;margin-bottom:6px">{{ $title }}</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5">{{ $text }}</div>
-      </div>
+{{-- Recent Transactions --}}
+<div class="recent-list-glass">
+    <div style="padding:24px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(0,0,0,0.05)">
+        <span style="font-size:16px; font-weight:900; color:#0f172a">Recent Activity</span>
+        <a href="{{ route('borrower.mybill.history') }}" style="font-size:13px; color:#3b82f6; text-decoration:none; font-weight:800">History & Details</a>
     </div>
-    @endforeach
-  </div>
-</div>
 
-{{-- Recent Transactions (Mature List) --}}
-<div style="background:#fff;border:1px solid #f1f5f9;border-radius:20px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.03)">
-  <div style="padding:24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9">
-    <span style="font-size:16px;font-weight:800;color:#1e293b">Recent Purchases</span>
-    <a href="{{ route('borrower.mybill.history') }}" style="font-size:13px;color:#3b82f6;text-decoration:none;font-weight:600">View History</a>
-  </div>
-
-  <div style="padding:8px">
-    @forelse($loans as $loan)
-    <a href="{{ route('borrower.mybill.show', $loan) }}" class="txn-item">
-      <div class="txn-icon">
-        <i class="bi bi-{{ $loan->category_icon }}"></i>
-      </div>
-      <div style="flex:1">
-        <div style="font-weight:700;font-size:14px;color:#1e293b">{{ ucfirst($loan->bill_category) }}</div>
-        <div style="font-size:12px;color:var(--muted)">{{ $loan->created_at->format('d M Y') }} · {{ $loan->loan_number }}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-weight:800;font-size:15px;color:#0f172a">M {{ number_format($loan->bill_value, 2) }}</div>
-        <div style="font-size:10px;font-weight:700;color:{{ $loan->status === 'settled' ? '#10b981' : '#f59e0b' }};text-transform:uppercase;letter-spacing:0.5px">{{ $loan->status }}</div>
-      </div>
-    </a>
-    @empty
-    <div style="padding:60px 20px;text-align:center;color:var(--muted)">
-      <div style="font-size:14px;font-weight:600">No transactions found</div>
-      <div style="font-size:12px">Your recent bill payments will appear here.</div>
+    <div style="padding:12px">
+        @forelse($loans as $loan)
+        <a href="{{ route('borrower.mybill.show', $loan) }}" class="txn-item">
+            <div class="txn-icon" style="background: rgba(15,23,42,0.04)">
+                <i class="bi bi-{{ $loan->category_icon }}" style="color: #64748b"></i>
+            </div>
+            <div style="flex:1">
+                <div style="font-weight:800; font-size:15px; color:#1e293b">{{ ucfirst($loan->bill_category) }}</div>
+                <div style="font-size:12px; color:#94a3b8; font-weight:600">{{ $loan->created_at->format('d M, H:i') }} · #{{ $loan->loan_number }}</div>
+            </div>
+            <div style="text-align:right">
+                <div style="font-weight:900; font-size:18px; color:#0f172a">M {{ number_format($loan->bill_value, 2) }}</div>
+                <div style="font-size:10px; font-weight:900; color:{{ $loan->status === 'settled' ? '#10b981' : '#f59e0b' }}; text-transform:uppercase; letter-spacing:1px">{{ $loan->status }}</div>
+            </div>
+        </a>
+        @empty
+        <div style="padding:80px 20px; text-align:center; color:#94a3b8">
+            <div style="font-size:14px; font-weight:600">No activity recorded</div>
+        </div>
+        @endforelse
     </div>
-    @endforelse
-  </div>
 </div>
 
 <style>
-.bill-card {
-  background: #fff;
-  border: 1px solid #f1f5f9;
-  border-radius: 20px;
-  padding: 24px;
-  text-decoration: none;
-  display: block;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+/* Hero Card */
+.credit-hero-card {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    border-radius: 32px;
+    padding: 45px;
+    margin-bottom: 45px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 25px 60px -15px rgba(30,27,75,0.4);
 }
-.bill-card:hover {
-  transform: translateY(-4px);
-  border-color: #e2e8f0;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+.credit-hero-card::after {
+    content: ''; position: absolute; top: -50%; right: -20%; width: 300px; height: 300px;
+    background: rgba(59,130,246,0.1); filter: blur(60px); border-radius: 50%;
 }
-.card-footer {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid #f8fafc;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: #3b82f6;
-  opacity: 0;
-  transform: translateX(-10px);
-  transition: all 0.3s;
+
+/* Image Based Cards */
+.image-card {
+    display: block;
+    height: 240px;
+    border-radius: 28px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
 }
-.bill-card:hover .card-footer {
-  opacity: 1;
-  transform: translateX(0);
+.image-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.25);
 }
+.image-card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    backdrop-filter: blur(0px);
+    transition: backdrop-filter 0.5s;
+}
+.image-card:hover .image-card-overlay {
+    backdrop-filter: blur(2px);
+}
+
+.card-title { font-size: 20px; font-weight: 900; color: #fff; margin: 0 0 4px; letter-spacing: -0.5px; }
+.card-desc { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 20px; line-height: 1.4; max-width: 80%; }
+
+.card-btn {
+    padding: 10px 20px;
+    border-radius: 100px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+/* Recent List Glass */
+.recent-list-glass {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.8);
+    border-radius: 32px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.04);
+}
+
 .txn-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  border-radius: 14px;
-  text-decoration: none;
-  transition: background 0.2s;
+    display: flex; align-items: center; gap: 18px; padding: 16px 20px;
+    border-radius: 20px; text-decoration: none; transition: all 0.3s; margin-bottom: 6px;
 }
-.txn-item:hover {
-  background: #f8fafc;
-}
+.txn-item:hover { background: #fff; transform: scale(1.01); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 .txn-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: #f1f5f9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #64748b;
-  font-size: 18px;
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
 }
-.alert{padding:12px 16px;border-radius:11px;font-size:13px;display:flex;align-items:center;gap:9px;margin-bottom:16px}
-.a-ok{background:rgba(16,185,129,.08);color:#065f46;border:1px solid rgba(16,185,129,.2)}
-.a-e{background:rgba(239,68,68,.08);color:#991b1b;border:1px solid rgba(239,68,68,.2)}
+
+.glass-alert-light {
+    padding: 16px 20px; border-radius: 18px; font-size: 14px; font-weight: 800;
+    backdrop-filter: blur(10px); display: flex; align-items: center; gap: 12px;
+    background: rgba(16, 185, 129, 0.08); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2);
+}
 </style>
 
-<style>
-.alert{padding:12px 16px;border-radius:11px;font-size:13px;display:flex;align-items:center;gap:9px;margin-bottom:16px}
-.a-ok{background:rgba(16,185,129,.08);color:#065f46;border:1px solid rgba(16,185,129,.2)}
-.a-e{background:rgba(239,68,68,.08);color:#991b1b;border:1px solid rgba(239,68,68,.2)}
-.mb-3{margin-bottom:16px}
-</style>
 @endsection

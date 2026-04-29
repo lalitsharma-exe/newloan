@@ -31,7 +31,7 @@ class LoanApplication extends Model {
  
     // Status tracking
     'submitted_at', 'reviewed_at', 'decided_at',
-    'decline_reason', 'admin_notes', 'risk_score',
+    'decline_reason', 'admin_notes', 'risk_score', 'credit_score', 'fraud_score',
  
     // Officer/Admin assignment
     'assigned_officer_id',
