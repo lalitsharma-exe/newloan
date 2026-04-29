@@ -95,11 +95,11 @@
         <tr style="{{ $inst->status==='overdue'?'background:#fef2f2':'' }}">
           <td style="font-size:12px;color:var(--muted)">{{ $i+1 }}</td>
           <td>
-            <div style="font-weight:600;font-size:13px">{{ $inst->loan->user->name }}</div>
-            <div style="font-size:11px;color:var(--muted)">{{ $inst->loan->user->phone }}</div>
+            <div style="font-weight:600;font-size:13px">{{ $inst->loan->user->name ?? 'Deleted User' }}</div>
+            <div style="font-size:11px;color:var(--muted)">{{ $inst->loan->user->phone ?? '—' }}</div>
           </td>
           <td style="font-size:12.5px">{{ $inst->loan->user->phone ?? '—' }}</td>
-          <td><span style="font-weight:700;color:#4f46e5;font-size:12px">{{ $inst->loan->loan_number }}</span></td>
+          <td><span style="font-weight:700;color:#4f46e5;font-size:12px">{{ $inst->loan->loan_number ?? '—' }}</span></td>
           <td style="font-size:12.5px;{{ now()->isAfter($inst->due_date)?'color:#ef4444;font-weight:600':'' }}">
             {{ $inst->due_date->format('d M Y') }}
             @if(now()->isAfter($inst->due_date))

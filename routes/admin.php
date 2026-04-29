@@ -146,6 +146,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/export',       [LoanController::class, 'export'])->name('export');
             Route::get('/overdue',      [LoanController::class, 'overdue'])->name('overdue');
 
+            Route::middleware('admin.permission:loans.manage')->group(function() {
+                Route::get('/bulk-repayment',  [LoanController::class, 'bulkRepayment'])->name('bulk-repayment');
+                Route::post('/bulk-repayment', [LoanController::class, 'bulkRepayment'])->name('bulk-repayment.post');
+                Route::get('/import',          [LoanController::class, 'importLoans'])->name('import');
+                Route::post('/import',         [LoanController::class, 'importLoans'])->name('import.post');
+                Route::get('/collection-sheet',[LoanController::class, 'collectionSheet'])->name('collection-sheet');
+                Route::get('/repayment-chart', [LoanController::class, 'repaymentChart'])->name('repayment-chart');
+                Route::get('/lookup',          [LoanController::class, 'lookup'])->name('lookup');
+            });
+
             Route::get('/{loan}',                   [LoanController::class, 'show'])->name('show');
             Route::get('/{loan}/schedule',          [LoanController::class, 'schedule'])->name('schedule');
             Route::get('/{loan}/agreement',              [LoanController::class, 'agreement'])->name('agreement');
@@ -155,13 +165,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{loan}/settlement-letter',      [LoanController::class, 'settlementLetter'])->name('settlement-letter');
 
             Route::middleware('admin.permission:loans.manage')->group(function() {
-                Route::get('/bulk-repayment',  [LoanController::class, 'bulkRepayment'])->name('bulk-repayment');
-                Route::post('/bulk-repayment', [LoanController::class, 'bulkRepayment'])->name('bulk-repayment.post');
-                Route::get('/import',          [LoanController::class, 'importLoans'])->name('import');
-                Route::post('/import',         [LoanController::class, 'importLoans'])->name('import.post');
-                Route::get('/collection-sheet',[LoanController::class, 'collectionSheet'])->name('collection-sheet');
-                Route::get('/repayment-chart', [LoanController::class, 'repaymentChart'])->name('repayment-chart');
-                Route::get('/lookup',          [LoanController::class, 'lookup'])->name('lookup');
                 Route::post('/{loan}/adjust-schedule',  [LoanController::class, 'adjustSchedule'])->name('adjust-schedule');
                 Route::post('/{loan}/waive-installment',[LoanController::class, 'waiveInstallment'])->name('waive-installment');
                 Route::post('/{loan}/add-late-fee',     [LoanController::class, 'addLateFee'])->name('add-late-fee');

@@ -185,8 +185,8 @@
                                 <div class="perm-slug">{{ $slug }}</div>
                             </div>
                             <label class="toggle-switch">
-                                <input type="checkbox" name="perm_{{ $slug }}" value="1" class="perm-check" data-group="{{ Str::slug($group) }}"
-                                    {{ old("perm_{$slug}", $role?->permissions[$slug] ?? false) ? 'checked' : '' }}>
+                                <input type="checkbox" name="perms[{{ $slug }}]" value="1" class="perm-check" data-group="{{ Str::slug($group) }}"
+                                    {{ old("perms.{$slug}", $role?->permissions[$slug] ?? false) ? 'checked' : '' }}>
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>

@@ -153,11 +153,10 @@ body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
                 <div class="box-lbl">Banking Details</div>
                 <ul class="bank-list">
                     <li><span class="b-lbl">Bank Name</span> <span class="b-val">{{ \App\Models\SystemSetting::get('bank_name', 'Standard Lesotho Bank') }}</span></li>
-                    <li><span class="b-lbl">Branch / City</span> <span class="b-val">{{ \App\Models\SystemSetting::get('bank_branch_name', 'City Branch') }}</span></li>
+                    <li><span class="b-lbl">Branch Name</span> <span class="b-val">{{ \App\Models\SystemSetting::get('bank_branch_name', 'City Branch') }}</span></li>
                     <li><span class="b-lbl">Account Name</span> <span class="b-val">{{ \App\Models\SystemSetting::get('bank_account_name', 'MyLoan Limited') }}</span></li>
                     <li><span class="b-lbl">Account No.</span> <span class="b-val" style="color:var(--primary)">{{ \App\Models\SystemSetting::get('bank_account_number', '9080006273560') }}</span></li>
                     <li><span class="b-lbl">Branch Code</span> <span class="b-val">{{ \App\Models\SystemSetting::get('bank_branch_code', '060667') }}</span></li>
-                    <li><span class="b-lbl">Swift Code</span> <span class="b-val">{{ \App\Models\SystemSetting::get('bank_swift_code', 'SBIC LSMX') }}</span></li>
                 </ul>
             </div>
         </div>

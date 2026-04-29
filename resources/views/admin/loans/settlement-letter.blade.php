@@ -95,15 +95,6 @@ body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
             </p>
         </div>
 
-        <div class="summary-card">
-            <div class="summary-title">Final Loan Summary</div>
-            <div class="summary-row"><span>Agreement Number</span><strong>{{ $loan->loan_number }}</strong></div>
-            <div class="summary-row"><span>Loan Product</span><span>{{ $loan->loanProduct?->name ?? '—' }}</span></div>
-            <div class="summary-row"><span>Original Principal</span><span>M {{ number_format($loan->principal_amount, 2) }}</span></div>
-            <div class="summary-row"><span>Total Amount Repaid</span><span>M {{ number_format($totalPaid, 2) }}</span></div>
-            <div class="summary-row"><span>Final Settlement Date</span><span>{{ $loan->closed_at?->format('d M Y') ?? now()->format('d M Y') }}</span></div>
-            <div class="summary-row"><span>Outstanding Balance</span><span style="color:var(--success)">M 0.00 (CLEARED)</span></div>
-        </div>
 
         <div class="sig-section">
             <div class="sig-details">

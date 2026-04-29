@@ -115,10 +115,18 @@ class ReportService {
             $q->whereDate('loan_installments.due_date','<=', now()->subDays($f['min_days']));
         }
 
-        if (!empty($f['category'])) {
-            $q->join('loans', 'loan_installments.loan_id', '=', 'loans.id')
-                ->join('employments', 'loans.application_id', '=', 'employments.application_id')
-                ->where('employments.employer_category', $f['category']);
+        if (!empty($f['category']) || !empty($f['district'])) {
+            $q->join('loans', 'loan_installments.loan_id', '=', 'loans.id');
+
+            if (!empty($f['category'])) {
+                $q->join('employments', 'loans.application_id', '=', 'employments.application_id')
+                    ->where('employments.employer_category', $f['category']);
+            }
+
+            if (!empty($f['district'])) {
+                $q->join('loan_applications', 'loans.application_id', '=', 'loan_applications.id')
+                    ->where('loan_applications.district', $f['district']);
+            }
         }
         $inst = $q->orderBy('loan_installments.due_date')->get();
 

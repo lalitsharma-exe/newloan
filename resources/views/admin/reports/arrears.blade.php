@@ -11,12 +11,20 @@
   @endforeach
 </div>
 <form method="GET" class="filter-bar">
-  <div class="fg" style="margin-bottom:0"><label class="fl">Min Days Overdue</label><input type="number" name="min_days" class="fc" placeholder="e.g. 30" value="{{ $filters['min_days']??'' }}" style="width:140px"></div>
-  <div class="fg" style="margin-bottom:0;min-width:180px"><label class="fl">Category</label>
+  <div class="fg" style="margin-bottom:0"><label class="fl">Min Days Overdue</label><input type="number" name="min_days" class="fc" placeholder="e.g. 30" value="{{ $filters['min_days']??'' }}" style="width:110px"></div>
+  <div class="fg" style="margin-bottom:0;min-width:160px"><label class="fl">Category</label>
     <select name="category" class="fc">
       <option value="">— All Categories —</option>
       @foreach(['Defence','Nss','Police','Lcs','Pensioner','Civil servants','Teacher','SMEs'] as $cat)
         <option value="{{ $cat }}" {{ ($filters['category'] ?? '') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+      @endforeach
+    </select>
+  </div>
+  <div class="fg" style="margin-bottom:0;min-width:160px"><label class="fl">District</label>
+    <select name="district" class="fc">
+      <option value="">— All Districts —</option>
+      @foreach(['Maseru','Leribe','Berea','Mafeteng','Mohale\'s Hoek','Quthing','Qacha\'s Nek','Mokhotlong','Thaba-Tseka','Butha-Buthe'] as $dist)
+        <option value="{{ $dist }}" {{ ($filters['district'] ?? '') === $dist ? 'selected' : '' }}>{{ $dist }}</option>
       @endforeach
     </select>
   </div>

@@ -2,14 +2,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{AuditLog, Loan, LoanProduct, Payment};
+use App\Models\{AuditLog, Loan, LoanProduct, Payment, User};
 use App\Services\Admin\LoanService;
 use App\Services\CPayService;
 use App\Services\MpesaService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use User;
 
 class LoanController extends Controller
 {

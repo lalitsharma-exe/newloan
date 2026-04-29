@@ -31,11 +31,7 @@ class AdminRoleController extends Controller
             'description' => 'nullable|string|max:255',
         ]);
 
-        $permissions = [];
-        $allPerms = collect(config('admin_permissions'))->flatMap(fn($perms) => $perms)->keys();
-        foreach ($allPerms as $perm) {
-            $permissions[$perm] = $request->boolean("perm_{$perm}");
-        }
+        $permissions = $request->input('perms', []);
 
         $role = AdminRole::create([
             'name'           => $request->name,
@@ -68,11 +64,7 @@ class AdminRoleController extends Controller
             'description' => 'nullable|string|max:255',
         ]);
 
-        $permissions = [];
-        $allPerms = collect(config('admin_permissions'))->flatMap(fn($perms) => $perms)->keys();
-        foreach ($allPerms as $perm) {
-            $permissions[$perm] = $request->boolean("perm_{$perm}");
-        }
+        $permissions = $request->input('perms', []);
 
         $role->update([
             'name'           => $request->name,
