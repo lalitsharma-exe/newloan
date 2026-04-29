@@ -53,7 +53,7 @@
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:24px">
         
         {{-- Electricity --}}
-        <a href="{{ route('borrower.mybill.purchase', 'electricity') }}" class="image-card" style="background-image: url('/assets/mybill/electricity.png')">
+        <a href="{{ route('borrower.mybill.purchase', 'electricity') }}" class="image-card" style="background-image: url('{{ asset('assets/mybill/electricity.png') }}')">
             <div class="image-card-overlay">
                 <div style="flex:1">
                     <h4 class="card-title">Prepaid Electricity</h4>
@@ -67,7 +67,7 @@
         </a>
 
         {{-- Airtime --}}
-        <a href="{{ route('borrower.mybill.purchase', 'airtime') }}" class="image-card" style="background-image: url('/assets/mybill/airtime.png')">
+        <a href="{{ route('borrower.mybill.purchase', 'airtime') }}" class="image-card" style="background-image: url('{{ asset('assets/mybill/airtime.png') }}')">
             <div class="image-card-overlay">
                 <div style="flex:1">
                     <h4 class="card-title">Airtime & Data</h4>
@@ -84,7 +84,7 @@
         </a>
 
         {{-- Insurance --}}
-        <a href="{{ route('borrower.mybill.purchase', 'insurance') }}" class="image-card" style="background-image: url('/assets/mybill/insurance.png')">
+        <a href="{{ route('borrower.mybill.purchase', 'insurance') }}" class="image-card" style="background-image: url('{{ asset('assets/mybill/insurance.png') }}')">
             <div class="image-card-overlay">
                 <div style="flex:1">
                     <h4 class="card-title">Insurance Premiums</h4>
@@ -98,7 +98,7 @@
         </a>
 
         {{-- Tickets --}}
-        <a href="{{ route('borrower.mybill.purchase', 'ticket') }}" class="image-card" style="background-image: url('/assets/mybill/tickets.png')">
+        <a href="{{ route('borrower.mybill.purchase', 'ticket') }}" class="image-card" style="background-image: url('{{ asset('assets/mybill/tickets.png') }}')">
             <div class="image-card-overlay">
                 <div style="flex:1">
                     <h4 class="card-title">Events & Tickets</h4>
