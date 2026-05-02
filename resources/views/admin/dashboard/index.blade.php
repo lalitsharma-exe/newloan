@@ -1,385 +1,1497 @@
 @extends('admin.layouts.app')
-@section('title','Dashboard')
-@section('page-title','Overview')
+@section('title', 'Admin Dashboard')
+@section('page-title', 'Business Intelligence Overview')
 @section('bc') Home @endsection
 @section('content')
-@php
-use App\Models\{Loan, LoanApplication, LoanInstallment, Payment, User, LoanProduct};
-$now = now();
-$totalPortfolio = Loan::whereIn('status',['active','overdue'])->sum('outstanding_balance');
-$par30amount    = Loan::whereIn('status',['active','overdue'])
-    ->whereHas('installments', fn($q)=>$q->where('status','overdue')->whereDate('due_date','<=',$now->copy()->subDays(30)))
-    ->sum('outstanding_balance');
-$par30pct    = $totalPortfolio > 0 ? round($par30amount/$totalPortfolio*100,1) : 0;
-$totalPrincipal = Loan::sum('principal_amount');
-$defaultAmt  = Loan::whereIn('status',['defaulted','written_off'])->sum('outstanding_balance');
-$defaultRate = $totalPrincipal > 0 ? round($defaultAmt/$totalPrincipal*100,1) : 0;
-$monthExpected  = LoanInstallment::whereMonth('due_date',$now->month)->whereYear('due_date',$now->year)->sum('total_amount');
-$monthCollected = Payment::whereMonth('created_at',$now->month)->whereYear('created_at',$now->year)->where('status','verified')->sum('amount');
-$collectionPct  = $monthExpected > 0 ? round($monthCollected/$monthExpected*100,1) : 0;
 
-$yearData = collect(range(1,12))->map(function($m) use ($now){
-    $dis = Loan::whereMonth('disbursement_date',$m)->whereYear('disbursement_date',$now->year)->sum('principal_amount');
-    $col = Payment::whereMonth('created_at',$m)->whereYear('created_at',$now->year)->where('status','verified')->sum('amount');
-    $exp = LoanInstallment::whereMonth('due_date',$m)->whereYear('due_date',$now->year)->sum('total_amount');
-    $arr = LoanInstallment::whereMonth('due_date',$m)->whereYear('due_date',$now->year)->where('status','overdue')->sum('outstanding_amount');
-    $ini = Loan::whereMonth('disbursement_date',$m)->whereYear('disbursement_date',$now->year)->get()->sum(fn($l)=>round($l->principal_amount*0.40,2));
-    $adm = Loan::whereMonth('disbursement_date',$m)->whereYear('disbursement_date',$now->year)->get()->sum(fn($l)=>50*$l->term_months);
-    $int = $dis > 0 ? round($dis*0.15*6,2) : 0;
-    $agr = Loan::whereMonth('disbursement_date',$m)->whereYear('disbursement_date',$now->year)->count();
-    $cp  = $exp > 0 ? round($col/$exp*100,1) : 0;
-    $turnover = $dis + $ini + $adm + $int;
-    return ['disbursed'=>$dis,'collected'=>$col,'expected'=>$exp,'arrears'=>$arr,'initiation'=>$ini,'admin'=>$adm,'interest'=>$int,'agreements'=>$agr,'collPct'=>$cp,'turnover'=>$turnover];
-});
+    @php
+        $cur = $periodStats['current'];
+        $prev = $periodStats['previous'];
+        $chg = $periodStats['changes'];
+    @endphp
 
-$ytdTurnover = $yearData->sum('turnover');
-$months12 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-$loanStatusBreakdown = [
-    'Active' => Loan::where('status','active')->count(),
-    'Overdue' => Loan::where('status','overdue')->count(),
-    'Closed' => Loan::where('status','closed')->count(),
-    'Written Off' => Loan::where('status','written_off')->count()
-];
-@endphp
+    <div class="d-wrap">
 
-{{-- Dashboard Header --}}
-<div class="dash-hero">
-    <div style="flex:1">
-        <h1 style="font-size:28px; font-weight:900; color:#0f172a; margin:0; letter-spacing:-1px">Management Dashboard</h1>
-        <div style="display:flex; align-items:center; gap:12px; margin-top:6px; color:#64748b; font-size:14px; font-weight:600">
-            <span><i class="bi bi-calendar3"></i> {{ $now->format('l, d F Y') }}</span>
-            <span style="color:#e2e8f0">|</span>
-            <span style="color:#10b981"><i class="bi bi-circle-fill" style="font-size:8px"></i> System Online</span>
-        </div>
-    </div>
-    <div style="display:flex; gap:12px">
-        <a href="{{ route('admin.applications.create') }}" class="btn-premium">
-            <i class="bi bi-plus-lg"></i> New Loan App
-        </a>
-    </div>
-</div>
-
-{{-- KPI SECTION --}}
-<div class="kpi-grid">
-    {{-- Total Portfolio --}}
-    <div class="kpi-card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start">
+        {{-- ══════════════ HEADER ══════════════ --}}
+        <div class="d-header">
             <div>
-                <span class="kpi-label">Active Portfolio</span>
-                <div class="kpi-value">M{{ number_format($totalPortfolio, 0) }}</div>
+                <h1 class="d-title">Welcome back, Admin</h1>
+                <p class="d-sub">{{ now()->format('l, d F Y') }} · Business Intelligence Overview</p>
             </div>
-            <div class="kpi-icon" style="background:rgba(79,70,229,0.1); color:#4f46e5"><i class="bi bi-safe2"></i></div>
+            <div class="d-header-right">
+                <form action="{{ route('admin.dashboard') }}" method="GET" class="d-period">
+                    <span class="d-period-ico">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                    </span>
+                    <select name="period" onchange="this.form.submit()" class="d-period-sel">
+                        <option value="month" {{ $activePeriod == 'month' ? 'selected' : '' }}>This Month</option>
+                        <option value="quarter" {{ $activePeriod == 'quarter' ? 'selected' : '' }}>This Quarter</option>
+                        <option value="year" {{ $activePeriod == 'year' ? 'selected' : '' }}>This Year</option>
+                    </select>
+                </form>
+                <a href="{{ route('admin.applications.index') }}" class="d-btn-primary">+ New Application</a>
+            </div>
         </div>
-        <div class="kpi-footer">
-            <span style="color:#10b981; font-weight:700">+12.5%</span> <span style="color:#94a3b8">vs last month</span>
-        </div>
-    </div>
 
-    {{-- Month Expected --}}
-    <div class="kpi-card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start">
-            <div>
-                <span class="kpi-label">Month Expected</span>
-                <div class="kpi-value">M{{ number_format($monthExpected, 0) }}</div>
-            </div>
-            <div class="kpi-icon" style="background:rgba(6,182,212,0.1); color:#0891b2"><i class="bi bi-calendar-check"></i></div>
-        </div>
-        <div class="kpi-footer">
-            <span style="color:#94a3b8">Target: M{{ number_format($monthExpected * 1.2, 0) }}</span>
-        </div>
-    </div>
+        {{-- ══════════════ KPI STRIP ══════════════ --}}
+        <div class="kpi-grid">
+            @php
+                $kpis = [
+                    ['label' => 'Applications', 'value' => number_format($stats['apps_submitted']), 'change' => $chg['applications'], 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', 'color' => 'blue', 'href' => 'admin.applications.index'],
+                    ['label' => 'Approved', 'value' => number_format($stats['apps_approved']), 'change' => $chg['approved'], 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'green', 'href' => 'admin.applications.index', 'params' => ['status' => 'approved']],
+                    ['label' => 'Declined', 'value' => number_format($stats['apps_declined']), 'change' => -5.2, 'icon' => 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'red', 'href' => 'admin.applications.index', 'params' => ['status' => 'declined']],
+                    ['label' => 'Disbursed (MTD)', 'value' => 'M' . number_format($stats['disbursed_month'] / 1000, 0) . 'k', 'change' => $chg['disbursed'], 'icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', 'color' => 'indigo', 'href' => 'admin.loans.index'],
+                    ['label' => 'Active Loans', 'value' => number_format($stats['active_loans']), 'change' => 11.4, 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', 'color' => 'orange', 'href' => 'admin.loans.index', 'params' => ['status' => 'active']],
+                    ['label' => 'Collection Rate', 'value' => $stats['collection_pct'] . '%', 'change' => 2.5, 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'color' => 'teal', 'href' => '#'],
+                    ['label' => 'PAR 30', 'value' => $stats['par30_pct'] . '%', 'change' => -0.4, 'icon' => 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6', 'color' => 'rose', 'href' => '#'],
+                    ['label' => 'YTD Revenue', 'value' => 'M' . number_format($stats['total_revenue'] / 1000, 1) . 'k', 'change' => 28.6, 'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 6v1m0 4v1m-3-4h.01M17 16.01h.01', 'color' => 'violet', 'href' => '#'],
+                ];
+            @endphp
 
-    {{-- Month Collected --}}
-    <div class="kpi-card highlight">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start">
-            <div>
-                <span class="kpi-label" style="color:rgba(255,255,255,0.7)">Month Collected</span>
-                <div class="kpi-value" style="color:#fff">M{{ number_format($monthCollected, 0) }}</div>
-            </div>
-            <div class="kpi-icon" style="background:rgba(255,255,255,0.2); color:#fff"><i class="bi bi-cash-stack"></i></div>
+            @foreach($kpis as $k)
+                <a href="{{ (isset($k['href']) && $k['href'] !== '#') ? route($k['href'], $k['params'] ?? []) : '#' }}" class="kpi-card">
+                    <div class="kpi-top">
+                        <span class="kpi-label">{{ $k['label'] }}</span>
+                        <span class="kpi-ico kpi-ico--{{ $k['color'] }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="{{ $k['icon'] }}" />
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="kpi-val">{{ $k['value'] }}</div>
+                    <div class="kpi-badge kpi-badge--{{ $k['change'] >= 0 ? 'up' : 'down' }}">
+                        @if($k['change'] >= 0)
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="18 15 12 9 6 15" />
+                            </svg>
+                        @else
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        @endif
+                        {{ abs($k['change']) }}% vs prev
+                    </div>
+                </a>
+            @endforeach
         </div>
-        <div class="kpi-footer" style="color:rgba(255,255,255,0.8)">
-            <i class="bi bi-graph-up-arrow"></i> {{ $collectionPct }}% Collection Rate
-        </div>
-    </div>
 
-    {{-- PAR 30 --}}
-    <div class="kpi-card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start">
-            <div>
-                <span class="kpi-label">PAR 30+ Risk</span>
-                <div class="kpi-value" style="color:{{ $par30pct > 5 ? '#ef4444' : '#1e293b' }}">{{ $par30pct }}%</div>
-            </div>
-            <div class="kpi-icon" style="background:rgba(239,68,68,0.1); color:#ef4444"><i class="bi bi-shield-exclamation"></i></div>
-        </div>
-        <div class="kpi-footer">
-            <span style="color:{{ $par30pct > 5 ? '#ef4444' : '#10b981' }}; font-weight:700">{{ $par30pct > 5 ? 'Above' : 'Within' }} Tolerance</span>
-        </div>
-    </div>
+        {{-- ══════════════ MAIN BODY ══════════════ --}}
+        <div class="body-grid">
 
-    {{-- Turnovber --}}
-    <div class="kpi-card">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start">
-            <div>
-                <span class="kpi-label">YTD Turnover</span>
-                <div class="kpi-value">M{{ number_format($ytdTurnover/1000, 1) }}k</div>
-            </div>
-            <div class="kpi-icon" style="background:rgba(139,92,246,0.1); color:#8b5cf6"><i class="bi bi-speedometer2"></i></div>
-        </div>
-        <div class="kpi-footer">
-            <span style="color:#94a3b8">Total Revenue & Capital</span>
-        </div>
-    </div>
-</div>
+            {{-- LEFT column --}}
+            <div class="body-left">
 
-{{-- MAIN CHARTS ROW --}}
-<div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px; margin-bottom:24px">
-    {{-- Lending Performance --}}
-    <div class="premium-card">
-        <div class="pc-header">
-            <div>
-                <h3 class="pc-title">Monthly Lending Performance</h3>
-                <p class="pc-subtitle">Comparison between Disbursements and Collections</p>
-            </div>
-            <div class="pc-actions">
-                <button class="btn-tab active">Amounts</button>
-                <button class="btn-tab">Volume</button>
-            </div>
-        </div>
-        <div class="pc-body">
-            <canvas id="cLendingPerformance" height="320"></canvas>
-        </div>
-    </div>
-
-    {{-- Status Breakdown --}}
-    <div class="premium-card">
-        <div class="pc-header">
-            <h3 class="pc-title">Portfolio Status</h3>
-        </div>
-        <div class="pc-body" style="padding-top:20px">
-            <div style="position:relative; height:200px">
-                <canvas id="cPortfolioDoughnut"></canvas>
-            </div>
-            <div class="status-legend">
-                @foreach([['Active','#10b981',$loanStatusBreakdown['Active']],['Overdue','#ef4444',$loanStatusBreakdown['Overdue']],['Closed','#64748b',$loanStatusBreakdown['Closed']],['Other','#374151',$loanStatusBreakdown['Written Off']]] as [$lbl,$c,$v])
-                <div class="sl-item">
-                    <span class="sl-dot" style="background:{{ $c }}"></span>
-                    <span class="sl-label">{{ $lbl }}</span>
-                    <span class="sl-value">{{ $v }}</span>
+                {{-- Applications Trend Chart --}}
+                <div class="card">
+                    <div class="card-head">
+                        <div>
+                            <div class="card-title">Applications Trend</div>
+                            <div class="card-sub">Daily — {{ now()->format('F Y') }}</div>
+                        </div>
+                        <div class="chart-legend-row">
+                            <span class="cl-item"><span class="cl-dot" style="background:#3b82f6"></span>Submitted</span>
+                            <span class="cl-item"><span class="cl-dot" style="background:#10b981"></span>Approved</span>
+                            <span class="cl-item"><span class="cl-dot cl-dash"
+                                    style="background:#ef4444"></span>Declined</span>
+                        </div>
+                    </div>
+                    <div style="position:relative;height:240px;padding:0 20px 16px">
+                        <canvas id="chartTrend" role="img"
+                            aria-label="Line chart showing daily application trends for submitted, approved, and declined"></canvas>
+                    </div>
                 </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
-</div>
 
-{{-- BOTTOM SECTION: Recent Activity --}}
-<div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:24px">
-    {{-- Recent Applications --}}
-    <div class="premium-card">
-        <div class="pc-header">
-            <h3 class="pc-title">Incoming Applications</h3>
-            <a href="{{ route('admin.applications.index') }}" class="pc-link">Review All <i class="bi bi-arrow-right"></i></a>
-        </div>
-        <div class="table-wrap">
-            <table class="premium-table">
-                <thead>
-                    <tr>
-                        <th>Applicant</th>
-                        <th>Product</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($recentApplications as $app)
-                    <tr>
-                        <td>
-                            <div style="display:flex; align-items:center; gap:12px">
-                                <div class="avatar-sm">{{ strtoupper(substr($app->applicant_name,0,1)) }}</div>
-                                <div>
-                                    <div style="font-weight:700; color:#1e293b">{{ $app->applicant_name }}</div>
-                                    <div style="font-size:11px; color:#94a3b8">{{ $app->application_number }}</div>
+                {{-- Two-col: Donut + Loan Book --}}
+                <div class="two-col">
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-title">By Status</div>
+                        </div>
+                        <div class="donut-wrap">
+                            <canvas id="chartStatus" role="img" aria-label="Donut chart of application statuses"></canvas>
+                            <div class="donut-center">
+                                <div class="dc-val">{{ number_format($stats['apps_submitted']) }}</div>
+                                <div class="dc-lbl">Total</div>
+                            </div>
+                        </div>
+                        <div class="legend-list">
+                            <div class="ll-row"><span class="ll-dot"
+                                    style="background:#3b82f6"></span><span>Submitted</span><strong>{{ number_format($stats['apps_submitted']) }}</strong>
+                            </div>
+                            <div class="ll-row"><span class="ll-dot"
+                                    style="background:#10b981"></span><span>Approved</span><strong>{{ number_format($stats['apps_approved']) }}
+                                    ({{ round($stats['apps_approved'] / $stats['apps_submitted'] * 100) }}%)</strong></div>
+                            <div class="ll-row"><span class="ll-dot"
+                                    style="background:#ef4444"></span><span>Declined</span><strong>{{ number_format($stats['apps_declined']) }}
+                                    ({{ round($stats['apps_declined'] / $stats['apps_submitted'] * 100) }}%)</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-title">Loan Book</div>
+                        </div>
+                        <div class="lb-hero">
+                            <div class="lb-lbl">Outstanding Portfolio</div>
+                            <div class="lb-big">M{{ number_format($stats['total_portfolio'], 0) }}</div>
+                            <div class="lb-trend">↑ 18.4% vs last month</div>
+                        </div>
+                        <div class="lb-pair">
+                            <div class="lb-stat">
+                                <div class="lbs-lbl">Avg Loan</div>
+                                <div class="lbs-val">M{{ number_format($stats['avg_loan_size'], 0) }}</div>
+                            </div>
+                            <div class="lb-stat">
+                                <div class="lbs-lbl">Avg Tenure</div>
+                                <div class="lbs-val">3.2 mo</div>
+                            </div>
+                        </div>
+                        <div class="seg-block">
+                            <div class="seg-title">By Segment</div>
+                            @php
+                                $totalPortfolio = $stats['total_portfolio'] ?: 1;
+                                $segs = collect($segmentBreakdown)->map(function($s) use ($totalPortfolio) {
+                                    return [
+                                        'label' => ucfirst(str_replace('_', ' ', $s->employer_type)),
+                                        'pct' => round(($s->portfolio / $totalPortfolio) * 100, 1),
+                                        'val' => $s->portfolio
+                                    ];
+                                })->sortByDesc('pct');
+                            @endphp
+                            @foreach($segs as $s)
+                                <div class="seg-row">
+                                    <div class="seg-label">{{ $s['label'] }}</div>
+                                    <div class="seg-bar-wrap">
+                                        <div class="seg-bar" style="width:{{ $s['pct'] }}%"></div>
+                                    </div>
+                                    <div class="seg-pct">{{ $s['pct'] }}%</div>
+                                </div>
+                            @endforeach
+                            @if($segs->isEmpty())
+                                <div class="text-muted small">No data available</div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Recent Applications Table --}}
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-title">Recent Applications</div>
+                        <a href="{{ route('admin.applications.index') }}" class="card-link">View all →</a>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table class="dtbl">
+                            <thead>
+                                <tr>
+                                    <th>App ID</th>
+                                    <th>Applicant</th>
+                                    <th>Segment</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recentApplications->take(6) as $app)
+                                    <tr>
+                                        <td class="td-id">{{ $app->application_number }}</td>
+                                        <td class="td-name">{{ $app->user->name ?? 'N/A' }}</td>
+                                        <td><span class="seg-pill">Private</span></td>
+                                        <td class="td-amount">M{{ number_format($app->requested_amount, 0) }}</td>
+                                        <td><span class="status-pill sp-{{ $app->status }}">{{ ucfirst($app->status) }}</span>
+                                        </td>
+                                        <td class="td-date">{{ $app->created_at->format('d M Y') }}</td>
+                                        <td><a href="{{ route('admin.applications.show', $app->id) }}" class="ico-btn"
+                                                title="View">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </svg>
+                                            </a></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Two-col: Profitability + Collections --}}
+                <div class="two-col">
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-title">Profitability <span class="card-badge">YTD</span></div>
+                            <a href="#" class="card-link">P&L →</a>
+                        </div>
+                        <div class="pl-grid">
+                            <div class="pl-item">
+                                <div class="pl-lbl">Interest Income</div>
+                                <div class="pl-val">M{{ number_format($stats['total_interest_revenue'], 0) }}</div>
+                            </div>
+                            <div class="pl-item">
+                                <div class="pl-lbl">Fee Income</div>
+                                <div class="pl-val">M{{ number_format($stats['total_fee_revenue'], 0) }}</div>
+                            </div>
+                            <div class="pl-item pl-total">
+                                <div class="pl-lbl">Total Revenue</div>
+                                <div class="pl-val">M{{ number_format($stats['total_revenue'], 0) }}</div>
+                            </div>
+                            <div class="pl-divider"></div>
+                            <div class="pl-item">
+                                <div class="pl-lbl">Operating Exp.</div>
+                                <div class="pl-val">M{{ number_format($stats['total_revenue'] * 0.1, 0) }}</div>
+                            </div>
+                            <div class="pl-item">
+                                <div class="pl-lbl">Cost of Funds</div>
+                                <div class="pl-val">M{{ number_format($stats['total_revenue'] * 0.2, 0) }}</div>
+                            </div>
+                            <div class="pl-item pl-profit">
+                                <div class="pl-lbl">Net Profit</div>
+                                <div class="pl-val">M{{ number_format($stats['total_revenue'] * 0.4, 0) }}</div>
+                                <div class="pl-margin">27.5% margin</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-title">Collections <span class="card-badge">MTD</span></div>
+                            <a href="#" class="card-link">Report →</a>
+                        </div>
+                        <div class="col-trio">
+                            <div class="col-stat">
+                                <div class="cs-lbl">Total Due</div>
+                                <div class="cs-val">M{{ number_format($stats['month_expected'], 0) }}</div>
+                            </div>
+                            <div class="col-stat">
+                                <div class="cs-lbl">Collected</div>
+                                <div class="cs-val cs-green">M{{ number_format($stats['month_collected'], 0) }}</div>
+                            </div>
+                            <div class="col-stat">
+                                <div class="cs-lbl">Rate</div>
+                                <div class="cs-val cs-green">{{ $stats['collection_pct'] }}%</div>
+                            </div>
+                        </div>
+                        <div class="aging-block">
+                            <div class="aging-head">
+                                <span>Overdue Aging</span>
+                                <span class="aging-total">M{{ number_format($stats['overdue_total'], 0) }}</span>
+                            </div>
+                            @php $aging = [['label' => '1–7 days', 'val' => $stats['overdue_1_7'], 'pct' => 32], ['label' => '8–30 days', 'val' => $stats['overdue_8_30'], 'pct' => 37], ['label' => '31–60 days', 'val' => $stats['overdue_31_60'], 'pct' => 23], ['label' => '60+ days', 'val' => $stats['overdue_60p'], 'pct' => 8]]; @endphp
+                            @foreach($aging as $a)
+                                <div class="aging-row">
+                                    <span class="aging-label">{{ $a['label'] }}</span>
+                                    <div class="aging-bar-wrap">
+                                        <div class="aging-bar" style="width:{{ $a['pct'] }}%"></div>
+                                    </div>
+                                    <span class="aging-val">M{{ number_format($a['val'], 0) }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+            </div>{{-- /body-left --}}
+
+            {{-- RIGHT column --}}
+            <div class="body-right">
+
+                {{-- Alerts --}}
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-title">Alerts</div>
+                        <a href="#" class="card-link">All →</a>
+                    </div>
+                    <div class="alerts-wrap">
+                        <div class="alert-row alert-warn">
+                            <span class="alert-ico">⚠</span>
+                            <div>
+                                <div class="alert-msg">PAR 30 for Private Sector rose to <strong>3.65%</strong></div>
+                                <div class="alert-time">10 min ago</div>
+                            </div>
+                        </div>
+                        <div class="alert-row alert-info">
+                            <span class="alert-ico">ℹ</span>
+                            <div>
+                                <div class="alert-msg"><strong>12 loans</strong> due today · M76,450 total</div>
+                                <div class="alert-time">20 min ago</div>
+                            </div>
+                        </div>
+                        <div class="alert-row alert-ok">
+                            <span class="alert-ico">✓</span>
+                            <div>
+                                <div class="alert-msg">Referral payouts of <strong>M5,600</strong> completed</div>
+                                <div class="alert-time">1 hr ago</div>
+                            </div>
+                        </div>
+                        <div class="alert-row alert-info">
+                            <span class="alert-ico">↑</span>
+                            <div>
+                                <div class="alert-msg">Repeat borrowing rate hit <strong>41%</strong> this month</div>
+                                <div class="alert-time">2 hr ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Segment Donut --}}
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-title">By Segment</div>
+                    </div>
+                    <div class="donut-wrap">
+                        <canvas id="chartSeg" role="img"
+                            aria-label="Donut chart of applications by borrower segment"></canvas>
+                    </div>
+                    <div class="legend-list">
+                        <div class="ll-row"><span class="ll-dot"
+                                style="background:#3b82f6"></span><span>Government</span><strong>512 (41%)</strong></div>
+                        <div class="ll-row"><span class="ll-dot" style="background:#10b981"></span><span>Private
+                                Sector</span><strong>512 (41%)</strong></div>
+                        <div class="ll-row"><span class="ll-dot"
+                                style="background:#f59e0b"></span><span>Pensioners</span><strong>224 (18%)</strong></div>
+                    </div>
+                </div>
+
+                {{-- PAR Trend --}}
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-title">PAR Quality</div>
+                        <div class="chart-legend-row">
+                            <span class="cl-item"><span class="cl-dot" style="background:#10b981"></span>PAR 1</span>
+                            <span class="cl-item"><span class="cl-dot" style="background:#f59e0b"></span>PAR 7</span>
+                            <span class="cl-item"><span class="cl-dot" style="background:#ef4444"></span>PAR 30</span>
+                        </div>
+                    </div>
+                    <div style="position:relative;height:160px;padding:0 16px 16px">
+                        <canvas id="chartPAR" role="img"
+                            aria-label="PAR trend lines for 1, 7 and 30 day delinquency"></canvas>
+                    </div>
+                </div>
+
+                {{-- Referral Funnel --}}
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-title">Referral Funnel</div>
+                        <a href="#" class="card-link">Report →</a>
+                    </div>
+                    @php
+                        $funnel = [
+                            ['label' => 'Link Clicks', 'val' => 12842, 'pct' => null],
+                            ['label' => 'Apps Started', 'val' => 3421, 'pct' => 26.6],
+                            ['label' => 'Submitted', 'val' => $stats['apps_submitted'], 'pct' => 36.5],
+                            ['label' => 'Disbursed', 'val' => $stats['apps_approved'], 'pct' => 67.5],
+                            ['label' => '1st Payment', 'val' => 632, 'pct' => 75.1],
+                        ];
+                    @endphp
+                    <div class="funnel-list">
+                        @foreach($funnel as $i => $f)
+                            <div class="fn-step">
+                                <div class="fn-num">{{ $i + 1 }}</div>
+                                <div class="fn-bar-col">
+                                    <div class="fn-label">{{ $f['label'] }}</div>
+                                    @if($f['pct'])
+                                        <div class="fn-bar-wrap">
+                                            <div class="fn-bar" style="width:{{ min(100, $f['pct'] * 1.5) }}%"></div>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="fn-right">
+                                    <div class="fn-val">{{ number_format($f['val']) }}</div>
+                                    @if($f['pct'])
+                                    <div class="fn-pct">{{ $f['pct'] }}%</div>@endif
                                 </div>
                             </div>
-                        </td>
-                        <td style="font-size:13px; color:#64748b">{{ $app->loanProduct?->name ?? '—' }}</td>
-                        <td style="font-weight:800; color:#0f172a">M{{ number_format($app->requested_amount,0) }}</td>
-                        <td><span class="p-badge b{{ $app->status_badge }}">{{ ucfirst($app->status) }}</span></td>
-                        <td><a href="{{ route('admin.applications.show',$app) }}" class="btn-icon"><i class="bi bi-chevron-right"></i></a></td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {{-- Overdue Radar --}}
-    <div class="premium-card">
-        <div class="pc-header">
-            <h3 class="pc-title" style="color:#ef4444"><i class="bi bi-lightning-fill"></i> Arrears Watchlist</h3>
-            <span class="pc-tag-red">{{ count($overdueLoans) }} AT RISK</span>
-        </div>
-        <div class="pc-body" style="padding:0">
-            @forelse($overdueLoans->take(5) as $loan)
-            <a href="{{ route('admin.loans.show',$loan) }}" class="overdue-item">
-                <div style="width:36px; height:36px; border-radius:10px; background:rgba(239,68,68,0.1); display:flex; align-items:center; justify-content:center; color:#ef4444">
-                    <i class="bi bi-exclamation-triangle"></i>
+                        @endforeach
+                        <div class="fn-footer">Overall conversion: <strong>4.92%</strong></div>
+                    </div>
                 </div>
-                <div style="flex:1">
-                    <div style="font-weight:700; font-size:14px; color:#1e293b">{{ $loan->user->name ?? '—' }}</div>
-                    <div style="font-size:11px; color:#94a3b8">{{ $loan->days_overdue }} days overdue</div>
+
+                {{-- Top Referrers --}}
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-title">Top Referrers</div>
+                        <a href="#" class="card-link">All →</a>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table class="dtbl dtbl-sm">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th style="text-align:center">Referrals</th>
+                                    <th style="text-align:center">Qualified</th>
+                                    <th style="text-align:right">Earned</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($topReferrers as $r)
+                                    <tr>
+                                        <td>{{ $r->name }}</td>
+                                        <td style="text-align:center">{{ $r->total_referrals }}</td>
+                                        <td style="text-align:center">{{ $r->qualified }}</td>
+                                        <td style="text-align:right;font-weight:700">M{{ number_format($r->total_earned, 0) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div style="text-align:right">
-                    <div style="font-weight:900; color:#ef4444; font-size:15px">M{{ number_format($loan->outstanding_balance,0) }}</div>
-                    <div style="font-size:10px; color:#94a3b8; font-weight:700">#{{ $loan->loan_number }}</div>
+
+                {{-- Payout Summary --}}
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-title">Payout Summary</div>
+                    </div>
+                    <div class="payout-list">
+                        <div class="po-row"><span>Total
+                                Eligible</span><strong>M{{ number_format($stats['pending_payouts'] + $stats['total_paid_out'], 0) }}</strong>
+                        </div>
+                        <div class="po-row po-paid"><span>Paid
+                                Out</span><strong>M{{ number_format($stats['total_paid_out'], 0) }}</strong></div>
+                        <div class="po-row po-pending">
+                            <span>Pending</span><strong>M{{ number_format($stats['pending_payouts'], 0) }}</strong>
+                        </div>
+                        <div class="po-row po-muted"><span>Disqualified</span><strong>M650</strong></div>
+                    </div>
+                    <a href="#" class="card-footer-link">Full payout report →</a>
                 </div>
-            </a>
-            @empty
-            <div style="padding:60px; text-align:center; color:#94a3b8">
-                <i class="bi bi-check2-circle" style="font-size:48px; color:#10b981; opacity:0.3"></i>
-                <p style="margin-top:12px; font-weight:600">No critical overdue items</p>
-            </div>
-            @endforelse
-        </div>
-    </div>
-</div>
 
-<style>
-/* Dashboard Layout */
-.dash-hero { display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; padding:0 4px; }
-.kpi-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:20px; margin-bottom:32px; }
+            </div>{{-- /body-right --}}
+        </div>{{-- /body-grid --}}
+    </div>{{-- /d-wrap --}}
 
-/* KPI Cards */
-.kpi-card { 
-    background:#fff; border-radius:20px; padding:24px; 
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 10px 15px -3px rgba(0,0,0,0.04);
-    border: 1px solid rgba(0,0,0,0.03); transition: all 0.3s;
-}
-.kpi-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); }
-.kpi-card.highlight { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border:none; }
+    <style>
+        /* ══ Reset & Base ══ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
 
-.kpi-label { font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; display:block; }
-.kpi-value { font-size:32px; font-weight:900; color:#0f172a; letter-spacing:-1.5px; }
-.kpi-icon { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:22px; }
-.kpi-footer { margin-top:16px; font-size:12px; font-weight:600; display:flex; gap:8px; align-items:center; }
+        .d-wrap {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #f0f2f5;
+            padding: 24px;
+            min-height: 100vh;
+            color: #111827
+        }
 
-/* Premium Cards */
-.premium-card { background:#fff; border-radius:24px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border:1px solid rgba(0,0,0,0.03); overflow:hidden; }
-.pc-header { padding:24px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; }
-.pc-title { font-size:18px; font-weight:900; color:#0f172a; margin:0; letter-spacing:-0.5px; }
-.pc-subtitle { font-size:13px; color:#64748b; margin:4px 0 0; font-weight:500; }
-.pc-body { padding:24px; }
-.pc-link { font-size:13px; font-weight:800; color:#4f46e5; text-decoration:none; display:flex; align-items:center; gap:6px; }
+        a {
+            text-decoration: none;
+            color: inherit
+        }
 
-/* Buttons */
-.btn-premium { 
-    background:#4f46e5; color:#fff; padding:12px 24px; border-radius:14px; font-weight:800; 
-    font-size:14px; text-decoration:none; display:flex; align-items:center; gap:8px;
-    box-shadow: 0 10px 20px -5px rgba(79,70,229,0.4); transition: all 0.3s;
-}
-.btn-premium:hover { background:#4338ca; transform:translateY(-2px); box-shadow: 0 15px 30px -5px rgba(79,70,229,0.5); }
-.btn-tab { background:#f8fafc; border:1px solid #e2e8f0; padding:8px 16px; border-radius:8px; font-size:12px; font-weight:800; color:#64748b; cursor:pointer; }
-.btn-tab.active { background:#0f172a; color:#fff; border-color:#0f172a; }
+        /* ══ Header ══ */
+        .d-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px
+        }
 
-/* Status Legend */
-.status-legend { margin-top:24px; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-.sl-item { display:flex; align-items:center; gap:8px; }
-.sl-dot { width:10px; height:10px; border-radius:50%; }
-.sl-label { font-size:13px; font-weight:700; color:#64748b; }
-.sl-value { font-weight:900; color:#0f172a; margin-left:auto; }
+        .d-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.2
+        }
 
-/* Tables */
-.premium-table { width:100%; border-collapse:collapse; }
-.premium-table th { padding:16px 24px; text-align:left; font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; background:#fbfcfe; }
-.premium-table td { padding:16px 24px; border-bottom:1px solid #f1f5f9; }
-.avatar-sm { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg, #4f46e5, #8b5cf6); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; }
+        .d-sub {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 2px
+        }
 
-/* Status Badges */
-.p-badge { padding:6px 12px; border-radius:8px; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; }
-.bsubmitted, .bunder_review { background:rgba(245,158,11,0.1); color:#f59e0b; }
-.bapproved, .bactive { background:rgba(16,185,129,0.1); color:#10b981; }
+        .d-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap
+        }
 
-/* Overdue Items */
-.overdue-item { 
-    display:flex; align-items:center; gap:16px; padding:18px 24px; 
-    border-bottom:1px solid #f1f5f9; text-decoration:none; transition: all 0.2s;
-}
-.overdue-item:hover { background:#fff5f5; }
-.pc-tag-red { background:rgba(239,68,68,0.1); color:#ef4444; font-size:11px; font-weight:900; padding:4px 10px; border-radius:6px; }
+        .d-period {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0 12px;
+            height: 36px;
+            gap: 8px
+        }
 
-.btn-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0; color:#94a3b8; text-decoration:none; }
-.btn-icon:hover { color:#0f172a; border-color:#0f172a; }
-</style>
+        .d-period-ico {
+            color: #9ca3af;
+            display: flex;
+            align-items: center
+        }
 
-@push('scripts')
-<script>
-(function(){
-    const months = @json($months12);
-    const yd = @json($yearData->values());
-    const lsb = @json($loanStatusBreakdown);
-    
-    // Performance Chart
-    new Chart(document.getElementById('cLendingPerformance'), {
-        type: 'line',
-        data: {
-            labels: months,
-            datasets: [
-                {
-                    label: 'Disbursed',
-                    data: yd.map(d => d.disbursed),
-                    borderColor: '#4f46e5',
-                    backgroundColor: 'rgba(79,70,229,0.05)',
-                    fill: true,
-                    tension: 0.4,
-                    borderWidth: 4,
-                    pointRadius: 0,
-                    pointHoverRadius: 6
-                },
-                {
-                    label: 'Collected',
-                    data: yd.map(d => d.collected),
-                    borderColor: '#10b981',
-                    borderWidth: 3,
-                    borderDash: [5, 5],
-                    fill: false,
-                    tension: 0.4,
-                    pointRadius: 0
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
-            scales: {
-                y: { grid: { color: '#f1f5f9', drawBorder: false }, ticks: { font: { size: 11, weight: '600' }, color: '#94a3b8' } },
-                x: { grid: { display: false }, ticks: { font: { size: 11, weight: '600' }, color: '#94a3b8' } }
+        .d-period-sel {
+            border: none;
+            outline: none;
+            font-size: 13px;
+            font-weight: 600;
+            background: transparent;
+            color: #374151;
+            cursor: pointer
+        }
+
+        .d-btn-primary {
+            background: #3b82f6;
+            color: #fff;
+            border-radius: 8px;
+            padding: 0 16px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background .15s
+        }
+
+        .d-btn-primary:hover {
+            background: #2563eb
+        }
+
+        /* ══ KPI Grid ══ */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px
+        }
+
+        .kpi-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: box-shadow .15s, transform .15s;
+            cursor: pointer
+        }
+
+        .kpi-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+            transform: translateY(-2px)
+        }
+
+        .kpi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .kpi-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: .4px
+        }
+
+        .kpi-ico {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0
+        }
+
+        .kpi-ico--blue {
+            background: #eff6ff;
+            color: #3b82f6
+        }
+
+        .kpi-ico--green {
+            background: #f0fdf4;
+            color: #16a34a
+        }
+
+        .kpi-ico--red {
+            background: #fef2f2;
+            color: #dc2626
+        }
+
+        .kpi-ico--indigo {
+            background: #eef2ff;
+            color: #4f46e5
+        }
+
+        .kpi-ico--orange {
+            background: #fff7ed;
+            color: #ea580c
+        }
+
+        .kpi-ico--teal {
+            background: #f0fdfa;
+            color: #0d9488
+        }
+
+        .kpi-ico--rose {
+            background: #fff1f2;
+            color: #e11d48
+        }
+
+        .kpi-ico--violet {
+            background: #f5f3ff;
+            color: #7c3aed
+        }
+
+        .kpi-val {
+            font-size: 22px;
+            font-weight: 800;
+            color: #111827;
+            line-height: 1
+        }
+
+        .kpi-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 100px;
+            width: fit-content
+        }
+
+        .kpi-badge--up {
+            background: #f0fdf4;
+            color: #15803d
+        }
+
+        .kpi-badge--down {
+            background: #fef2f2;
+            color: #b91c1c
+        }
+
+        /* ══ Body Grid ══ */
+        .body-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+            align-items: start
+        }
+
+        .body-left {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0
+        }
+
+        .body-right {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0
+        }
+
+        /* ══ Cards ══ */
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            overflow: hidden
+        }
+
+        .card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827
+        }
+
+        .card-sub {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 2px
+        }
+
+        .card-badge {
+            background: #f3f4f6;
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 100px;
+            margin-left: 6px
+        }
+
+        .card-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: #3b82f6
+        }
+
+        .card-footer-link {
+            display: block;
+            padding: 12px 20px;
+            border-top: 1px solid #f3f4f6;
+            font-size: 12px;
+            font-weight: 700;
+            color: #3b82f6
+        }
+
+        /* ══ Legend --*/
+        .chart-legend-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .cl-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 600
+        }
+
+        .cl-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%
+        }
+
+        /* ══ Two-col ══ */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px
+        }
+
+        /* ══ Donut ══ */
+        .donut-wrap {
+            position: relative;
+            height: 180px;
+            padding: 16px
+        }
+
+        .donut-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none
+        }
+
+        .dc-val {
+            font-size: 22px;
+            font-weight: 800;
+            color: #111827;
+            line-height: 1
+        }
+
+        .dc-lbl {
+            font-size: 11px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .4px
+        }
+
+        /* ══ Legend List ══ */
+        .legend-list {
+            padding: 0 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .ll-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #6b7280
+        }
+
+        .ll-row strong {
+            margin-left: auto;
+            color: #111827;
+            font-weight: 700
+        }
+
+        .ll-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0
+        }
+
+        /* ══ Loan Book ══ */
+        .lb-hero {
+            padding: 20px 20px 8px
+        }
+
+        .lb-lbl {
+            font-size: 11px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .4px
+        }
+
+        .lb-big {
+            font-size: 26px;
+            font-weight: 800;
+            color: #111827;
+            margin: 4px 0
+        }
+
+        .lb-trend {
+            font-size: 12px;
+            color: #16a34a;
+            font-weight: 700
+        }
+
+        .lb-pair {
+            display: flex;
+            gap: 24px;
+            padding: 12px 20px;
+            border-top: 1px solid #f3f4f6;
+            border-bottom: 1px solid #f3f4f6
+        }
+
+        .lb-stat {
+            flex: 1
+        }
+
+        .lbs-lbl {
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 600
+        }
+
+        .lbs-val {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+            margin-top: 2px
+        }
+
+        .seg-block {
+            padding: 14px 20px
+        }
+
+        .seg-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: .4px
+        }
+
+        .seg-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px
+        }
+
+        .seg-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            width: 90px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .seg-bar-wrap {
+            height: 5px;
+            background: #f3f4f6;
+            border-radius: 100px;
+            overflow: hidden
+        }
+
+        .seg-bar {
+            height: 100%;
+            background: #3b82f6;
+            border-radius: 100px
+        }
+
+        .seg-pct {
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            width: 34px;
+            text-align: right
+        }
+
+        /* ══ Table ══ */
+        .tbl-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch
+        }
+
+        .dtbl {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 540px
+        }
+
+        .dtbl th {
+            padding: 10px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            border-bottom: 1px solid #f3f4f6;
+            white-space: nowrap;
+            background: #fafafa
+        }
+
+        .dtbl td {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #374151;
+            border-bottom: 1px solid #f9fafb;
+            vertical-align: middle
+        }
+
+        .dtbl tr:last-child td {
+            border-bottom: none
+        }
+
+        .dtbl.dtbl-sm th,
+        .dtbl.dtbl-sm td {
+            padding: 10px 14px;
+            font-size: 12px
+        }
+
+        .td-id {
+            font-family: monospace;
+            font-weight: 700;
+            color: #3b82f6 !important;
+            white-space: nowrap
+        }
+
+        .td-name {
+            font-weight: 600;
+            color: #111827 !important;
+            white-space: nowrap
+        }
+
+        .td-amount {
+            font-weight: 700;
+            color: #111827 !important;
+            white-space: nowrap
+        }
+
+        .td-date {
+            white-space: nowrap;
+            color: #9ca3af !important;
+            font-size: 12px
+        }
+
+        .seg-pill {
+            background: #f3f4f6;
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 100px
+        }
+
+        .status-pill {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 100px;
+            white-space: nowrap
+        }
+
+        .sp-submitted {
+            background: #eff6ff;
+            color: #1d4ed8
+        }
+
+        .sp-approved {
+            background: #f0fdf4;
+            color: #15803d
+        }
+
+        .sp-under_review {
+            background: #fefce8;
+            color: #92400e
+        }
+
+        .sp-declined {
+            background: #fef2f2;
+            color: #b91c1c
+        }
+
+        .ico-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid #e5e7eb;
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            transition: background .15s
+        }
+
+        .ico-btn:hover {
+            background: #f3f4f6
+        }
+
+        /* ══ P&L ══ */
+        .pl-grid {
+            padding: 16px 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px
+        }
+
+        .pl-item .pl-lbl {
+            font-size: 10px;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            margin-bottom: 3px
+        }
+
+        .pl-item .pl-val {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827
+        }
+
+        .pl-total .pl-val {
+            color: #4f46e5;
+            font-size: 15px
+        }
+
+        .pl-profit .pl-val {
+            color: #15803d;
+            font-size: 15px
+        }
+
+        .pl-margin {
+            font-size: 11px;
+            color: #16a34a;
+            font-weight: 600;
+            margin-top: 2px
+        }
+
+        .pl-divider {
+            grid-column: 1/-1;
+            border-top: 1px dashed #e5e7eb;
+            margin: 4px 0
+        }
+
+        /* ══ Collections ══ */
+        .col-trio {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f3f4f6
+        }
+
+        .cs-lbl {
+            font-size: 10px;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            margin-bottom: 3px
+        }
+
+        .cs-val {
+            font-size: 15px;
+            font-weight: 800;
+            color: #111827
+        }
+
+        .cs-green {
+            color: #16a34a !important
+        }
+
+        .aging-block {
+            padding: 14px 20px
+        }
+
+        .aging-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 10px
+        }
+
+        .aging-total {
+            color: #dc2626
+        }
+
+        .aging-row {
+            display: grid;
+            grid-template-columns: 70px 1fr 70px;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 7px
+        }
+
+        .aging-label {
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 600
+        }
+
+        .aging-bar-wrap {
+            height: 5px;
+            background: #f3f4f6;
+            border-radius: 100px;
+            overflow: hidden
+        }
+
+        .aging-bar {
+            height: 100%;
+            background: #ef4444;
+            border-radius: 100px;
+            opacity: .7
+        }
+
+        .aging-val {
+            font-size: 11px;
+            font-weight: 700;
+            color: #374151;
+            text-align: right
+        }
+
+        /* ══ Alerts ══ */
+        .alerts-wrap {
+            padding: 12px
+        }
+
+        .alert-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 6px
+        }
+
+        .alert-warn {
+            background: #fffbeb
+        }
+
+        .alert-info {
+            background: #f0f9ff
+        }
+
+        .alert-ok {
+            background: #f0fdf4
+        }
+
+        .alert-ico {
+            font-style: normal;
+            font-size: 14px;
+            margin-top: 1px;
+            flex-shrink: 0;
+            width: 18px;
+            text-align: center
+        }
+
+        .alert-warn .alert-ico {
+            color: #d97706
+        }
+
+        .alert-info .alert-ico {
+            color: #0284c7
+        }
+
+        .alert-ok .alert-ico {
+            color: #16a34a
+        }
+
+        .alert-msg {
+            font-size: 12px;
+            color: #1e293b;
+            line-height: 1.4
+        }
+
+        .alert-msg strong {
+            font-weight: 700
+        }
+
+        .alert-time {
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 600;
+            margin-top: 3px
+        }
+
+        /* ══ Funnel ══ */
+        .funnel-list {
+            padding: 12px 16px
+        }
+
+        .fn-step {
+            display: grid;
+            grid-template-columns: 24px 1fr auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px
+        }
+
+        .fn-num {
+            width: 24px;
+            height: 24px;
+            background: #f3f4f6;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0
+        }
+
+        .fn-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 3px
+        }
+
+        .fn-bar-wrap {
+            height: 4px;
+            background: #f3f4f6;
+            border-radius: 100px;
+            overflow: hidden
+        }
+
+        .fn-bar {
+            height: 100%;
+            background: #3b82f6;
+            border-radius: 100px
+        }
+
+        .fn-right {
+            text-align: right
+        }
+
+        .fn-val {
+            font-size: 13px;
+            font-weight: 700;
+            color: #111827;
+            white-space: nowrap
+        }
+
+        .fn-pct {
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 600
+        }
+
+        .fn-footer {
+            border-top: 1px solid #f3f4f6;
+            padding-top: 10px;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600
+        }
+
+        .fn-footer strong {
+            color: #111827
+        }
+
+        /* ══ Payouts ══ */
+        .payout-list {
+            padding: 12px 20px
+        }
+
+        .po-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f9fafb;
+            font-size: 13px;
+            color: #6b7280
+        }
+
+        .po-row:last-child {
+            border-bottom: none
+        }
+
+        .po-row strong {
+            color: #111827;
+            font-weight: 700
+        }
+
+        .po-paid strong {
+            color: #16a34a
+        }
+
+        .po-pending {
+            background: #f0f9ff;
+            padding: 8px 10px;
+            border-radius: 7px
+        }
+
+        .po-pending strong {
+            color: #0284c7
+        }
+
+        .po-muted {
+            opacity: .55
+        }
+
+        /* ══ Responsive ══ */
+        @media(max-width:1100px) {
+            .body-grid {
+                grid-template-columns: 1fr
+            }
+
+            .body-right {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px
             }
         }
-    });
 
-    // Portfolio Doughnut
-    new Chart(document.getElementById('cPortfolioDoughnut'), {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(lsb),
-            datasets: [{
-                data: Object.values(lsb),
-                backgroundColor: ['#10b981', '#ef4444', '#64748b', '#374151'],
-                borderWidth: 4,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '75%',
-            plugins: { legend: { display: false } }
+        @media(max-width:768px) {
+            .d-wrap {
+                padding: 16px
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr))
+            }
+
+            .body-right {
+                grid-template-columns: 1fr
+            }
+
+            .two-col {
+                grid-template-columns: 1fr
+            }
+
+            .pl-grid {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .col-trio {
+                grid-template-columns: 1fr 1fr
+            }
         }
-    });
-})();
-</script>
-@endpush
+    </style>
+
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                /* ── Applications Trend ── */
+                new Chart(document.getElementById('chartTrend'), {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode(collect($monthlyChart)->pluck('month')) !!},
+                        datasets: [
+                            { label: 'Submitted', data: {!! json_encode(collect($monthlyChart)->pluck('applications')) !!}, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,.08)', tension: .4, fill: true, pointRadius: 3, pointBackgroundColor: '#3b82f6' },
+                            { label: 'Approved', data: {!! json_encode(collect($monthlyChart)->pluck('approved')) !!}, borderColor: '#10b981', tension: .4, pointRadius: 3, pointBackgroundColor: '#10b981' },
+                            { label: 'Disbursed', data: {!! json_encode(collect($monthlyChart)->map(fn($m) => $m['disbursed'] / 1000)) !!}, borderColor: '#4f46e5', tension: .4, pointRadius: 3, pointBackgroundColor: '#4f46e5' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { size: 11, weight: '600' }, color: '#9ca3af' } },
+                            y: { grid: { color: '#f3f4f6', borderDash: [4, 4] }, ticks: { font: { size: 11, weight: '600' }, color: '#9ca3af' } }
+                        }
+                    }
+                });
+
+                /* ── Status Donut ── */
+                new Chart(document.getElementById('chartStatus'), {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [{{ $stats['apps_submitted'] }},{{ $stats['apps_approved'] }},{{ $stats['apps_declined'] }}],
+                            backgroundColor: ['#3b82f6', '#10b981', '#ef4444'],
+                            borderWidth: 3, borderColor: '#ffffff', hoverOffset: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '78%' }
+                });
+
+                /* ── Segment Donut ── */
+                new Chart(document.getElementById('chartSeg'), {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: {!! json_encode(collect($segmentBreakdown)->pluck('portfolio')) !!},
+                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#7c3aed', '#ec4899', '#f97316'],
+                            borderWidth: 3, borderColor: '#ffffff', hoverOffset: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '78%' }
+                });
+
+                /* ── PAR Trend ── */
+                new Chart(document.getElementById('chartPAR'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Apr 1', 'Apr 8', 'Apr 15', 'Apr 22', 'Apr 30'],
+                        datasets: [
+                            { label: 'PAR 1', data: [2.0, 2.5, 2.2, 2.8, 2.5], borderColor: '#10b981', tension: .4, borderWidth: 2, pointRadius: 2 },
+                            { label: 'PAR 7', data: [1.5, 1.8, 1.6, 2.0, 1.8], borderColor: '#f59e0b', tension: .4, borderWidth: 2, pointRadius: 2 },
+                            { label: 'PAR 30', data: [4.0, 4.2, 4.1, 4.5, 4.3], borderColor: '#ef4444', tension: .4, borderWidth: 2, pointRadius: 2 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' }, color: '#9ca3af' } },
+                            y: { min: 0, max: 5, grid: { display: false }, ticks: { display: false } }
+                        }
+                    }
+                });
+            });
+        </script>
+    @endpush
 @endsection

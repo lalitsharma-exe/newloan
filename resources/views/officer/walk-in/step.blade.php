@@ -195,11 +195,11 @@ $totalSteps = 9;
           @endforeach
         </select>
       </div>
-      <div id="category_wrapper" style="display: {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'block' : 'none' }}">
+      <div id="category_wrapper" class="fg" style="display: {{ in_array($application->employment?->employer_type, ['government', 'sme', 'private']) ? 'block' : 'none' }}">
         <label class="fl">Work Sector / Category *</label>
-        <select name="employer_category" id="employer_category" class="fc" {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'required' : '' }}>
+        <select name="employer_category" id="employer_category" class="fc" {{ in_array($application->employment?->employer_type, ['government', 'sme', 'private']) ? 'required' : '' }}>
             <option value="">— Select —</option>
-            @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher','SMEs'] as $c)
+            @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher','Private sector','SMEs'] as $c)
             <option {{ old('employer_category',$emp?->employer_category)===$c?'selected':'' }}>{{ $c }}</option>
             @endforeach
         </select>
@@ -764,10 +764,20 @@ function toggleCategory(val) {
     const wrap = document.getElementById('category_wrapper');
     const sel = document.getElementById('employer_category');
     if (wrap) {
-        wrap.style.display = (['government', 'sme'].includes(val)) ? '' : 'none';
-        if (sel) {
-            if (['government', 'sme'].includes(val)) sel.setAttribute('required','required');
-            else { sel.removeAttribute('required'); sel.value = ''; }
+        if (['government', 'sme', 'private'].includes(val)) {
+            wrap.style.display = 'block';
+            if (sel) {
+                sel.setAttribute('required','required');
+                if(val === 'private' && !sel.value) {
+                    sel.value = 'Private sector';
+                }
+            }
+        } else {
+            wrap.style.display = 'none';
+            if (sel) {
+                sel.removeAttribute('required');
+                sel.value = '';
+            }
         }
     }
 }

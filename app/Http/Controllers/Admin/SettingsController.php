@@ -78,7 +78,7 @@ class SettingsController extends Controller {
         }
         
         // Handle toggles (checkboxes)
-        $toggles = ['mpesa_payment_enabled', 'card_payment_enabled', 'cpay_wallet_enabled'];
+        $toggles = ['mpesa_payment_enabled', 'card_payment_enabled', 'cpay_wallet_enabled', 'mpesa_disbursement_api_enabled', 'cpay_disbursement_api_enabled'];
         foreach ($toggles as $t) {
             \App\Models\SystemSetting::set($t, $r->has($t) ? 1 : 0, 'payment_gateway');
         }

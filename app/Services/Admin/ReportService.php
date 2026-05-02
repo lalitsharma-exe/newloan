@@ -12,10 +12,17 @@ class ReportService {
         if (!empty($f['product'])) { $active->where('loan_product_id',$f['product']); $allLoans->where('loan_product_id',$f['product']); }
 
         if (!empty($f['category'])) {
+            $cat = $f['category'];
             $active->join('employments', 'loans.application_id', '=', 'employments.application_id')
-                ->where('employments.employer_category', $f['category']);
+                ->where(function($q) use ($cat) {
+                    $q->where('employments.employer_category', $cat);
+                    if ($cat === 'Private sector') $q->orWhere('employments.employer_type', 'private');
+                });
             $allLoans->join('employments', 'loans.application_id', '=', 'employments.application_id')
-                ->where('employments.employer_category', $f['category']);
+                ->where(function($q) use ($cat) {
+                    $q->where('employments.employer_category', $cat);
+                    if ($cat === 'Private sector') $q->orWhere('employments.employer_type', 'private');
+                });
         }
 
         $activeLoans    = $active->get();
@@ -45,8 +52,12 @@ class ReportService {
         if (!empty($f['product'])) $q->where('loan_product_id',$f['product']);
 
         if (!empty($f['category'])) {
+            $cat = $f['category'];
             $q->join('employments', 'loans.application_id', '=', 'employments.application_id')
-                ->where('employments.employer_category', $f['category']);
+                ->where(function($sq) use ($cat) {
+                    $sq->where('employments.employer_category', $cat);
+                    if ($cat === 'Private sector') $sq->orWhere('employments.employer_type', 'private');
+                });
         }
         $loans = $q->latest('disbursement_date')->get();
 
@@ -91,8 +102,12 @@ class ReportService {
         if (!empty($f['product'])) $q->where('loan_product_id',$f['product']);
 
         if (!empty($f['category'])) {
+            $cat = $f['category'];
             $q->join('employments', 'loans.application_id', '=', 'employments.application_id')
-                ->where('employments.employer_category', $f['category']);
+                ->where(function($sq) use ($cat) {
+                    $sq->where('employments.employer_category', $cat);
+                    if ($cat === 'Private sector') $sq->orWhere('employments.employer_type', 'private');
+                });
         }
         if (!empty($f['search'])) {
             $s = $f['search'];
@@ -119,8 +134,12 @@ class ReportService {
             $q->join('loans', 'loan_installments.loan_id', '=', 'loans.id');
 
             if (!empty($f['category'])) {
+                $cat = $f['category'];
                 $q->join('employments', 'loans.application_id', '=', 'employments.application_id')
-                    ->where('employments.employer_category', $f['category']);
+                    ->where(function($sq) use ($cat) {
+                        $sq->where('employments.employer_category', $cat);
+                        if ($cat === 'Private sector') $sq->orWhere('employments.employer_type', 'private');
+                    });
             }
 
             if (!empty($f['district'])) {
@@ -260,8 +279,12 @@ class ReportService {
         if (!empty($f['status'])) $q->where('loan_applications.status',$f['status']);
 
         if (!empty($f['category'])) {
+            $cat = $f['category'];
             $q->join('employments', 'loan_applications.id', '=', 'employments.application_id')
-                ->where('employments.employer_category', $f['category']);
+                ->where(function($sq) use ($cat) {
+                    $sq->where('employments.employer_category', $cat);
+                    if ($cat === 'Private sector') $sq->orWhere('employments.employer_type', 'private');
+                });
         }
         $apps = $q->latest()->get();
 
@@ -375,7 +398,14 @@ class ReportService {
 
         if ($category) {
             $q->whereHas('loan.application.employment', function($e) use ($category) {
-                $e->where('employer_category', $category);
+                if ($category === 'Private sector') {
+                    $e->where(function($sq) use ($category) {
+                        $sq->where('employer_category', $category)
+                           ->orWhere('employer_type', 'private');
+                    });
+                } else {
+                    $e->where('employer_category', $category);
+                }
             });
         }
 

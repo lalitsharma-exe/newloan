@@ -8,13 +8,19 @@ use Illuminate\Http\Request;
 class DashboardController extends Controller {
     public function __construct(private DashboardService $svc) {}
 
-    public function index() {
+    public function index(Request $request) {
+        $period = $request->get('period', 'month');
         return view("admin.dashboard.index", [
             "stats"              => $this->svc->getStats(),
+            "periodStats"        => $this->svc->getPeriodStats($period),
             "recentApplications" => $this->svc->getRecentApplications(10),
             "overdueLoans"       => $this->svc->getOverdueLoans(5),
             "recentPayments"     => $this->svc->getRecentPayments(5),
-            "monthlyChart"       => $this->svc->getMonthlyChartData(),
+            "monthlyChart"       => $this->svc->getMonthlyChartData($period),
+            "segmentBreakdown"   => $this->svc->getSegmentBreakdown(),
+            "topReferrers"       => $this->svc->getTopReferrers(5),
+            "loanStatusBreakdown" => $this->svc->getLoanStatusBreakdown(),
+            "activePeriod"       => $period,
         ]);
     }
 
@@ -24,8 +30,12 @@ class DashboardController extends Controller {
     }
 
     // AJAX: refresh chart data
-    public function chartData() {
-        return response()->json($this->svc->getMonthlyChartData());
+    public function chartData(Request $request) {
+        $period = $request->get('period', 'month');
+        return response()->json([
+            'chart'  => $this->svc->getMonthlyChartData($period),
+            'period' => $this->svc->getPeriodStats($period),
+        ]);
     }
 
     // AJAX: bell icon notification count + recent list
@@ -45,4 +55,3 @@ class DashboardController extends Controller {
         return response()->json(['unread' => $unread, 'notifications' => $recent]);
     }
 }
-

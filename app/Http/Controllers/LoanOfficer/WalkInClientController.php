@@ -209,7 +209,7 @@ class WalkInClientController extends Controller
         $application->employment()->updateOrCreate(
             ['application_id' => $application->id],
             array_merge($data, [
-                'employer_category' => in_array($data['employer_type'], ['government', 'sme']) ? ($request->employer_category ?? null) : null
+                'employer_category' => in_array($data['employer_type'], ['government', 'sme', 'private']) ? ($request->employer_category ?? null) : null
             ])
         );
     }

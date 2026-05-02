@@ -108,11 +108,11 @@ $totalSteps = 9;
       <div class="g2">
         <div class="fg"><label class="fl">Employer Name *</label><input type="text" name="employer_name" class="fc" value="{{ old('employer_name',$emp?->employer_name) }}" required></div>
         <div class="fg"><label class="fl">Employer Type *</label><select name="employer_type" id="employer_type" class="fc" required><option value="">—</option>@foreach(['government'=>'Government','private'=>'Private Sector','sme'=>'SMEs'] as $v=>$l)<option value="{{ $v }}" {{ $emp?->employer_type===$v?'selected':'' }}>{{ $l }}</option>@endforeach</select></div>
-        <div id="category_wrapper" style="display: {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'block' : 'none' }}">
+        <div id="category_wrapper" class="fg" style="display: {{ in_array($application->employment?->employer_type, ['government', 'sme', 'private']) ? 'block' : 'none' }}">
           <label class="fl">Work Sector / Category *</label>
-          <select name="employer_category" id="employer_category" class="fc" {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'required' : '' }}>
+          <select name="employer_category" id="employer_category" class="fc" {{ in_array($application->employment?->employer_type, ['government', 'sme', 'private']) ? 'required' : '' }}>
             <option value="">— Select Category —</option>
-            @foreach(['Defence','Nss','Police','Lcs','Pensioner','Civil servants','Teacher','SMEs'] as $cat)
+            @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher','Private sector','SMEs'] as $cat)
               <option value="{{ $cat }}" {{ (old('employer_category', $emp?->employer_category) == $cat) ? 'selected' : '' }}>{{ $cat }}</option>
             @endforeach
           </select>
@@ -719,9 +719,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     if (typeSelect && catWrapper) {
         typeSelect.addEventListener('change', function() {
-            if (['government', 'sme'].includes(this.value)) {
+            if (['government', 'sme', 'private'].includes(this.value)) {
                 catWrapper.style.display = 'block';
                 catSelect.setAttribute('required', 'required');
+                if(this.value === 'private' && !catSelect.value) {
+                    catSelect.value = 'Private sector';
+                }
             } else {
                 catWrapper.style.display = 'none';
                 catSelect.removeAttribute('required');

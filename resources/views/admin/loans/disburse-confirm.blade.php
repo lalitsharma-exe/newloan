@@ -202,27 +202,39 @@ Disburse
                   <text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="40" font-weight="bold" font-family="Arial">C</text>
                 </svg>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:14px;color:var(--dark)">CPay Wallet</div>
+              <div style="flex:1">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="font-weight:700;font-size:14px;color:var(--dark)">CPay Wallet</div>
+                  @if($cpayConfigured && \App\Models\SystemSetting::get('cpay_disbursement_api_enabled', 1))
+                    <span class="badge bok" style="font-size:9px;padding:2px 6px">Automated API</span>
+                  @else
+                    <span class="badge bw" style="font-size:9px;padding:2px 6px">Manual Record</span>
+                  @endif
+                </div>
                 <div style="font-size:12px;color:var(--muted);margin-top:2px">Deposit to borrower's Chaperone C-Pay wallet (KYC verified)</div>
               </div>
             </div>
           </label>
           {{-- M-Pesa Disbursement --}}
-          @if($mpesaConfigured)
           <label style="cursor:pointer">
             <input type="radio" name="_method_preview" value="mpesa_b2c" style="display:none" class="method-radio" onchange="switchMethod('mpesa_b2c')">
             <div class="method-card" data-m="mpesa_b2c" style="border:2px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:all .2s">
               <div style="width:42px;height:42px;background:rgba(16,185,129,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <i class="bi bi-phone-fill" style="font-size:20px;color:#10b981"></i>
               </div>
-              <div>
-                <div style="font-weight:700;font-size:14px;color:var(--dark)">M-Pesa (B2C)</div>
-                <div style="font-size:12px;color:var(--muted);margin-top:2px">Automated disbursement to borrower's phone via M-Pesa</div>
+              <div style="flex:1">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="font-weight:700;font-size:14px;color:var(--dark)">M-Pesa (B2C)</div>
+                  @if($mpesaConfigured && \App\Models\SystemSetting::get('mpesa_disbursement_api_enabled', 0))
+                    <span class="badge bok" style="font-size:9px;padding:2px 6px">Automated API</span>
+                  @else
+                    <span class="badge bw" style="font-size:9px;padding:2px 6px">Manual Record</span>
+                  @endif
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">Automated or manual disbursement to borrower's M-Pesa</div>
               </div>
             </div>
           </label>
-          @endif
 
           {{-- Cash --}}
           <label style="cursor:pointer">

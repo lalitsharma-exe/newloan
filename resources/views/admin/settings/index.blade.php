@@ -461,6 +461,23 @@
                     <div class="ft">Show CPay internal wallet option</div>
                 </div>
             </div>
+            <div class="st-section"><i class="bi bi-send-check"></i> Disbursement API Toggles</div>
+            <div class="g2">
+                <div class="fg">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                        <input type="checkbox" name="mpesa_disbursement_api_enabled" value="1" style="width:18px;height:18px;accent-color:var(--p)" {{ \App\Models\SystemSetting::get('mpesa_disbursement_api_enabled', 0) ? 'checked' : '' }}>
+                        <span style="font-size:13px;font-weight:600">Enable M-Pesa B2C API</span>
+                    </label>
+                    <div class="ft">If disabled, M-Pesa disbursements will be recorded manually without calling the API.</div>
+                </div>
+                <div class="fg">
+                    <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                        <input type="checkbox" name="cpay_disbursement_api_enabled" value="1" style="width:18px;height:18px;accent-color:var(--p)" {{ \App\Models\SystemSetting::get('cpay_disbursement_api_enabled', 1) ? 'checked' : '' }}>
+                        <span style="font-size:13px;font-weight:600">Enable CPay Wallet API</span>
+                    </label>
+                    <div class="ft">If disabled, CPay wallet disbursements will be recorded manually.</div>
+                </div>
+            </div>
           </div>
         </div>
         <div style="display:flex;justify-content:flex-end">

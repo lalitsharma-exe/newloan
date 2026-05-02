@@ -83,7 +83,8 @@ class LoanController extends Controller
 
         // bank_transfer is always recorded manually (EFT/bank processing happens outside system)
         // cpay_wallet uses the CPay wallet-topup-advance API
-        if ($method === 'cpay_wallet' && $this->cpay->isConfigured()) {
+        $cpayApiEnabled = \App\Models\SystemSetting::get('cpay_disbursement_api_enabled', 1);
+        if ($method === 'cpay_wallet' && $this->cpay->isConfigured() && $cpayApiEnabled) {
             $result = $this->cpay->disburseToWallet($loan, $phone, $reference);
 
             if ($result['success']) {
@@ -98,7 +99,8 @@ class LoanController extends Controller
         }
 
         // ── M-Pesa B2C Disbursement ───────────────────────────────────────────
-        if ($method === 'mpesa_b2c' && $this->mpesa->isConfigured()) {
+        $mpesaApiEnabled = \App\Models\SystemSetting::get('mpesa_disbursement_api_enabled', 0);
+        if ($method === 'mpesa_b2c' && $this->mpesa->isConfigured() && $mpesaApiEnabled) {
             $result = $this->mpesa->disburseLoan($loan, $phone, $reference);
 
             if ($result['success']) {

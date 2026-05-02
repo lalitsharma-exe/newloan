@@ -27,7 +27,7 @@
             <div style="font-size:14px; color:#64748b; margin-top:4px">Enter details to generate your credit quote</div>
         </div>
 
-        <form method="POST" action="{{ route('borrower.mybill.quote') }}" id="purchaseForm">
+        <form method="POST" action="{{ route('borrower.mybill.confirm') }}" id="purchaseForm">
             @csrf
             <input type="hidden" name="bill_category" value="{{ $category }}">
 

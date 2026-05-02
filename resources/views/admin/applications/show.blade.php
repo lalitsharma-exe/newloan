@@ -1077,11 +1077,11 @@ function sendChatMessage(e) {
                         </select>
                     </div>
                 </div>
-                <div class="fg" id="edit_cat_wrapper" style="display: {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'block' : 'none' }}">
+                <div class="fg" id="edit_cat_wrapper" style="display: {{ in_array($application->employment?->employer_type, ['government', 'sme', 'private']) ? 'block' : 'none' }}">
                     <label class="fl">Work Sector / Category *</label>
-                    <select name="employer_category" id="edit_employer_category" class="fc" {{ in_array($application->employment?->employer_type, ['government', 'sme']) ? 'required' : '' }}>
+                    <select name="employer_category" id="edit_employer_category" class="fc" {{ in_array($application->employment?->employer_type, ['government', 'sme', 'private']) ? 'required' : '' }}>
                         <option value="">— Select Category —</option>
-                        @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher','SMEs'] as $c)
+                        @foreach(['Defence','NSS','Police','LCS','Pensioner','Civil servants','Teacher','Private sector','SMEs'] as $c)
                         <option {{ ($application->employment->employer_category ?? '') === $c ? 'selected' : '' }}>{{ $c }}</option>
                         @endforeach
                     </select>
@@ -1220,12 +1220,19 @@ function sendChatMessage(e) {
 function showEditEmploymentModal() { openModal('editEmploymentModal'); }
 function showEditBankModal() { openModal('editBankModal'); }
 function toggleCategoryEdit(type) {
-    const wrapper = document.getElementById('category_edit_wrapper');
-    if(wrapper) {
-        wrapper.style.display = (type === 'government') ? '' : 'none';
-        if(type !== 'government') {
-            const sel = wrapper.querySelector('select');
-            if(sel) sel.value = '';
+    const wrapper = document.getElementById('edit_cat_wrapper');
+    const select = document.getElementById('edit_employer_category');
+    if(wrapper && select) {
+        if(['government', 'sme', 'private'].includes(type)) {
+            wrapper.style.display = 'block';
+            select.setAttribute('required', 'required');
+            if(type === 'private') {
+                select.value = 'Private sector';
+            }
+        } else {
+            wrapper.style.display = 'none';
+            select.removeAttribute('required');
+            select.value = '';
         }
     }
 }
