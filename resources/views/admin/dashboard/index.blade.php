@@ -1,13 +1,16 @@
 @extends('admin.layouts.app')
 @section('title', 'Admin Dashboard')
 @section('page-title', 'Business Intelligence Overview')
-@section('bc') Home @endsection
+@section('bc') Dashboard @endsection
 @section('content')
 
     @php
-        $cur = $periodStats['current'];
+        $cur  = $periodStats['current'];
         $prev = $periodStats['previous'];
-        $chg = $periodStats['changes'];
+        $chg  = $periodStats['changes'];
+        // Quarter number helper
+        $quarterNum = now()->quarter;
+        $quarterNames = [1=>'1st Quarter',2=>'2nd Quarter',3=>'3rd Quarter',4=>'4th Quarter'];
     @endphp
 
     <div class="d-wrap">
@@ -15,8 +18,18 @@
         {{-- ══════════════ HEADER ══════════════ --}}
         <div class="d-header">
             <div>
-                <h1 class="d-title">Welcome back, Admin</h1>
-                <p class="d-sub">{{ now()->format('l, d F Y') }} · Business Intelligence Overview</p>
+                <h1 class="d-title">Welcome back, {{ auth('admin')->user()->name ?? 'Admin' }}</h1>
+                <p class="d-sub">
+                    {{ now()->format('l, d F Y') }}
+                    &nbsp;·&nbsp;
+                    @if($activePeriod === 'month')
+                        Showing: <strong>{{ $periodLabel }}</strong> vs {{ $prevPeriodLabel }}
+                    @elseif($activePeriod === 'quarter')
+                        Showing: <strong>{{ $quarterNames[$quarterNum] }} — {{ $periodLabel }}</strong> vs {{ $prevPeriodLabel }}
+                    @else
+                        Showing: <strong>Year {{ $periodLabel }}</strong> (Jan–{{ now()->format('M') }}) vs Year {{ $prevPeriodLabel }}
+                    @endif
+                </p>
             </div>
             <div class="d-header-right">
                 <form action="{{ route('admin.dashboard') }}" method="GET" class="d-period">
@@ -29,56 +42,151 @@
                         </svg>
                     </span>
                     <select name="period" onchange="this.form.submit()" class="d-period-sel">
-                        <option value="month" {{ $activePeriod == 'month' ? 'selected' : '' }}>This Month</option>
-                        <option value="quarter" {{ $activePeriod == 'quarter' ? 'selected' : '' }}>This Quarter</option>
-                        <option value="year" {{ $activePeriod == 'year' ? 'selected' : '' }}>This Year</option>
+                        <option value="month" {{ $activePeriod == 'month' ? 'selected' : '' }}>This Month — {{ now()->format('F Y') }}</option>
+                        <option value="quarter" {{ $activePeriod == 'quarter' ? 'selected' : '' }}>This Quarter — {{ $quarterNames[$quarterNum] }}</option>
+                        <option value="year" {{ $activePeriod == 'year' ? 'selected' : '' }}>This Year — {{ now()->year }}</option>
                     </select>
                 </form>
                 <a href="{{ route('admin.applications.index') }}" class="d-btn-primary">+ New Application</a>
             </div>
         </div>
 
-        {{-- ══════════════ KPI STRIP ══════════════ --}}
-        <div class="kpi-grid">
-            @php
-                $kpis = [
-                    ['label' => 'Applications', 'value' => number_format($stats['apps_submitted']), 'change' => $chg['applications'], 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', 'color' => 'blue', 'href' => 'admin.applications.index'],
-                    ['label' => 'Approved', 'value' => number_format($stats['apps_approved']), 'change' => $chg['approved'], 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'green', 'href' => 'admin.applications.index', 'params' => ['status' => 'approved']],
-                    ['label' => 'Declined', 'value' => number_format($stats['apps_declined']), 'change' => -5.2, 'icon' => 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z', 'color' => 'red', 'href' => 'admin.applications.index', 'params' => ['status' => 'declined']],
-                    ['label' => 'Disbursed (MTD)', 'value' => 'M' . number_format($stats['disbursed_month'] / 1000, 0) . 'k', 'change' => $chg['disbursed'], 'icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', 'color' => 'indigo', 'href' => 'admin.loans.index'],
-                    ['label' => 'Active Loans', 'value' => number_format($stats['active_loans']), 'change' => 11.4, 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', 'color' => 'orange', 'href' => 'admin.loans.index', 'params' => ['status' => 'active']],
-                    ['label' => 'Collection Rate', 'value' => $stats['collection_pct'] . '%', 'change' => 2.5, 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'color' => 'teal', 'href' => '#'],
-                    ['label' => 'PAR 30', 'value' => $stats['par30_pct'] . '%', 'change' => -0.4, 'icon' => 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6', 'color' => 'rose', 'href' => '#'],
-                    ['label' => 'YTD Revenue', 'value' => 'M' . number_format($stats['total_revenue'] / 1000, 1) . 'k', 'change' => 28.6, 'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 6v1m0 4v1m-3-4h.01M17 16.01h.01', 'color' => 'violet', 'href' => '#'],
-                ];
-            @endphp
+        {{-- ══════════════ KPI STRIP — Row 1: 4 cards ══════════════ --}}
+        @php
+            $vsLabel = $prevPeriodLabel;
+        @endphp
+        <div class="kpi-grid kpi-row-4">
+            {{-- 1. Applications (period) --}}
+            <a href="{{ route('admin.applications.index') }}" class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Applications</span>
+                    <span class="kpi-ico kpi-ico--blue">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </span>
+                </div>
+                <div class="kpi-val">{{ number_format($cur['applications']) }}</div>
+                <div class="kpi-sub-val">All-time: {{ number_format($stats['apps_submitted']) }}</div>
+                <div class="kpi-badge kpi-badge--{{ $chg['applications'] >= 0 ? 'up' : 'down' }}">
+                    @if($chg['applications'] >= 0)<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>@else<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>@endif
+                    {{ abs($chg['applications']) }}% vs {{ $vsLabel }}
+                </div>
+            </a>
 
-            @foreach($kpis as $k)
-                <a href="{{ (isset($k['href']) && $k['href'] !== '#') ? route($k['href'], $k['params'] ?? []) : '#' }}" class="kpi-card">
-                    <div class="kpi-top">
-                        <span class="kpi-label">{{ $k['label'] }}</span>
-                        <span class="kpi-ico kpi-ico--{{ $k['color'] }}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="{{ $k['icon'] }}" />
-                            </svg>
-                        </span>
-                    </div>
-                    <div class="kpi-val">{{ $k['value'] }}</div>
-                    <div class="kpi-badge kpi-badge--{{ $k['change'] >= 0 ? 'up' : 'down' }}">
-                        @if($k['change'] >= 0)
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                <polyline points="18 15 12 9 6 15" />
-                            </svg>
-                        @else
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                <polyline points="6 9 12 15 18 9" />
-                            </svg>
-                        @endif
-                        {{ abs($k['change']) }}% vs prev
-                    </div>
-                </a>
-            @endforeach
+            {{-- 2. Approved (period) --}}
+            <a href="{{ route('admin.applications.index', ['status'=>'approved']) }}" class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Approved</span>
+                    <span class="kpi-ico kpi-ico--green">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                </div>
+                <div class="kpi-val">{{ number_format($cur['approved']) }}</div>
+                <div class="kpi-sub-val">All-time: {{ number_format($stats['apps_approved']) }}</div>
+                <div class="kpi-badge kpi-badge--{{ $chg['approved'] >= 0 ? 'up' : 'down' }}">
+                    @if($chg['approved'] >= 0)<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>@else<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>@endif
+                    {{ abs($chg['approved']) }}% vs {{ $vsLabel }}
+                </div>
+            </a>
+
+            {{-- 3. Disbursed (period) --}}
+            <a href="{{ route('admin.loans.index') }}" class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Disbursed</span>
+                    <span class="kpi-ico kpi-ico--indigo">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    </span>
+                </div>
+                <div class="kpi-val">M{{ number_format($cur['disbursed'] / 1000, 1) }}k</div>
+                <div class="kpi-sub-val">MTD: M{{ number_format($stats['disbursed_month'], 0) }}</div>
+                <div class="kpi-badge kpi-badge--{{ $chg['disbursed'] >= 0 ? 'up' : 'down' }}">
+                    @if($chg['disbursed'] >= 0)<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>@else<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>@endif
+                    {{ abs($chg['disbursed']) }}% vs {{ $vsLabel }}
+                </div>
+            </a>
+
+            {{-- 4. Active Loans (global, not period) --}}
+            <a href="{{ route('admin.loans.index', ['status'=>'active']) }}" class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Active Loans</span>
+                    <span class="kpi-ico kpi-ico--orange">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </span>
+                </div>
+                <div class="kpi-val">{{ number_format($stats['active_loans']) }}</div>
+                <div class="kpi-sub-val">Overdue: {{ number_format($stats['overdue_loans']) }}</div>
+                <div class="kpi-badge kpi-badge--up">Live portfolio</div>
+            </a>
+        </div>
+
+        {{-- ══════════════ KPI STRIP — Row 2: 5 cards ══════════════ --}}
+        <div class="kpi-grid kpi-row-5" style="margin-top:10px">
+            {{-- 5. Pending Review — URGENT ACTION CARD --}}
+            <a href="{{ route('admin.applications.index', ['status'=>'submitted']) }}" class="kpi-card kpi-card--urgent">
+                <div class="kpi-top">
+                    <span class="kpi-label">⚡ Pending Review</span>
+                    <span class="kpi-ico kpi-ico--amber">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </span>
+                </div>
+                <div class="kpi-val" style="color:#d97706">{{ number_format($stats['apps_pending_review']) }}</div>
+                <div class="kpi-sub-val">Need action now</div>
+                <div class="kpi-badge" style="background:#fef3c7;color:#92400e">Action required</div>
+            </a>
+
+            {{-- 6. Declined (period) --}}
+            <a href="{{ route('admin.applications.index', ['status'=>'declined']) }}" class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Declined</span>
+                    <span class="kpi-ico kpi-ico--red">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                </div>
+                <div class="kpi-val">{{ number_format($cur['declined']) }}</div>
+                <div class="kpi-sub-val">All-time: {{ number_format($stats['apps_declined']) }}</div>
+                <div class="kpi-badge kpi-badge--{{ $chg['declined'] <= 0 ? 'up' : 'down' }}">
+                    @if($chg['declined'] <= 0)<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>@else<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>@endif
+                    {{ abs($chg['declined']) }}% vs {{ $vsLabel }}
+                </div>
+            </a>
+
+            {{-- 7. Collection Rate (MTD) --}}
+            <a href="#" class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Collection Rate</span>
+                    <span class="kpi-ico kpi-ico--teal">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    </span>
+                </div>
+                <div class="kpi-val">{{ $stats['collection_pct'] }}%</div>
+                <div class="kpi-sub-val">M{{ number_format($stats['month_collected'],0) }} collected</div>
+                <div class="kpi-badge kpi-badge--up">MTD</div>
+            </a>
+
+            {{-- 8. PAR 30 --}}
+            <a href="#" class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">PAR 30</span>
+                    <span class="kpi-ico kpi-ico--rose">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+                    </span>
+                </div>
+                <div class="kpi-val">{{ $stats['par30_pct'] }}%</div>
+                <div class="kpi-sub-val">M{{ number_format($stats['par30_amount'],0) }} at risk</div>
+                <div class="kpi-badge kpi-badge--{{ $stats['par30_pct'] <= 5 ? 'up' : 'down' }}">Portfolio risk</div>
+            </a>
+
+            {{-- 9. Revenue (period) --}}
+            <a href="#" class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Revenue</span>
+                    <span class="kpi-ico kpi-ico--violet">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 6v1m0 4v1m-3-4h.01M17 16.01h.01"/></svg>
+                    </span>
+                </div>
+                <div class="kpi-val">M{{ number_format($stats['total_revenue']/1000,1) }}k</div>
+                <div class="kpi-sub-val">All-time (est.)</div>
+                <div class="kpi-badge kpi-badge--up">YTD total</div>
+            </a>
         </div>
 
         {{-- ══════════════ MAIN BODY ══════════════ --}}
@@ -569,8 +677,16 @@
         /* ══ KPI Grid ══ */
         .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 12px;
+            margin-bottom: 4px
+        }
+
+        .kpi-row-4 {
+            grid-template-columns: repeat(4, 1fr)
+        }
+
+        .kpi-row-5 {
+            grid-template-columns: repeat(5, 1fr);
             margin-bottom: 20px
         }
 
@@ -653,6 +769,27 @@
         .kpi-ico--violet {
             background: #f5f3ff;
             color: #7c3aed
+        }
+
+        .kpi-ico--amber {
+            background: #fffbeb;
+            color: #d97706
+        }
+
+        .kpi-card--urgent {
+            border: 1.5px solid #fbbf24;
+            background: #fffbeb
+        }
+
+        .kpi-card--urgent:hover {
+            box-shadow: 0 4px 16px rgba(251, 191, 36, .3);
+            transform: translateY(-2px)
+        }
+
+        .kpi-sub-val {
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 500
         }
 
         .kpi-val {
@@ -1381,6 +1518,12 @@
         }
 
         /* ══ Responsive ══ */
+        @media(max-width:1280px) {
+            .kpi-row-5 {
+                grid-template-columns: repeat(3, 1fr)
+            }
+        }
+
         @media(max-width:1100px) {
             .body-grid {
                 grid-template-columns: 1fr
@@ -1391,6 +1534,14 @@
                 grid-template-columns: 1fr 1fr;
                 gap: 16px
             }
+
+            .kpi-row-4 {
+                grid-template-columns: repeat(2, 1fr)
+            }
+
+            .kpi-row-5 {
+                grid-template-columns: repeat(3, 1fr)
+            }
         }
 
         @media(max-width:768px) {
@@ -1398,8 +1549,9 @@
                 padding: 16px
             }
 
-            .kpi-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr))
+            .kpi-row-4,
+            .kpi-row-5 {
+                grid-template-columns: repeat(2, 1fr)
             }
 
             .body-right {

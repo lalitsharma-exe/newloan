@@ -10,17 +10,21 @@ class DashboardController extends Controller {
 
     public function index(Request $request) {
         $period = $request->get('period', 'month');
+        $periodStats = $this->svc->getPeriodStats($period);
+
         return view("admin.dashboard.index", [
-            "stats"              => $this->svc->getStats(),
-            "periodStats"        => $this->svc->getPeriodStats($period),
-            "recentApplications" => $this->svc->getRecentApplications(10),
-            "overdueLoans"       => $this->svc->getOverdueLoans(5),
-            "recentPayments"     => $this->svc->getRecentPayments(5),
-            "monthlyChart"       => $this->svc->getMonthlyChartData($period),
-            "segmentBreakdown"   => $this->svc->getSegmentBreakdown(),
-            "topReferrers"       => $this->svc->getTopReferrers(5),
+            "stats"               => $this->svc->getStats(),
+            "periodStats"         => $periodStats,
+            "recentApplications"  => $this->svc->getRecentApplications(10),
+            "overdueLoans"        => $this->svc->getOverdueLoans(5),
+            "recentPayments"      => $this->svc->getRecentPayments(5),
+            "monthlyChart"        => $this->svc->getMonthlyChartData($period),
+            "segmentBreakdown"    => $this->svc->getSegmentBreakdown(),
+            "topReferrers"        => $this->svc->getTopReferrers(5),
             "loanStatusBreakdown" => $this->svc->getLoanStatusBreakdown(),
-            "activePeriod"       => $period,
+            "activePeriod"        => $period,
+            "periodLabel"         => $this->svc->getPeriodLabel($period),
+            "prevPeriodLabel"     => $this->svc->getPreviousPeriodLabel($period),
         ]);
     }
 
@@ -35,6 +39,8 @@ class DashboardController extends Controller {
         return response()->json([
             'chart'  => $this->svc->getMonthlyChartData($period),
             'period' => $this->svc->getPeriodStats($period),
+            'label'  => $this->svc->getPeriodLabel($period),
+            'prevLabel' => $this->svc->getPreviousPeriodLabel($period),
         ]);
     }
 
