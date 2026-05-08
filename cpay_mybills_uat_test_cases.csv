@@ -1,0 +1,20 @@
+ID,Module,Feature,Scenario,Test Steps,Expected Result,Actual Result,Status
+TC001,CPay Core,Checksum,Verify Checksum Logic,1. Generate a test transaction ID\n2. Calculate HMAC-SHA256 hash using Secret Key\n3. Call /api/cpaypayments/getchecksum,Checksum matches CPay response,,Pending
+TC002,CPay Core,OTP Initiation,Mobile OTP Payment (Step 1),1. Call /api/cpaypayments/payment with valid MSISDN\n2. Check response reasonCode,reasonCode = 'otpSend' and OTP received on phone,,Pending
+TC003,CPay Core,OTP Confirmation,Mobile OTP Payment (Step 2),1. Call /api/cpaypayments/confirm with OTP from TC002\n2. Check transaction status,paymentRequestStatus = 'PROCESSED',,Pending
+TC004,CPay Core,USSD Push,Async USSD Payment,1. Call /api/cpaypayments/paymentrequest/async/transactions\n2. Accept prompt on phone,Transaction status becomes 'PROCESSED' on poll,,Pending
+TC005,CPay Core,Card Payment,Card Redirect,1. Call /api/cpaypayments/payment with cardPayment=true\n2. Open redirect URL in browser,Successful redirect to 3DS page,,Pending
+TC006,CPay Core,Status Query,Check Transaction Status,1. Call /api/cpaypayments/transaction-status with valid reference,Returns correct status of the transaction,,Pending
+TC007,MyBill,Airtime,Purchase Vodacom Airtime,1. Select Airtime -> VCL\n2. Enter amount and phone\n3. Execute purchase,Success response with CPay Txn ID,,Pending
+TC008,MyBill,Airtime,Purchase Econet Airtime,1. Select Airtime -> ETL\n2. Enter amount and phone\n3. Execute purchase,Success response with CPay Txn ID,,Pending
+TC009,MyBill,Electricity,Meter Lookup,1. Enter valid LEC meter number\n2. Call /api/paybills/electricity/customerlookup,Returns customer name and account details,,Pending
+TC010,MyBill,Electricity,Token Purchase,1. Purchase electricity for valid meter\n2. Check provider_response,Returns valid electricity token string,,Pending
+TC011,MyBill,Insurance,Provider List,1. Call /api/paybills/insurance/list,Returns list of insurance partners,,Pending
+TC012,MyBill,Insurance,Member Lookup,1. Enter policy number and partner ID\n2. Call /api/paybills/insurance/member,Returns member name and premium info,,Pending
+TC013,MyBill,Insurance,Premium Payment,1. Pay insurance premium\n2. Check status,Status = 'PROCESSED',,Pending
+TC014,MyBill,Tickets,Event List,1. Call /api/chaperone-vas/tickets/list,Returns list of available events,,Pending
+TC015,MyBill,Tickets,Ticket Purchase,1. Purchase ticket for event\n2. Extract ticket reference,Returns TicketReference in additionalData,,Pending
+TC016,CPay Core,Error Handling,Invalid Checksum,1. Send request with modified checksum string,Returns reasonCode = 'checksumError',,Pending
+TC017,CPay Core,Error Handling,Invalid MSISDN,1. Send request with unregistered MSISDN,Returns validation failure or 'does not exist',,Pending
+TC018,MyBill,Business Rules,Standard Tier (30%),1. Select 30% tier\n2. Check upfront calculation,10% upfront deducted locally; 120% due on payday,,Pending
+TC019,MyBill,Business Rules,No-Upfront Tier (40%),1. Select 40% tier\n2. Check upfront calculation,0% upfront deducted; 140% due on payday,,Pending

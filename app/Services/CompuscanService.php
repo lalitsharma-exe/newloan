@@ -98,6 +98,15 @@ class CompuscanService
     }
 
     /**
+     * Fixed-length alphanumeric right-aligned padded with spaces
+     */
+    private function padALeft($str, $length): string
+    {
+        $str = substr((string)$str, 0, $length);
+        return str_pad($str, $length, ' ', STR_PAD_LEFT);
+    }
+
+    /**
      * Fixed-length numeric right-aligned padded with spaces (no zeroes before standard digits, no decimals)
      */
     private function padN($num, $length): string
@@ -180,10 +189,10 @@ class CompuscanService
         $row .= $dob;
         
         // 6 BRANCH CODE (8)
-        $row .= $this->padA('HQ', 8);
+        $row .= $this->padALeft('HQ', 8);
         
         // 7 ACCOUNT NO. (25)
-        $row .= $this->padA($loan->loan_number, 25);
+        $row .= $this->padALeft($loan->loan_number, 25);
         
         // 8 SUB-ACCOUNT NO. (4)
         $row .= $this->padA('', 4);
