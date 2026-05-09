@@ -83,7 +83,16 @@ class ApplicationService
             ]);
         }
 
-        return $this->createLoanFromApplication($app);
+        $loan = $this->createLoanFromApplication($app);
+
+        // Send Approval SMS
+        try {
+            $app->user->notify(new \App\Notifications\LoanApprovedSms($app));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to send approval SMS for app {$app->id}: " . $e->getMessage());
+        }
+
+        return $loan;
     }
 
     public function decline(LoanApplication $app, string $reason, User $admin): void
@@ -95,6 +104,13 @@ class ApplicationService
             'content'     => "Declined: {$reason}",
             'is_internal' => true,
         ]);
+
+        // Send Decline SMS
+        try {
+            $app->user->notify(new \App\Notifications\LoanDeclinedSms($app));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to send decline SMS for app {$app->id}: " . $e->getMessage());
+        }
     }
 
     public function hold(LoanApplication $app, string $reason, User $admin): void

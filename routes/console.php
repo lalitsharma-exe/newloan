@@ -16,3 +16,6 @@ Schedule::command('loans:send-reminders')->dailyAt('09:00');
 
 // Process MyBill payday auto-deductions
 Schedule::command('mybill:process-paydays')->dailyAt('06:00');
+
+// Expire old inactive applications
+Schedule::command('loans:expire-applications')->dailyAt('02:00');

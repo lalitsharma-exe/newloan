@@ -146,6 +146,13 @@ class LoanController extends Controller
         // Referral System: Validate referral if it exists
         $this->svc->validateReferral($loan);
 
+        // Send Disbursement SMS
+        try {
+            $loan->user->notify(new \App\Notifications\LoanDisbursedSms($loan));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to send disbursement SMS for loan {$loan->id}: " . $e->getMessage());
+        }
+
         AuditLog::record(
             'loan.disburse',
             "Loan {$loan->loan_number} disbursed via {$method}. Ref: {$reference}" .
