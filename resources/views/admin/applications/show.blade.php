@@ -544,7 +544,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
               <label class="fl">Document Type *</label>
               <select name="type" class="fc" required>
                 <option value="">— Select Type —</option>
-                @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Selfie Picture','employment_letter'=>'Employment Letter','other'=>'Other'] as $v=>$l)
+                @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Selfie Picture','employment_letter'=>'Employment Letter','experian_report'=>'Experian Report','other'=>'Other'] as $v=>$l)
                 <option value="{{ $v }}">{{ $l }}</option>
                 @endforeach
               </select>
@@ -576,7 +576,10 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
               <i class="bi bi-file-earmark-{{ str_contains($doc->mime_type??'','pdf')?'pdf':'text' }}-fill"></i>
             </div>
             <div>
-              <div style="font-weight:600;font-size:13px">{{ ucfirst(str_replace('_',' ',$doc->type)) }}</div>
+              <div style="font-weight:600;font-size:13px">
+                {{ ucfirst(str_replace('_',' ',$doc->type)) }}
+                @if($doc->type === 'experian_report') <span style="background:#fef2f2;color:#dc2626;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle;border:1px solid #fee2e2"><i class="bi bi-eye-slash-fill"></i> INTERNAL ONLY</span> @endif
+              </div>
               <div style="font-size:11.5px;color:var(--muted)">{{ $doc->original_name }} &nbsp;·&nbsp; {{ $doc->created_at->format('d M Y') }}</div>
               @if($doc->notes)<div style="font-size:11px;color:var(--muted);font-style:italic">{{ $doc->notes }}</div>@endif
             </div>

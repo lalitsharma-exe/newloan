@@ -165,13 +165,24 @@ class WalkInClientController extends Controller
             'title'          => 'nullable|string|max:20',
             'first_name'     => 'required|string|max:80',
             'surname'        => 'required|string|max:80',
-            'national_id'    => 'required|string|max:50',
+            'national_id'    => [
+                'required', 'string', 'max:50',
+                \Illuminate\Validation\Rule::unique('users', 'national_id')->ignore($application->user_id)
+            ],
             'date_of_birth'  => 'required|date|before:'.now()->subYears(18)->format('Y-m-d'),
             'gender'         => 'nullable|string|max:20',
             'marital_status' => 'nullable|string|max:20',
             'cell_number'    => 'required|string|max:30',
             'email'          => 'nullable|email|max:150',
         ]);
+
+        // Sync with User record
+        $application->user->update([
+            'national_id'   => $data['national_id'],
+            'date_of_birth' => $data['date_of_birth'],
+            'gender'        => $data['gender'],
+        ]);
+
         $application->update($data);
     }
 

@@ -382,6 +382,17 @@ $totalSteps = 9;
       </div>
       @endif
 
+      {{-- Bank Details Review --}}
+      @if($application->bankDetails)
+      @php $bank = $application->bankDetails; @endphp
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Bank Account Details</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+        @foreach(['Bank'=>$bank->bank_name,'Branch'=>$bank->branch_name,'Account Number'=>$bank->account_number,'Account Type'=>ucfirst($bank->account_type)] as $l=>$v)
+        <div style="background:#f8fafc;border-radius:8px;padding:10px 12px"><div style="font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase">{{ $l }}</div><div style="font-weight:600;margin-top:2px;font-size:13px">{{ $v }}</div></div>
+        @endforeach
+      </div>
+      @endif
+
       {{-- Loan details --}}
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px">Loan Details</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">

@@ -19,7 +19,7 @@ class ApplicationController extends Controller
     public function show(LoanApplication $application)
     {
         abort_if($application->user_id !== auth('borrower')->id(), 403);
-        $application->load(['loanProduct', 'documents', 'notes' => fn($q) => $q->where('is_internal', false), 'loan', 'affordability']);
+        $application->load(['loanProduct', 'documents' => fn($q) => $q->where('type', '!=', 'experian_report'), 'notes' => fn($q) => $q->where('is_internal', false), 'loan', 'affordability']);
         return view('borrower.applications.show', compact('application'));
     }
 
@@ -52,13 +52,21 @@ class ApplicationController extends Controller
             return redirect()->route('borrower.apply.step.show', [$application, $application->step]);
         }
 
+        // Ensure documents are uploaded before proceeding to Review (Step 9)
+        if ($step >= 9) {
+            $missing = $this->getMissingDocuments($application);
+            if (count($missing) > 0) {
+                return redirect()->route('borrower.apply.step.show', [$application, 8])
+                    ->with('error', 'Please upload all required documents (' . $this->formatMissingDocs($missing) . ') before continuing.');
+            }
+        }
+
         // Protection for Step 9: users can review, but Submit button will trigger fee check
-        // (Removed the automatic redirect from here so they can see their summary)
         if ($step > 9) {
             return redirect()->route('borrower.apply.step.show', [$application, 9]);
         }
 
-        $application->load(['loanProduct', 'affordability', 'employment', 'bankDetails', 'nextOfKin']);
+        $application->load(['loanProduct', 'affordability', 'employment', 'bankDetails', 'nextOfKin', 'documents' => fn($q) => $q->where('type', '!=', 'experian_report')]);
         $products = LoanProduct::active()->get();
         return view('borrower.applications.step', compact('application', 'step', 'products'));
     }
@@ -71,10 +79,37 @@ class ApplicationController extends Controller
         $nextStep = min($step + 1, $totalSteps);
 
         // ── Step-specific handlers ──────────────────────────────────
+        if ($step === 1) {
+            $request->validate([
+                'national_id' => [
+                    'required', 'string', 'max:50',
+                    \Illuminate\Validation\Rule::unique('users', 'national_id')->ignore($application->user_id)
+                ],
+                'cell_number'   => 'required|string|max:30',
+                'first_name'    => 'required|string|max:80',
+                'surname'       => 'required|string|max:80',
+                'date_of_birth' => 'required|date|before:' . now()->subYears(18)->format('Y-m-d'),
+            ]);
+
+            // Sync snapshot data back to user profile to ensure account remains accurate
+            $application->user->update([
+                'national_id'   => $request->national_id,
+                'date_of_birth' => $request->date_of_birth,
+                // Note: We don't force update phone here as it might require re-verification
+            ]);
+        }
         if ($step === 3)
             $this->saveEmployment($request, $application);
-        if ($step === 4)
+        if ($step === 4) {
+            $request->validate([
+                'bank_name' => 'required|string',
+                'branch_name' => 'required|string',
+                'account_number' => 'required|string',
+                'account_holder_name' => 'required|string',
+                'account_type' => 'required|string',
+            ]);
             $this->saveBankDetails($request, $application);
+        }
         if ($step === 5)
             $this->saveNextOfKin($request, $application);
         if ($step === 6) {
@@ -102,10 +137,9 @@ class ApplicationController extends Controller
             }
         }
         if ($step === 8) {
-            $docs = $application->documents()->pluck('type')->toArray();
-            $missing = array_diff(['national_id', 'payslip', 'bank_statement'], $docs);
+            $missing = $this->getMissingDocuments($application);
             if (count($missing) > 0) {
-                return back()->with('error', 'Please upload all required documents (' . implode(', ', array_map(fn($v) => ucwords(str_replace('_', ' ', $v)), $missing)) . ') before continuing.');
+                return back()->with('error', 'Please upload all required documents (' . $this->formatMissingDocs($missing) . ') before continuing.');
             }
         }
 
@@ -207,6 +241,13 @@ class ApplicationController extends Controller
 
         // Save signature so it isn't lost if they are redirected to payment
         $application->update(['signature_path' => $signaturePath]);
+
+        // ── DOCUMENT CHECK ──────────────────────────────────────────
+        $missing = $this->getMissingDocuments($application);
+        if (count($missing) > 0) {
+            return redirect()->route('borrower.apply.step.show', [$application, 8])
+                ->with('error', 'Incomplete application. Missing documents: ' . $this->formatMissingDocs($missing));
+        }
 
         // ── APPLICATION FEE HURDLE ──────────────────────────────────
         $fee = (float) \App\Models\SystemSetting::get('application_fee', 0);
@@ -661,6 +702,8 @@ class ApplicationController extends Controller
             ['application_id' => $application->id],
             [
                 'bank_name' => $request->bank_name,
+                'branch_name' => $request->branch_name,
+                'branch_code' => $request->branch_code,
                 'account_holder_name' => $request->account_holder_name,
                 'account_number' => $request->account_number,
                 'account_type' => $request->account_type,
@@ -681,5 +724,23 @@ class ApplicationController extends Controller
                 ]
             );
         }
+    }
+
+    private function getMissingDocuments(LoanApplication $application): array
+    {
+        $required = ['national_id', 'payslip', 'bank_statement', 'photo'];
+        $docs = $application->documents()->pluck('type')->toArray();
+        return array_diff($required, $docs);
+    }
+
+    private function formatMissingDocs(array $missing): string
+    {
+        $names = [
+            'national_id' => 'National ID',
+            'payslip' => 'Payslip',
+            'bank_statement' => 'Bank Statement',
+            'photo' => 'Selfie Photo',
+        ];
+        return implode(', ', array_map(fn($v) => $names[$v] ?? ucwords(str_replace('_', ' ', $v)), $missing));
     }
 }

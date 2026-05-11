@@ -96,8 +96,8 @@
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                     </span>
                 </div>
-                <div class="kpi-val">M{{ number_format($cur['disbursed'] / 1000, 1) }}k</div>
-                <div class="kpi-sub-val">MTD: M{{ number_format($stats['disbursed_month'], 0) }}</div>
+                <div class="kpi-val">M{{ number_format($cur['disbursed'], 2) }}</div>
+                <div class="kpi-sub-val">MTD: M{{ number_format($stats['disbursed_month'], 2) }}</div>
                 <div class="kpi-badge kpi-badge--{{ $chg['disbursed'] >= 0 ? 'up' : 'down' }}">
                     @if($chg['disbursed'] >= 0)<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>@else<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>@endif
                     {{ abs($chg['disbursed']) }}% vs {{ $vsLabel }}
@@ -158,7 +158,7 @@
                     </span>
                 </div>
                 <div class="kpi-val">{{ $stats['collection_pct'] }}%</div>
-                <div class="kpi-sub-val">M{{ number_format($stats['month_collected'],0) }} collected</div>
+                <div class="kpi-sub-val">M{{ number_format($stats['month_collected'],2) }} collected</div>
                 <div class="kpi-badge kpi-badge--up">MTD</div>
             </a>
 
@@ -171,7 +171,7 @@
                     </span>
                 </div>
                 <div class="kpi-val">{{ $stats['par30_pct'] }}%</div>
-                <div class="kpi-sub-val">M{{ number_format($stats['par30_amount'],0) }} at risk</div>
+                <div class="kpi-sub-val">M{{ number_format($stats['par30_amount'],2) }} at risk</div>
                 <div class="kpi-badge kpi-badge--{{ $stats['par30_pct'] <= 5 ? 'up' : 'down' }}">Portfolio risk</div>
             </a>
 
@@ -183,7 +183,7 @@
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 6v1m0 4v1m-3-4h.01M17 16.01h.01"/></svg>
                     </span>
                 </div>
-                <div class="kpi-val">M{{ number_format($stats['total_revenue']/1000,1) }}k</div>
+                <div class="kpi-val">M{{ number_format($stats['total_revenue'], 2) }}</div>
                 <div class="kpi-sub-val">All-time (est.)</div>
                 <div class="kpi-badge kpi-badge--up">YTD total</div>
             </a>
@@ -247,13 +247,13 @@
                         </div>
                         <div class="lb-hero">
                             <div class="lb-lbl">Outstanding Portfolio</div>
-                            <div class="lb-big">M{{ number_format($stats['total_portfolio'], 0) }}</div>
+                            <div class="lb-big">M{{ number_format($stats['total_portfolio'], 2) }}</div>
                             <div class="lb-trend">↑ 18.4% vs last month</div>
                         </div>
                         <div class="lb-pair">
                             <div class="lb-stat">
                                 <div class="lbs-lbl">Avg Loan</div>
-                                <div class="lbs-val">M{{ number_format($stats['avg_loan_size'], 0) }}</div>
+                            <div class="lbs-val">M{{ number_format($stats['avg_loan_size'], 2) }}</div>
                             </div>
                             <div class="lb-stat">
                                 <div class="lbs-lbl">Avg Tenure</div>
@@ -313,7 +313,7 @@
                                         <td class="td-id">{{ $app->application_number }}</td>
                                         <td class="td-name">{{ $app->user->name ?? 'N/A' }}</td>
                                         <td><span class="seg-pill">Private</span></td>
-                                        <td class="td-amount">M{{ number_format($app->requested_amount, 0) }}</td>
+                                        <td class="td-amount">M{{ number_format($app->requested_amount, 2) }}</td>
                                         <td><span class="status-pill sp-{{ $app->status }}">{{ ucfirst($app->status) }}</span>
                                         </td>
                                         <td class="td-date">{{ $app->created_at->format('d M Y') }}</td>
@@ -332,7 +332,15 @@
                     </div>
                 </div>
 
-                {{-- Two-col: Profitability + Collections --}}
+                {{-- ═══ PROFITABILITY — must be exact, not estimated ═══ --}}
+                @php
+                    $interestIncome = $stats['total_interest_revenue'];
+                    $feeIncome = $stats['total_fee_revenue'];
+                    $totalRevenue = $stats['total_revenue'];
+                    $writtenOff = $stats['written_off_amount'];
+                    $netProfit = $totalRevenue - $writtenOff;
+                    $netMargin = $totalRevenue > 0 ? round($netProfit / $totalRevenue * 100, 1) : 0;
+                @endphp
                 <div class="two-col">
                     <div class="card">
                         <div class="card-head">
@@ -342,29 +350,29 @@
                         <div class="pl-grid">
                             <div class="pl-item">
                                 <div class="pl-lbl">Interest Income</div>
-                                <div class="pl-val">M{{ number_format($stats['total_interest_revenue'], 0) }}</div>
+                                <div class="pl-val">M{{ number_format($interestIncome, 2) }}</div>
                             </div>
                             <div class="pl-item">
                                 <div class="pl-lbl">Fee Income</div>
-                                <div class="pl-val">M{{ number_format($stats['total_fee_revenue'], 0) }}</div>
+                                <div class="pl-val">M{{ number_format($feeIncome, 2) }}</div>
                             </div>
                             <div class="pl-item pl-total">
                                 <div class="pl-lbl">Total Revenue</div>
-                                <div class="pl-val">M{{ number_format($stats['total_revenue'], 0) }}</div>
+                                <div class="pl-val">M{{ number_format($totalRevenue, 2) }}</div>
                             </div>
                             <div class="pl-divider"></div>
                             <div class="pl-item">
-                                <div class="pl-lbl">Operating Exp.</div>
-                                <div class="pl-val">M{{ number_format($stats['total_revenue'] * 0.1, 0) }}</div>
+                                <div class="pl-lbl">Write-Offs</div>
+                                <div class="pl-val" style="color:#dc2626">M{{ number_format($writtenOff, 2) }}</div>
                             </div>
                             <div class="pl-item">
-                                <div class="pl-lbl">Cost of Funds</div>
-                                <div class="pl-val">M{{ number_format($stats['total_revenue'] * 0.2, 0) }}</div>
+                                <div class="pl-lbl">Total Disbursed</div>
+                                <div class="pl-val">M{{ number_format($stats['total_disbursed'], 2) }}</div>
                             </div>
                             <div class="pl-item pl-profit">
                                 <div class="pl-lbl">Net Profit</div>
-                                <div class="pl-val">M{{ number_format($stats['total_revenue'] * 0.4, 0) }}</div>
-                                <div class="pl-margin">27.5% margin</div>
+                                <div class="pl-val">M{{ number_format($netProfit, 2) }}</div>
+                                <div class="pl-margin">{{ $netMargin }}% margin</div>
                             </div>
                         </div>
                     </div>
@@ -377,11 +385,11 @@
                         <div class="col-trio">
                             <div class="col-stat">
                                 <div class="cs-lbl">Total Due</div>
-                                <div class="cs-val">M{{ number_format($stats['month_expected'], 0) }}</div>
+                                <div class="cs-val">M{{ number_format($stats['month_expected'], 2) }}</div>
                             </div>
                             <div class="col-stat">
                                 <div class="cs-lbl">Collected</div>
-                                <div class="cs-val cs-green">M{{ number_format($stats['month_collected'], 0) }}</div>
+                                <div class="cs-val cs-green">M{{ number_format($stats['month_collected'], 2) }}</div>
                             </div>
                             <div class="col-stat">
                                 <div class="cs-lbl">Rate</div>
@@ -391,19 +399,60 @@
                         <div class="aging-block">
                             <div class="aging-head">
                                 <span>Overdue Aging</span>
-                                <span class="aging-total">M{{ number_format($stats['overdue_total'], 0) }}</span>
+                                <span class="aging-total">M{{ number_format($stats['overdue_total'], 2) }}</span>
                             </div>
-                            @php $aging = [['label' => '1–7 days', 'val' => $stats['overdue_1_7'], 'pct' => 32], ['label' => '8–30 days', 'val' => $stats['overdue_8_30'], 'pct' => 37], ['label' => '31–60 days', 'val' => $stats['overdue_31_60'], 'pct' => 23], ['label' => '60+ days', 'val' => $stats['overdue_60p'], 'pct' => 8]]; @endphp
+                            @php
+                                $overdueTotal = $stats['overdue_total'] ?: 1;
+                                $aging = [
+                                    ['label' => '1–7 days', 'val' => $stats['overdue_1_7'], 'pct' => round($stats['overdue_1_7'] / $overdueTotal * 100)],
+                                    ['label' => '8–30 days', 'val' => $stats['overdue_8_30'], 'pct' => round($stats['overdue_8_30'] / $overdueTotal * 100)],
+                                    ['label' => '31–60 days', 'val' => $stats['overdue_31_60'], 'pct' => round($stats['overdue_31_60'] / $overdueTotal * 100)],
+                                    ['label' => '60+ days', 'val' => $stats['overdue_60p'], 'pct' => round($stats['overdue_60p'] / $overdueTotal * 100)],
+                                ];
+                            @endphp
                             @foreach($aging as $a)
                                 <div class="aging-row">
                                     <span class="aging-label">{{ $a['label'] }}</span>
                                     <div class="aging-bar-wrap">
                                         <div class="aging-bar" style="width:{{ $a['pct'] }}%"></div>
                                     </div>
-                                    <span class="aging-val">M{{ number_format($a['val'], 0) }}</span>
+                                    <span class="aging-val">M{{ number_format($a['val'], 2) }}</span>
                                 </div>
                             @endforeach
                         </div>
+                    </div>
+                </div>
+
+                {{-- ═══ TOP REFERRERS — moved below profitability per Charles ═══ --}}
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-title">Top Referrers</div>
+                        <a href="#" class="card-link">All →</a>
+                    </div>
+                    <div class="tbl-wrap">
+                        <table class="dtbl">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th style="text-align:center">Referrals</th>
+                                    <th style="text-align:center">Qualified</th>
+                                    <th style="text-align:right">Earned</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($topReferrers as $r)
+                                    <tr>
+                                        <td class="td-name">{{ $r->name }}</td>
+                                        <td style="text-align:center">{{ $r->total_referrals }}</td>
+                                        <td style="text-align:center">{{ $r->qualified }}</td>
+                                        <td style="text-align:right;font-weight:700">M{{ number_format($r->total_earned, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                                @if(empty($topReferrers))
+                                    <tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:20px">No referrals yet</td></tr>
+                                @endif
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -523,36 +572,7 @@
                     </div>
                 </div>
 
-                {{-- Top Referrers --}}
-                <div class="card">
-                    <div class="card-head">
-                        <div class="card-title">Top Referrers</div>
-                        <a href="#" class="card-link">All →</a>
-                    </div>
-                    <div class="tbl-wrap">
-                        <table class="dtbl dtbl-sm">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th style="text-align:center">Referrals</th>
-                                    <th style="text-align:center">Qualified</th>
-                                    <th style="text-align:right">Earned</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($topReferrers as $r)
-                                    <tr>
-                                        <td>{{ $r->name }}</td>
-                                        <td style="text-align:center">{{ $r->total_referrals }}</td>
-                                        <td style="text-align:center">{{ $r->qualified }}</td>
-                                        <td style="text-align:right;font-weight:700">M{{ number_format($r->total_earned, 0) }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                {{-- Top Referrers moved to main body below Profitability --}}
 
                 {{-- Payout Summary --}}
                 <div class="card">
@@ -561,12 +581,12 @@
                     </div>
                     <div class="payout-list">
                         <div class="po-row"><span>Total
-                                Eligible</span><strong>M{{ number_format($stats['pending_payouts'] + $stats['total_paid_out'], 0) }}</strong>
+                                Eligible</span><strong>M{{ number_format($stats['pending_payouts'] + $stats['total_paid_out'], 2) }}</strong>
                         </div>
                         <div class="po-row po-paid"><span>Paid
-                                Out</span><strong>M{{ number_format($stats['total_paid_out'], 0) }}</strong></div>
+                                Out</span><strong>M{{ number_format($stats['total_paid_out'], 2) }}</strong></div>
                         <div class="po-row po-pending">
-                            <span>Pending</span><strong>M{{ number_format($stats['pending_payouts'], 0) }}</strong>
+                            <span>Pending</span><strong>M{{ number_format($stats['pending_payouts'], 2) }}</strong>
                         </div>
                         <div class="po-row po-muted"><span>Disqualified</span><strong>M650</strong></div>
                     </div>
