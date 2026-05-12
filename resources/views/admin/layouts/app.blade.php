@@ -179,6 +179,9 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     @if($u->hasAdminPermission('referrals.view'))
     <div class="nav-item"><a href="{{ route('admin.referrals.index') }}" class="{{ request()->routeIs('admin.referrals.*')?'active':'' }}"><i class="bi bi-gift-fill"></i> Referrals</a></div>
     @endif
+    @if($u->hasAdminPermission('applications.view'))
+    <div class="nav-item"><a href="{{ route('admin.declines.index') }}" class="{{ request()->routeIs('admin.declines.*')?'active':'' }}"><i class="bi bi-x-circle-fill"></i> Decline Tracker</a></div>
+    @endif
     @if($u->hasAdminPermission('bulk_sms'))
     <div class="nav-item"><a href="{{ route('admin.bulk-sms.index') }}" class="{{ request()->routeIs('admin.bulk-sms.*')?'active':'' }}"><i class="bi bi-chat-dots-fill"></i> Bulk SMS</a></div>
     @endif

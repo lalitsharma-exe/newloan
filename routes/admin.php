@@ -138,6 +138,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{application}/experian-template', [ApplicationController::class, 'experianTemplate'])->name('experian-template');
         });
 
+        // Decline Tracker
+        Route::prefix('declines')->name('declines.')->middleware('admin.permission:applications.view')->group(function () {
+            Route::get('/',             [\App\Http\Controllers\Admin\DeclineController::class, 'index'])->name('index');
+            Route::get('/report',       [\App\Http\Controllers\Admin\DeclineController::class, 'report'])->name('report');
+            Route::get('/taxonomy',     [\App\Http\Controllers\Admin\DeclineController::class, 'taxonomy'])->name('taxonomy');
+            Route::post('/',            [\App\Http\Controllers\Admin\DeclineController::class, 'store'])->name('store');
+        });
+
         /*
         | ── LOAN MANAGEMENT ────────────────────────────────────────
         */
@@ -160,7 +168,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{loan}/schedule',          [LoanController::class, 'schedule'])->name('schedule');
             Route::get('/{loan}/agreement',              [LoanController::class, 'agreement'])->name('agreement');
             Route::get('/{loan}/statement',              [LoanController::class, 'statement'])->name('statement');
-            Route::get('/{loan}/receipt/{payment}',      [LoanController::class, 'receipt'])->name('receipt');
+            Route::get('/{loan}/receipt/{payment}',      [\App\Http\Controllers\ReceiptController::class, 'show'])->name('receipt');
+            Route::get('/{loan}/receipt/{payment}/pdf',  [\App\Http\Controllers\ReceiptController::class, 'download'])->name('receipt.download');
             Route::get('/{loan}/settlement-quotation',   [LoanController::class, 'settlementQuotation'])->name('settlement-quotation');
             Route::get('/{loan}/settlement-letter',      [LoanController::class, 'settlementLetter'])->name('settlement-letter');
 

@@ -264,7 +264,6 @@ class LoanController extends Controller
 
     public function statement(Loan $loan)   { $loan->load(['user','loanProduct','installments','payments']); return view('admin.loans.statement', compact('loan')); }
     public function agreement(Loan $loan)   { $loan->load(['user','loanProduct','application.bankDetails']); return view('admin.loans.agreement-pdf', compact('loan')); }
-    public function receipt(Loan $loan, Payment $payment) { return view('admin.loans.receipt', compact('loan','payment')); }
 
     public function settlementQuotation(Loan $loan)
     {

@@ -739,10 +739,47 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
 </div></div>
 
 <div class="mo" id="dModal"><div class="mb">
-  <div class="mh"><span class="mt"><i class="bi bi-x-circle-fill" style="color:#ef4444"></i> Decline</span><button class="mc" onclick="closeModal('dModal')">&times;</button></div>
-  <form method="POST" action="{{ route('admin.applications.decline',$application) }}">@csrf
-    <div class="mbody"><div class="fg"><label class="fl">Decline Reason *</label><textarea name="reason" class="fc" rows="4" required></textarea></div></div>
-    <div class="mf"><button type="button" class="btn btn-o" onclick="closeModal('dModal')">Cancel</button><button type="submit" class="btn btn-e"><i class="bi bi-x-lg"></i> Decline</button></div>
+  <div class="mh"><span class="mt"><i class="bi bi-x-circle-fill" style="color:#ef4444"></i> Decline Application</span><button class="mc" onclick="closeModal('dModal')">&times;</button></div>
+  <form method="POST" action="{{ route('admin.declines.store') }}">@csrf
+    <input type="hidden" name="application_id" value="{{ $application->id }}">
+    <div class="mbody">
+        <div style="background:rgba(239,68,68,.05); border:1px solid rgba(239,68,68,.1); border-radius:10px; padding:12px; margin-bottom:20px; font-size:12px; color:#991b1b">
+            <i class="bi bi-info-circle-fill"></i> Select the most accurate category and reason for this decline. This data is used for portfolio risk reporting.
+        </div>
+        <div class="fg">
+            <label class="fl">Decline Category *</label>
+            <select name="category_id" id="decline_category" class="fc" required onchange="updateDeclineReasons(this.value)">
+                <option value="">— Select Category —</option>
+                @foreach($declineCategories as $cat)
+                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="fg">
+            <label class="fl">Specific Reason *</label>
+            <select name="reason" id="decline_reason" class="fc" required disabled>
+                <option value="">— Select Category First —</option>
+            </select>
+        </div>
+        <div class="g2">
+            <div class="fg">
+                <label class="fl">Decline Date *</label>
+                <input type="date" name="declined_at" class="fc" value="{{ now()->format('Y-m-d') }}" required max="{{ now()->format('Y-m-d') }}">
+            </div>
+            <div class="fg">
+                <label class="fl">Loan Amount (LSL)</label>
+                <input type="number" name="loan_amount" class="fc" value="{{ $application->requested_amount }}" readonly style="background:#f1f5f9">
+            </div>
+        </div>
+        <div class="fg">
+            <label class="fl">Officer Notes (Internal)</label>
+            <textarea name="notes" class="fc" rows="3" placeholder="DTI ratio, specific credit flags, or document discrepancies..."></textarea>
+        </div>
+    </div>
+    <div class="mf">
+        <button type="button" class="btn btn-o" onclick="closeModal('dModal')">Cancel</button>
+        <button type="submit" class="btn btn-e"><i class="bi bi-x-lg"></i> Confirm Decline</button>
+    </div>
   </form>
 </div></div>
 
@@ -866,6 +903,32 @@ function previewDoc(url, title) {
   document.getElementById('docPreviewTitle').innerHTML = '<i class="bi bi-file-earmark-text" style="color:var(--p)"></i> ' + title;
   document.getElementById('docPreviewFrame').src = url;
   openModal('docPreviewModal');
+}
+
+let declineTaxonomy = {!! $declineCategories->toJson() !!};
+function loadDeclineTaxonomy() {
+    // Already loaded via Blade
+}
+
+function updateDeclineReasons(catId) {
+    const reasonSelect = document.getElementById('decline_reason');
+    reasonSelect.innerHTML = '<option value="">— Select Reason —</option>';
+    
+    if (!catId) {
+        reasonSelect.disabled = true;
+        return;
+    }
+
+    const category = declineTaxonomy.find(c => c.id == catId);
+    if (category && category.reasons) {
+        category.reasons.forEach(reason => {
+            const opt = document.createElement('option');
+            opt.value = reason;
+            opt.textContent = reason;
+            reasonSelect.appendChild(opt);
+        });
+        reasonSelect.disabled = false;
+    }
 }
 </script>
 

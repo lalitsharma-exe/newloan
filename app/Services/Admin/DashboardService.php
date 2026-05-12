@@ -79,15 +79,50 @@ class DashboardService
         $totalInterestRevenue = Loan::sum(DB::raw('total_amount - principal_amount'));
         $totalFeeRevenue      = Loan::sum('processing_fee');
         $totalRevenue         = $totalInterestRevenue + $totalFeeRevenue;
+        $netProfit            = $totalRevenue - $writtenOffAmt;
+        $profitMargin         = $totalRevenue > 0 ? round(($netProfit / $totalRevenue) * 100, 1) : 0;
 
         // Disbursements this month
         $disbursedMonth = Loan::whereMonth('disbursement_date', $now->month)
             ->whereYear('disbursement_date', $now->year)
             ->sum('principal_amount');
 
+        // Liquidity Projections
+        $undisbursedFunds = LoanApplication::where('status', 'approved')->sum('requested_amount');
+        $expectedInflows  = LoanInstallment::where('status', '!=', 'paid')
+            ->whereDate('due_date', '>', $now)
+            ->whereDate('due_date', '<=', $now->copy()->addDays(30))
+            ->sum('outstanding_amount');
+        
+        // Expected outflows (next 30 days) - estimated as approved apps + recent avg
+        $avgMonthlyDisbursement = Loan::where('created_at', '>=', $now->copy()->subDays(90))
+            ->sum('principal_amount') / 3;
+        $expectedOutflows = $undisbursedFunds + ($avgMonthlyDisbursement * 0.2); // current approved + 20% buffer
+
+        $netLiquidity = $cashAvailable + $expectedInflows - $expectedOutflows;
+        
+        // Runaway (Months)
+        $monthlyNetCashflow = $monthCollected - $disbursedMonth;
+        $runaway = $monthlyNetCashflow < 0 ? round(abs($cashAvailable / $monthlyNetCashflow), 1) : '∞';
+
         // Total borrowers
         $totalBorrowers   = User::where('role', 'borrower')->count();
         $activeBorrowers  = Loan::whereIn('status', ['active', 'overdue'])->distinct('user_id')->count('user_id');
+        
+        // New borrowers (joined this month)
+        $newBorrowers = User::where('role', 'borrower')
+            ->whereMonth('created_at', $now->month)
+            ->whereYear('created_at', $now->year)
+            ->count();
+            
+        // Repeat borrowers
+        $repeatBorrowers = DB::table('loans')
+            ->select('user_id')
+            ->groupBy('user_id')
+            ->having(DB::raw('COUNT(*)'), '>', 1)
+            ->count();
+        $repeatRate = $totalBorrowers > 0 ? round(($repeatBorrowers / $totalBorrowers) * 100, 1) : 0;
+        $avgLoansPerBorrower = $totalBorrowers > 0 ? round(Loan::count() / $totalBorrowers, 1) : 0;
 
         // Referrals
         $totalReferrals     = Referral::count();
@@ -102,7 +137,28 @@ class DashboardService
             ? round(($totalRevenue - $writtenOffAmt) / Loan::count(), 2)
             : 0;
 
+        // Loans due today
+        $loansDueTodayCount = LoanInstallment::whereDate('due_date', today())
+            ->where('status', '!=', 'paid')
+            ->count();
+
         return [
+            // Executive Summary (On Top)
+            'exec_revenue'          => $totalRevenue,
+            'exec_net_profit'       => $netProfit,
+            'exec_profit_margin'    => $profitMargin,
+            'exec_portfolio'        => $totalPortfolio,
+            'exec_par30'            => $par30Pct,
+            'exec_collection_rate'  => $collectionPct,
+
+            // Liquidity Summary (On Top)
+            'liq_cash_available'    => max(0, $cashAvailable),
+            'liq_undisbursed'       => $undisbursedFunds,
+            'liq_expected_inflows'  => $expectedInflows,
+            'liq_expected_outflows' => $expectedOutflows,
+            'liq_net_liquidity'     => $netLiquidity,
+            'liq_runaway'           => $runaway,
+
             // Growth & Operations
             'apps_submitted'        => $appsSubmitted,
             'apps_approved'         => $appsApproved,
@@ -114,6 +170,11 @@ class DashboardService
             'overdue_loans'         => $overdueLoans,
             'total_borrowers'       => $totalBorrowers,
             'active_borrowers'      => $activeBorrowers,
+            'new_borrowers'         => $newBorrowers,
+            'repeat_borrowers'      => $repeatBorrowers,
+            'repeat_rate'           => $repeatRate,
+            'avg_loans_per_borrower' => $avgLoansPerBorrower,
+            'loans_due_today'       => $loansDueTodayCount,
             'disbursed_month'       => $disbursedMonth,
 
             // Portfolio & Risk
@@ -145,7 +206,7 @@ class DashboardService
             'total_fee_revenue'     => $totalFeeRevenue,
             'profit_per_loan'       => $profitPerLoan,
 
-            // Liquidity
+            // Liquidity (compatibility)
             'cash_available'        => max(0, $cashAvailable),
             'total_disbursed'       => $totalDisbursed,
             'total_collected'       => $totalCashIn,
@@ -398,8 +459,12 @@ class DashboardService
             'collected'    => (float) Payment::whereBetween('created_at', [$start, $end])->where('status', 'verified')->sum('amount'),
             'applications' => (int) \App\Models\LoanApplication::whereBetween('created_at', [$start, $end])->where('status', '!=', 'draft')->count(),
             'approved'     => (int) \App\Models\LoanApplication::whereBetween('decided_at', [$start, $end])->whereIn('status', ['approved', 'disbursed'])->count(),
-            'declined'     => (int) \App\Models\LoanApplication::whereBetween('decided_at', [$start, $end])->where('status', 'declined')->count(),
-            'referrals'    => (int) Referral::whereBetween('created_at', [$start, $end])->count(),
+            'revenue'      => (float) (Loan::whereBetween('created_at', [$start, $end])->sum(DB::raw('total_amount - principal_amount')) + Loan::whereBetween('created_at', [$start, $end])->sum('processing_fee')),
+            'profit'       => (float) (Loan::whereBetween('created_at', [$start, $end])->sum(DB::raw('total_amount - principal_amount')) + Loan::whereBetween('created_at', [$start, $end])->sum('processing_fee')) - Loan::where('status', 'written_off')->whereBetween('updated_at', [$start, $end])->sum('outstanding_balance'),
+            'new_borrowers' => (int) User::where('role', 'borrower')->whereBetween('created_at', [$start, $end])->count(),
+            'total_borrowers' => (int) User::where('role', 'borrower')->where('created_at', '<=', $end)->count(),
+            'active_borrowers' => (int) Loan::whereIn('status', ['active', 'overdue'])->where('created_at', '<=', $end)->distinct('user_id')->count('user_id'),
+            'active_loans'  => (int) Loan::where('status', 'active')->whereBetween('created_at', [$start, $end])->count(),
         ];
     }
 

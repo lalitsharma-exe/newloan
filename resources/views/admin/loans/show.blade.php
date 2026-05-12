@@ -22,7 +22,7 @@
       @if(in_array($loan->status,['paid_off','closed']))
       <a href="{{ route('admin.loans.settlement-letter',$loan) }}" class="btn btn-sm btn-ok"><i class="bi bi-patch-check"></i> Settlement Letter</a>
       @endif
-      @if($loan->status==='active')
+      @if(in_array($loan->status, ['active', 'overdue']))
       <button onclick="openModal('payModal')" class="btn btn-sm btn-ok"><i class="bi bi-cash"></i> Record Payment</button>
       <button onclick="openModal('closeModal')" class="btn btn-sm btn-e"><i class="bi bi-x-lg"></i> Close Loan</button>
       @endif
@@ -64,7 +64,17 @@
   <div style="overflow-x:auto"><table class="dt">
     <thead><tr><th>Reference</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead>
     <tbody>@forelse($loan->payments as $p)
-      <tr><td><span style="font-weight:700;color:#4f46e5;font-size:11.5px">{{$p->payment_reference}}</span></td><td><strong>M{{ number_format($p->amount,2) }}</strong></td><td>{{ ucfirst(str_replace('_',' ',$p->method)) }}</td><td><span class="badge b{{$p->status_badge}}">{{ ucfirst($p->status) }}</span></td><td class="muted">{{ $p->created_at->format('d M Y H:i') }}</td></tr>
+      <tr>
+        <td>
+          <a href="{{ route('admin.loans.receipt', [$loan, $p]) }}" target="_blank" style="font-weight:700;color:#4f46e5;font-size:11.5px;text-decoration:none">
+            {{$p->payment_reference}} <i class="bi bi-box-arrow-up-right" style="font-size: 10px;"></i>
+          </a>
+        </td>
+        <td><strong>M{{ number_format($p->amount,2) }}</strong></td>
+        <td>{{ ucfirst(str_replace('_',' ',$p->method)) }}</td>
+        <td><span class="badge b{{$p->status_badge}}">{{ ucfirst($p->status) }}</span></td>
+        <td class="muted">{{ $p->created_at->format('d M Y H:i') }}</td>
+      </tr>
       @empty<tr><td colspan="5"><div class="empty" style="padding:20px"><i class="bi bi-credit-card"></i><p>No payments</p></div></td></tr>@endforelse
     </tbody>
   </table></div>

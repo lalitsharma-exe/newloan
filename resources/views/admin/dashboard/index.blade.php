@@ -50,246 +50,274 @@
                 <a href="{{ route('admin.applications.index') }}" class="d-btn-primary">+ New Application</a>
             </div>
         </div>
+        <div style="margin-top:32px"></div>
 
-        {{-- ══════════════ KPI STRIP — Row 1: 4 cards ══════════════ --}}
-        @php
-            $vsLabel = $prevPeriodLabel;
-        @endphp
+        {{-- ══════════════ EXECUTIVE SUMMARY ══════════════ --}}
+        <div class="section-title">Executive Summary</div>
+        <div class="kpi-grid kpi-row-5">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Total Revenue</span>
+                    @if(isset($chg['revenue']))
+                        <div class="kpi-badge kpi-badge--{{ $chg['revenue'] >= 0 ? 'up' : 'down' }}">
+                            {{ $chg['revenue'] >= 0 ? '↑' : '↓' }} {{ abs($chg['revenue']) }}%
+                        </div>
+                    @endif
+                </div>
+                <div class="kpi-val">M{{ number_format($stats['exec_revenue'], 2) }}</div>
+                <div class="kpi-sub-val">All-time earnings</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Net Profit</span>
+                    @if(isset($chg['profit']))
+                        <div class="kpi-badge kpi-badge--{{ $chg['profit'] >= 0 ? 'up' : 'down' }}">
+                            {{ $chg['profit'] >= 0 ? '↑' : '↓' }} {{ abs($chg['profit']) }}%
+                        </div>
+                    @endif
+                </div>
+                <div class="kpi-val">M{{ number_format($stats['exec_net_profit'], 2) }}</div>
+                <div class="kpi-sub-val">Margin: <strong>{{ $stats['exec_profit_margin'] }}%</strong></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">Portfolio</span></div>
+                <div class="kpi-val">M{{ number_format($stats['exec_portfolio'], 2) }}</div>
+                <div class="kpi-sub-val">Outstanding balance</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">PAR 30</span></div>
+                <div class="kpi-val" style="color:{{ $stats['exec_par30'] > 5 ? '#dc2626' : '#111827' }}">{{ $stats['exec_par30'] }}%</div>
+                <div class="kpi-sub-val">Portfolio at risk</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">Collection Rate</span></div>
+                <div class="kpi-val">{{ $stats['exec_collection_rate'] }}%</div>
+                <div class="kpi-sub-val">MTD efficiency</div>
+            </div>
+        </div>
+
+        {{-- ══════════════ LIQUIDITY & CASHFLOW ══════════════ --}}
+        <div class="section-title" style="margin-top:24px">Liquidity & Cashflow</div>
+        <div class="kpi-grid kpi-row-6">
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">Cash Available</span></div>
+                <div class="kpi-val" style="color:#16a34a">M{{ number_format($stats['liq_cash_available'], 2) }}</div>
+                <div class="kpi-sub-val">Bank balance (est)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">Undisbursed Funds</span></div>
+                <div class="kpi-val">M{{ number_format($stats['liq_undisbursed'], 2) }}</div>
+                <div class="kpi-sub-val">Approved & Pending</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">Expected Inflows</span></div>
+                <div class="kpi-val">M{{ number_format($stats['liq_expected_inflows'], 2) }}</div>
+                <div class="kpi-sub-val">Next 30 days</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">Expected Outflows</span></div>
+                <div class="kpi-val">M{{ number_format($stats['liq_expected_outflows'], 2) }}</div>
+                <div class="kpi-sub-val">Projections + Approved</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">Net Liquidity</span></div>
+                <div class="kpi-val" style="color:{{ $stats['liq_net_liquidity'] < 0 ? '#dc2626' : '#111827' }}">M{{ number_format($stats['liq_net_liquidity'], 2) }}</div>
+                <div class="kpi-sub-val">30d Forecast</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">Runway</span></div>
+                <div class="kpi-val">{{ $stats['liq_runaway'] }} {{ is_numeric($stats['liq_runaway']) ? 'Months' : '' }}</div>
+                <div class="kpi-sub-val">Liquidity duration</div>
+            </div>
+        </div>
+
+        <div style="margin-top:24px"></div>
+
+        {{-- ══════════════ 1. BORROWER METRICS ══════════════ --}}
+        <div class="section-title">Borrower Metrics</div>
+        <div class="kpi-grid kpi-row-6">
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Total Borrowers</span>
+                    @if(isset($chg['total_borrowers']))
+                        <div class="kpi-badge kpi-badge--{{ $chg['total_borrowers'] >= 0 ? 'up' : 'down' }}">
+                            {{ $chg['total_borrowers'] >= 0 ? '↑' : '↓' }} {{ abs($chg['total_borrowers']) }}%
+                        </div>
+                    @endif
+                </div>
+                <div class="kpi-val">{{ number_format($stats['total_borrowers']) }}</div>
+                <div class="kpi-sub-val">Registered users</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">Active Borrowers</span>
+                    @if(isset($chg['active_borrowers']))
+                        <div class="kpi-badge kpi-badge--{{ $chg['active_borrowers'] >= 0 ? 'up' : 'down' }}">
+                            {{ $chg['active_borrowers'] >= 0 ? '↑' : '↓' }} {{ abs($chg['active_borrowers']) }}%
+                        </div>
+                    @endif
+                </div>
+                <div class="kpi-val">{{ number_format($stats['active_borrowers']) }}</div>
+                <div class="kpi-sub-val">With live loans</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top">
+                    <span class="kpi-label">New Borrowers</span>
+                    @if(isset($chg['new_borrowers']))
+                        <div class="kpi-badge kpi-badge--{{ $chg['new_borrowers'] >= 0 ? 'up' : 'down' }}">
+                            {{ $chg['new_borrowers'] >= 0 ? '↑' : '↓' }} {{ abs($chg['new_borrowers']) }}%
+                        </div>
+                    @endif
+                </div>
+                <div class="kpi-val">{{ number_format($stats['new_borrowers']) }}</div>
+                <div class="kpi-sub-val">Joined this period</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">Repeat Borrowers</span></div>
+                <div class="kpi-val">{{ number_format($stats['repeat_borrowers']) }}</div>
+                <div class="kpi-sub-val">> 1 loan history</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">Repeat Rate</span></div>
+                <div class="kpi-val">{{ $stats['repeat_rate'] }}%</div>
+                <div class="kpi-sub-val">Customer loyalty</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">Avg Loans / Borrower</span></div>
+                <div class="kpi-val">{{ $stats['avg_loans_per_borrower'] }}</div>
+                <div class="kpi-sub-val">Portfolio density</div>
+            </div>
+        </div>
+
+        {{-- ══════════════ 2. LOAN STATUS ══════════════ --}}
+        <div class="section-title" style="margin-top:24px">Loan Status</div>
         <div class="kpi-grid kpi-row-4">
-            {{-- 1. Applications (period) --}}
             <a href="{{ route('admin.applications.index') }}" class="kpi-card">
                 <div class="kpi-top">
-                    <span class="kpi-label">Applications</span>
-                    <span class="kpi-ico kpi-ico--blue">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </span>
+                    <span class="kpi-label">Application Submitted</span>
+                    @if(isset($chg['applications']))
+                        <div class="kpi-badge kpi-badge--{{ $chg['applications'] >= 0 ? 'up' : 'down' }}">
+                            {{ $chg['applications'] >= 0 ? '↑' : '↓' }} {{ abs($chg['applications']) }}%
+                        </div>
+                    @endif
                 </div>
-                <div class="kpi-val">{{ number_format($cur['applications']) }}</div>
-                <div class="kpi-sub-val">All-time: {{ number_format($stats['apps_submitted']) }}</div>
-                <div class="kpi-badge kpi-badge--{{ $chg['applications'] >= 0 ? 'up' : 'down' }}">
-                    @if($chg['applications'] >= 0)<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>@else<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>@endif
-                    {{ abs($chg['applications']) }}% vs {{ $vsLabel }}
-                </div>
+                <div class="kpi-val">{{ number_format($stats['apps_submitted']) }}</div>
+                <div class="kpi-sub-val">Total inflow</div>
             </a>
-
-            {{-- 2. Approved (period) --}}
             <a href="{{ route('admin.applications.index', ['status'=>'approved']) }}" class="kpi-card">
                 <div class="kpi-top">
                     <span class="kpi-label">Approved</span>
-                    <span class="kpi-ico kpi-ico--green">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </span>
+                    @if(isset($chg['approved']))
+                        <div class="kpi-badge kpi-badge--{{ $chg['approved'] >= 0 ? 'up' : 'down' }}">
+                            {{ $chg['approved'] >= 0 ? '↑' : '↓' }} {{ abs($chg['approved']) }}%
+                        </div>
+                    @endif
                 </div>
-                <div class="kpi-val">{{ number_format($cur['approved']) }}</div>
-                <div class="kpi-sub-val">All-time: {{ number_format($stats['apps_approved']) }}</div>
-                <div class="kpi-badge kpi-badge--{{ $chg['approved'] >= 0 ? 'up' : 'down' }}">
-                    @if($chg['approved'] >= 0)<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>@else<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>@endif
-                    {{ abs($chg['approved']) }}% vs {{ $vsLabel }}
-                </div>
+                <div class="kpi-val">{{ number_format($stats['apps_approved']) }}</div>
+                <div class="kpi-sub-val">Ready for disbursement</div>
             </a>
-
-            {{-- 3. Disbursed (period) --}}
             <a href="{{ route('admin.loans.index') }}" class="kpi-card">
                 <div class="kpi-top">
                     <span class="kpi-label">Disbursed</span>
-                    <span class="kpi-ico kpi-ico--indigo">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                    </span>
+                    @if(isset($chg['disbursed']))
+                        <div class="kpi-badge kpi-badge--{{ $chg['disbursed'] >= 0 ? 'up' : 'down' }}">
+                            {{ $chg['disbursed'] >= 0 ? '↑' : '↓' }} {{ abs($chg['disbursed']) }}%
+                        </div>
+                    @endif
                 </div>
-                <div class="kpi-val">M{{ number_format($cur['disbursed'], 2) }}</div>
-                <div class="kpi-sub-val">MTD: M{{ number_format($stats['disbursed_month'], 2) }}</div>
-                <div class="kpi-badge kpi-badge--{{ $chg['disbursed'] >= 0 ? 'up' : 'down' }}">
-                    @if($chg['disbursed'] >= 0)<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>@else<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>@endif
-                    {{ abs($chg['disbursed']) }}% vs {{ $vsLabel }}
-                </div>
+                <div class="kpi-val">M{{ number_format($stats['total_disbursed'], 2) }}</div>
+                <div class="kpi-sub-val">Total capital out</div>
             </a>
-
-            {{-- 4. Active Loans (global, not period) --}}
             <a href="{{ route('admin.loans.index', ['status'=>'active']) }}" class="kpi-card">
                 <div class="kpi-top">
                     <span class="kpi-label">Active Loans</span>
-                    <span class="kpi-ico kpi-ico--orange">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    </span>
+                    @if(isset($chg['active_loans']))
+                        <div class="kpi-badge kpi-badge--{{ $chg['active_loans'] >= 0 ? 'up' : 'down' }}">
+                            {{ $chg['active_loans'] >= 0 ? '↑' : '↓' }} {{ abs($chg['active_loans']) }}%
+                        </div>
+                    @endif
                 </div>
                 <div class="kpi-val">{{ number_format($stats['active_loans']) }}</div>
-                <div class="kpi-sub-val">Overdue: {{ number_format($stats['overdue_loans']) }}</div>
-                <div class="kpi-badge kpi-badge--up">Live portfolio</div>
+                <div class="kpi-sub-val">Live contracts</div>
             </a>
         </div>
 
-        {{-- ══════════════ KPI STRIP — Row 2: 5 cards ══════════════ --}}
-        <div class="kpi-grid kpi-row-5" style="margin-top:10px">
-            {{-- 5. Pending Review — URGENT ACTION CARD --}}
+        <div class="two-col" style="margin-top: 12px; margin-bottom: 24px;">
+            <div class="card">
+                <div class="card-head"><div class="card-title">Portfolio Summary</div></div>
+                <div class="lb-hero">
+                    <div class="lb-lbl">Outstanding Portfolio</div>
+                    <div class="lb-big">M{{ number_format($stats['total_portfolio'], 2) }}</div>
+                    <div class="lb-trend">↑ 18.4% vs last month</div>
+                </div>
+                <div class="lb-pair">
+                    <div class="lb-stat">
+                        <div class="lbs-lbl">Avg Loan</div>
+                        <div class="lbs-val">M{{ number_format($stats['avg_loan_size'], 2) }}</div>
+                    </div>
+                    <div class="lb-stat">
+                        <div class="lbs-lbl">Avg Tenure</div>
+                        <div class="lbs-val">3.2 mo</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-head"><div class="card-title">Status Distribution</div></div>
+                <div class="donut-wrap" style="height: 140px;">
+                    <canvas id="chartStatus"></canvas>
+                    <div class="donut-center">
+                        <div class="dc-val">{{ number_format($stats['apps_submitted']) }}</div>
+                        <div class="dc-lbl">Total</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ══════════════ 3. ACTIONABLE ITEMS ══════════════ --}}
+        <div class="section-title" style="margin-top:24px">Actionable Items</div>
+        <div class="kpi-grid kpi-row-3">
             <a href="{{ route('admin.applications.index', ['status'=>'submitted']) }}" class="kpi-card kpi-card--urgent">
                 <div class="kpi-top">
                     <span class="kpi-label">⚡ Pending Review</span>
-                    <span class="kpi-ico kpi-ico--amber">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    </span>
                 </div>
                 <div class="kpi-val" style="color:#d97706">{{ number_format($stats['apps_pending_review']) }}</div>
-                <div class="kpi-sub-val">Need action now</div>
-                <div class="kpi-badge" style="background:#fef3c7;color:#92400e">Action required</div>
+                <div class="kpi-sub-val">Needs verification</div>
             </a>
-
-            {{-- 6. Declined (period) --}}
-            <a href="{{ route('admin.applications.index', ['status'=>'declined']) }}" class="kpi-card">
-                <div class="kpi-top">
-                    <span class="kpi-label">Declined</span>
-                    <span class="kpi-ico kpi-ico--red">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </span>
-                </div>
-                <div class="kpi-val">{{ number_format($cur['declined']) }}</div>
-                <div class="kpi-sub-val">All-time: {{ number_format($stats['apps_declined']) }}</div>
-                <div class="kpi-badge kpi-badge--{{ $chg['declined'] <= 0 ? 'up' : 'down' }}">
-                    @if($chg['declined'] <= 0)<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>@else<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>@endif
-                    {{ abs($chg['declined']) }}% vs {{ $vsLabel }}
-                </div>
-            </a>
-
-            {{-- 7. Collection Rate (MTD) --}}
             <a href="#" class="kpi-card">
-                <div class="kpi-top">
-                    <span class="kpi-label">Collection Rate</span>
-                    <span class="kpi-ico kpi-ico--teal">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                    </span>
-                </div>
-                <div class="kpi-val">{{ $stats['collection_pct'] }}%</div>
-                <div class="kpi-sub-val">M{{ number_format($stats['month_collected'],2) }} collected</div>
-                <div class="kpi-badge kpi-badge--up">MTD</div>
+                <div class="kpi-top"><span class="kpi-label">📅 Loans Due Today</span></div>
+                <div class="kpi-val">{{ number_format($stats['loans_due_today']) }}</div>
+                <div class="kpi-sub-val">Collection target</div>
             </a>
-
-            {{-- 8. PAR 30 --}}
-            <a href="#" class="kpi-card">
-                <div class="kpi-top">
-                    <span class="kpi-label">PAR 30</span>
-                    <span class="kpi-ico kpi-ico--rose">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
-                    </span>
+            <div class="kpi-card">
+                <div class="kpi-top"><span class="kpi-label">🔔 Alerts Feed</span></div>
+                <div class="kpi-val" style="font-size: 14px; font-weight: 500; color: #6b7280; margin-top: 5px;">
+                    Latest: PAR 30 rose to 3.65%
                 </div>
-                <div class="kpi-val">{{ $stats['par30_pct'] }}%</div>
-                <div class="kpi-sub-val">M{{ number_format($stats['par30_amount'],2) }} at risk</div>
-                <div class="kpi-badge kpi-badge--{{ $stats['par30_pct'] <= 5 ? 'up' : 'down' }}">Portfolio risk</div>
-            </a>
-
-            {{-- 9. Revenue (period) --}}
-            <a href="#" class="kpi-card">
-                <div class="kpi-top">
-                    <span class="kpi-label">Revenue</span>
-                    <span class="kpi-ico kpi-ico--violet">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 6v1m0 4v1m-3-4h.01M17 16.01h.01"/></svg>
-                    </span>
-                </div>
-                <div class="kpi-val">M{{ number_format($stats['total_revenue'], 2) }}</div>
-                <div class="kpi-sub-val">All-time (est.)</div>
-                <div class="kpi-badge kpi-badge--up">YTD total</div>
-            </a>
+                <div class="kpi-sub-val">Real-time signals</div>
+            </div>
         </div>
 
-        {{-- ══════════════ MAIN BODY ══════════════ --}}
         <div class="body-grid">
-
             {{-- LEFT column --}}
             <div class="body-left">
-
-                {{-- Applications Trend Chart --}}
+                {{-- ══════════════ 4. RECENT APPLICATIONS TABLE ══════════════ --}}
                 <div class="card">
                     <div class="card-head">
                         <div>
                             <div class="card-title">Applications Trend</div>
-                            <div class="card-sub">Daily — {{ now()->format('F Y') }}</div>
+                            <div class="card-sub">Daily inflow</div>
                         </div>
                         <div class="chart-legend-row">
                             <span class="cl-item"><span class="cl-dot" style="background:#3b82f6"></span>Submitted</span>
                             <span class="cl-item"><span class="cl-dot" style="background:#10b981"></span>Approved</span>
-                            <span class="cl-item"><span class="cl-dot cl-dash"
-                                    style="background:#ef4444"></span>Declined</span>
                         </div>
                     </div>
-                    <div style="position:relative;height:240px;padding:0 20px 16px">
-                        <canvas id="chartTrend" role="img"
-                            aria-label="Line chart showing daily application trends for submitted, approved, and declined"></canvas>
+                    <div style="position:relative;height:200px;padding:0 20px 16px">
+                        <canvas id="chartTrend"></canvas>
                     </div>
                 </div>
 
-                {{-- Two-col: Donut + Loan Book --}}
-                <div class="two-col">
-                    <div class="card">
-                        <div class="card-head">
-                            <div class="card-title">By Status</div>
-                        </div>
-                        <div class="donut-wrap">
-                            <canvas id="chartStatus" role="img" aria-label="Donut chart of application statuses"></canvas>
-                            <div class="donut-center">
-                                <div class="dc-val">{{ number_format($stats['apps_submitted']) }}</div>
-                                <div class="dc-lbl">Total</div>
-                            </div>
-                        </div>
-                        <div class="legend-list">
-                            <div class="ll-row"><span class="ll-dot"
-                                    style="background:#3b82f6"></span><span>Submitted</span><strong>{{ number_format($stats['apps_submitted']) }}</strong>
-                            </div>
-                            <div class="ll-row"><span class="ll-dot"
-                                    style="background:#10b981"></span><span>Approved</span><strong>{{ number_format($stats['apps_approved']) }}
-                                    ({{ round($stats['apps_approved'] / $stats['apps_submitted'] * 100) }}%)</strong></div>
-                            <div class="ll-row"><span class="ll-dot"
-                                    style="background:#ef4444"></span><span>Declined</span><strong>{{ number_format($stats['apps_declined']) }}
-                                    ({{ round($stats['apps_declined'] / $stats['apps_submitted'] * 100) }}%)</strong></div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-head">
-                            <div class="card-title">Loan Book</div>
-                        </div>
-                        <div class="lb-hero">
-                            <div class="lb-lbl">Outstanding Portfolio</div>
-                            <div class="lb-big">M{{ number_format($stats['total_portfolio'], 2) }}</div>
-                            <div class="lb-trend">↑ 18.4% vs last month</div>
-                        </div>
-                        <div class="lb-pair">
-                            <div class="lb-stat">
-                                <div class="lbs-lbl">Avg Loan</div>
-                            <div class="lbs-val">M{{ number_format($stats['avg_loan_size'], 2) }}</div>
-                            </div>
-                            <div class="lb-stat">
-                                <div class="lbs-lbl">Avg Tenure</div>
-                                <div class="lbs-val">3.2 mo</div>
-                            </div>
-                        </div>
-                        <div class="seg-block">
-                            <div class="seg-title">By Segment</div>
-                            @php
-                                $totalPortfolio = $stats['total_portfolio'] ?: 1;
-                                $segs = collect($segmentBreakdown)->map(function($s) use ($totalPortfolio) {
-                                    return [
-                                        'label' => ucfirst(str_replace('_', ' ', $s->employer_type)),
-                                        'pct' => round(($s->portfolio / $totalPortfolio) * 100, 1),
-                                        'val' => $s->portfolio
-                                    ];
-                                })->sortByDesc('pct');
-                            @endphp
-                            @foreach($segs as $s)
-                                <div class="seg-row">
-                                    <div class="seg-label">{{ $s['label'] }}</div>
-                                    <div class="seg-bar-wrap">
-                                        <div class="seg-bar" style="width:{{ $s['pct'] }}%"></div>
-                                    </div>
-                                    <div class="seg-pct">{{ $s['pct'] }}%</div>
-                                </div>
-                            @endforeach
-                            @if($segs->isEmpty())
-                                <div class="text-muted small">No data available</div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Recent Applications Table --}}
-                <div class="card">
+                <div class="card" style="margin-top: 16px;">
                     <div class="card-head">
                         <div class="card-title">Recent Applications</div>
                         <a href="{{ route('admin.applications.index') }}" class="card-link">View all →</a>
@@ -314,17 +342,9 @@
                                         <td class="td-name">{{ $app->user->name ?? 'N/A' }}</td>
                                         <td><span class="seg-pill">Private</span></td>
                                         <td class="td-amount">M{{ number_format($app->requested_amount, 2) }}</td>
-                                        <td><span class="status-pill sp-{{ $app->status }}">{{ ucfirst($app->status) }}</span>
-                                        </td>
+                                        <td><span class="status-pill sp-{{ $app->status }}">{{ ucfirst($app->status) }}</span></td>
                                         <td class="td-date">{{ $app->created_at->format('d M Y') }}</td>
-                                        <td><a href="{{ route('admin.applications.show', $app->id) }}" class="ico-btn"
-                                                title="View">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                                                    stroke="currentColor" stroke-width="2">
-                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                                    <circle cx="12" cy="12" r="3" />
-                                                </svg>
-                                            </a></td>
+                                        <td><a href="{{ route('admin.applications.show', $app->id) }}" class="ico-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg></a></td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -332,66 +352,26 @@
                     </div>
                 </div>
 
-                {{-- ═══ PROFITABILITY — must be exact, not estimated ═══ --}}
-                @php
-                    $interestIncome = $stats['total_interest_revenue'];
-                    $feeIncome = $stats['total_fee_revenue'];
-                    $totalRevenue = $stats['total_revenue'];
-                    $writtenOff = $stats['written_off_amount'];
-                    $netProfit = $totalRevenue - $writtenOff;
-                    $netMargin = $totalRevenue > 0 ? round($netProfit / $totalRevenue * 100, 1) : 0;
-                @endphp
                 <div class="two-col">
+                    {{-- ══════════════ 6. COLLECTIONS & AGING ══════════════ --}}
                     <div class="card">
                         <div class="card-head">
-                            <div class="card-title">Profitability <span class="card-badge">YTD</span></div>
-                            <a href="#" class="card-link">P&L →</a>
-                        </div>
-                        <div class="pl-grid">
-                            <div class="pl-item">
-                                <div class="pl-lbl">Interest Income</div>
-                                <div class="pl-val">M{{ number_format($interestIncome, 2) }}</div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div class="card-title">Collections</div>
+                                <span class="card-badge">MTD</span>
                             </div>
-                            <div class="pl-item">
-                                <div class="pl-lbl">Fee Income</div>
-                                <div class="pl-val">M{{ number_format($feeIncome, 2) }}</div>
-                            </div>
-                            <div class="pl-item pl-total">
-                                <div class="pl-lbl">Total Revenue</div>
-                                <div class="pl-val">M{{ number_format($totalRevenue, 2) }}</div>
-                            </div>
-                            <div class="pl-divider"></div>
-                            <div class="pl-item">
-                                <div class="pl-lbl">Write-Offs</div>
-                                <div class="pl-val" style="color:#dc2626">M{{ number_format($writtenOff, 2) }}</div>
-                            </div>
-                            <div class="pl-item">
-                                <div class="pl-lbl">Total Disbursed</div>
-                                <div class="pl-val">M{{ number_format($stats['total_disbursed'], 2) }}</div>
-                            </div>
-                            <div class="pl-item pl-profit">
-                                <div class="pl-lbl">Net Profit</div>
-                                <div class="pl-val">M{{ number_format($netProfit, 2) }}</div>
-                                <div class="pl-margin">{{ $netMargin }}% margin</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-head">
-                            <div class="card-title">Collections <span class="card-badge">MTD</span></div>
                             <a href="#" class="card-link">Report →</a>
                         </div>
                         <div class="col-trio">
-                            <div class="col-stat">
+                            <div class="cs-item">
                                 <div class="cs-lbl">Total Due</div>
                                 <div class="cs-val">M{{ number_format($stats['month_expected'], 2) }}</div>
                             </div>
-                            <div class="col-stat">
+                            <div class="cs-item">
                                 <div class="cs-lbl">Collected</div>
                                 <div class="cs-val cs-green">M{{ number_format($stats['month_collected'], 2) }}</div>
                             </div>
-                            <div class="col-stat">
+                            <div class="cs-item">
                                 <div class="cs-lbl">Rate</div>
                                 <div class="cs-val cs-green">{{ $stats['collection_pct'] }}%</div>
                             </div>
@@ -399,7 +379,7 @@
                         <div class="aging-block">
                             <div class="aging-head">
                                 <span>Overdue Aging</span>
-                                <span class="aging-total">M{{ number_format($stats['overdue_total'], 2) }}</span>
+                                <span style="color: #dc2626; font-weight: 800;">M{{ number_format($stats['overdue_total'], 2) }}</span>
                             </div>
                             @php
                                 $overdueTotal = $stats['overdue_total'] ?: 1;
@@ -414,142 +394,131 @@
                                 <div class="aging-row">
                                     <span class="aging-label">{{ $a['label'] }}</span>
                                     <div class="aging-bar-wrap">
-                                        <div class="aging-bar" style="width:{{ $a['pct'] }}%"></div>
+                                        <div class="aging-bar" style="width:{{ $a['pct'] }}%; background: #ef4444;"></div>
                                     </div>
                                     <span class="aging-val">M{{ number_format($a['val'], 2) }}</span>
                                 </div>
                             @endforeach
                         </div>
                     </div>
+
+                    {{-- ══════════════ 7. SEGMENT RISK BREAKDOWN (PAR 30) ══════════════ --}}
+                    <div class="card">
+                        <div class="card-head">
+                            <div class="card-title">Segment Risk (PAR 30)</div>
+                        </div>
+                        <div class="donut-wrap" style="height: 140px; margin-top: 10px;">
+                            <canvas id="chartSeg"></canvas>
+                        </div>
+                        <div class="seg-block" style="padding: 0 20px 20px;">
+                            @php
+                                $totalPortfolio = $stats['total_portfolio'] ?: 1;
+                                $segs = collect($segmentBreakdown)->map(function($s) use ($totalPortfolio) {
+                                    return [
+                                        'label' => ucfirst(str_replace('_', ' ', $s->employer_type)),
+                                        'pct' => round(($s->portfolio / $totalPortfolio) * 100, 1),
+                                        'val' => $s->portfolio
+                                    ];
+                                })->sortByDesc('pct');
+                            @endphp
+                            @foreach($segs as $s)
+                                <div class="seg-row">
+                                    <div class="seg-label">{{ $s['label'] }}</div>
+                                    <div class="seg-bar-wrap">
+                                        <div class="seg-bar" style="width:{{ $s['pct'] }}%; background: #ef4444;"></div>
+                                    </div>
+                                    <div class="seg-pct">{{ $s['pct'] }}%</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
-                {{-- ═══ TOP REFERRERS — moved below profitability per Charles ═══ --}}
+                {{-- ══════════════ 9. FINANCIAL PERFORMANCE (P&L) ══════════════ --}}
                 <div class="card">
                     <div class="card-head">
-                        <div class="card-title">Top Referrers</div>
-                        <a href="#" class="card-link">All →</a>
+                        <div class="card-title">Financial Performance (P&L)</div>
                     </div>
-                    <div class="tbl-wrap">
-                        <table class="dtbl">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th style="text-align:center">Referrals</th>
-                                    <th style="text-align:center">Qualified</th>
-                                    <th style="text-align:right">Earned</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($topReferrers as $r)
-                                    <tr>
-                                        <td class="td-name">{{ $r->name }}</td>
-                                        <td style="text-align:center">{{ $r->total_referrals }}</td>
-                                        <td style="text-align:center">{{ $r->qualified }}</td>
-                                        <td style="text-align:right;font-weight:700">M{{ number_format($r->total_earned, 2) }}</td>
-                                    </tr>
-                                @endforeach
-                                @if(empty($topReferrers))
-                                    <tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:20px">No referrals yet</td></tr>
-                                @endif
-                            </tbody>
-                        </table>
+                    <div class="pl-grid" style="grid-template-columns: repeat(3, 1fr); padding: 20px; gap: 20px;">
+                        <div class="pl-item">
+                            <div class="pl-lbl">Interest Income</div>
+                            <div class="pl-val">M{{ number_format($stats['total_interest_revenue'], 2) }}</div>
+                        </div>
+                        <div class="pl-item">
+                            <div class="pl-lbl">Fee Income</div>
+                            <div class="pl-val">M{{ number_format($stats['total_fee_revenue'], 2) }}</div>
+                        </div>
+                        <div class="pl-item pl-total">
+                            <div class="pl-lbl">Total Revenue</div>
+                            <div class="pl-val">M{{ number_format($stats['total_revenue'], 2) }}</div>
+                        </div>
+                        <div class="pl-item">
+                            <div class="pl-lbl">Operating Expenses</div>
+                            <div class="pl-val">M0.00</div>
+                        </div>
+                        <div class="pl-item">
+                            <div class="pl-lbl">Cost of Funds</div>
+                            <div class="pl-val">M0.00</div>
+                        </div>
+                        @php $netProfit = $stats['total_revenue'] - $stats['written_off_amount']; @endphp
+                        <div class="pl-item pl-profit">
+                            <div class="pl-lbl">Net Profit</div>
+                            <div class="pl-val">M{{ number_format($netProfit, 2) }}</div>
+                        </div>
                     </div>
                 </div>
-
-            </div>{{-- /body-left --}}
+            </div>
 
             {{-- RIGHT column --}}
             <div class="body-right">
-
-                {{-- Alerts --}}
+                {{-- ══════════════ 5. PAR METRICS ══════════════ --}}
                 <div class="card">
                     <div class="card-head">
-                        <div class="card-title">Alerts</div>
-                        <a href="#" class="card-link">All →</a>
+                        <div class="card-title">PAR Metrics</div>
                     </div>
-                    <div class="alerts-wrap">
-                        <div class="alert-row alert-warn">
-                            <span class="alert-ico">⚠</span>
-                            <div>
-                                <div class="alert-msg">PAR 30 for Private Sector rose to <strong>3.65%</strong></div>
-                                <div class="alert-time">10 min ago</div>
-                            </div>
-                        </div>
-                        <div class="alert-row alert-info">
-                            <span class="alert-ico">ℹ</span>
-                            <div>
-                                <div class="alert-msg"><strong>12 loans</strong> due today · M76,450 total</div>
-                                <div class="alert-time">20 min ago</div>
-                            </div>
-                        </div>
-                        <div class="alert-row alert-ok">
-                            <span class="alert-ico">✓</span>
-                            <div>
-                                <div class="alert-msg">Referral payouts of <strong>M5,600</strong> completed</div>
-                                <div class="alert-time">1 hr ago</div>
-                            </div>
-                        </div>
-                        <div class="alert-row alert-info">
-                            <span class="alert-ico">↑</span>
-                            <div>
-                                <div class="alert-msg">Repeat borrowing rate hit <strong>41%</strong> this month</div>
-                                <div class="alert-time">2 hr ago</div>
-                            </div>
-                        </div>
+                    <div class="par-metrics-list" style="padding: 10px 20px;">
+                        <div class="ll-row"><span>PAR 1</span><strong style="color:#10b981">{{ $stats['par1_pct'] }}%</strong></div>
+                        <div class="ll-row"><span>PAR 7</span><strong style="color:#f59e0b">{{ $stats['par7_pct'] }}%</strong></div>
+                        <div class="ll-row"><span>PAR 30</span><strong style="color:#ef4444">{{ $stats['par30_pct'] }}%</strong></div>
+                    </div>
+                    <div style="height: 120px; padding: 0 20px 10px;">
+                        <canvas id="chartPAR"></canvas>
                     </div>
                 </div>
 
-                {{-- Segment Donut --}}
+                {{-- ══════════════ 8. VINTAGE ANALYSIS ══════════════ --}}
                 <div class="card">
                     <div class="card-head">
-                        <div class="card-title">By Segment</div>
+                        <div class="card-title">Vintage Analysis</div>
                     </div>
-                    <div class="donut-wrap">
-                        <canvas id="chartSeg" role="img"
-                            aria-label="Donut chart of applications by borrower segment"></canvas>
-                    </div>
-                    <div class="legend-list">
-                        <div class="ll-row"><span class="ll-dot"
-                                style="background:#3b82f6"></span><span>Government</span><strong>512 (41%)</strong></div>
-                        <div class="ll-row"><span class="ll-dot" style="background:#10b981"></span><span>Private
-                                Sector</span><strong>512 (41%)</strong></div>
-                        <div class="ll-row"><span class="ll-dot"
-                                style="background:#f59e0b"></span><span>Pensioners</span><strong>224 (18%)</strong></div>
-                    </div>
-                </div>
-
-                {{-- PAR Trend --}}
-                <div class="card">
-                    <div class="card-head">
-                        <div class="card-title">PAR Quality</div>
-                        <div class="chart-legend-row">
-                            <span class="cl-item"><span class="cl-dot" style="background:#10b981"></span>PAR 1</span>
-                            <span class="cl-item"><span class="cl-dot" style="background:#f59e0b"></span>PAR 7</span>
-                            <span class="cl-item"><span class="cl-dot" style="background:#ef4444"></span>PAR 30</span>
+                    <div style="padding: 20px; text-align: center; color: #6b7280;">
+                        <div style="font-size: 12px; margin-bottom: 10px;">Cohort performance (simplified)</div>
+                        <div style="display: flex; align-items: flex-end; gap: 4px; height: 60px; justify-content: center;">
+                            <div style="width:20px; height: 40%; background: #3b82f6; border-radius: 2px;"></div>
+                            <div style="width:20px; height: 60%; background: #3b82f6; border-radius: 2px;"></div>
+                            <div style="width:20px; height: 85%; background: #3b82f6; border-radius: 2px;"></div>
+                            <div style="width:20px; height: 75%; background: #3b82f6; border-radius: 2px;"></div>
+                            <div style="width:20px; height: 95%; background: #3b82f6; border-radius: 2px;"></div>
                         </div>
-                    </div>
-                    <div style="position:relative;height:160px;padding:0 16px 16px">
-                        <canvas id="chartPAR" role="img"
-                            aria-label="PAR trend lines for 1, 7 and 30 day delinquency"></canvas>
+                        <div style="font-size: 10px; margin-top: 8px;">Latest 5 Cohorts</div>
                     </div>
                 </div>
 
-                {{-- Referral Funnel --}}
+                {{-- ══════════════ 10. REFERRAL AND MARKETING ══════════════ --}}
                 <div class="card">
                     <div class="card-head">
-                        <div class="card-title">Referral Funnel</div>
-                        <a href="#" class="card-link">Report →</a>
+                        <div class="card-title">Referral & Marketing</div>
                     </div>
-                    @php
-                        $funnel = [
-                            ['label' => 'Link Clicks', 'val' => 12842, 'pct' => null],
-                            ['label' => 'Apps Started', 'val' => 3421, 'pct' => 26.6],
-                            ['label' => 'Submitted', 'val' => $stats['apps_submitted'], 'pct' => 36.5],
-                            ['label' => 'Disbursed', 'val' => $stats['apps_approved'], 'pct' => 67.5],
-                            ['label' => '1st Payment', 'val' => 632, 'pct' => 75.1],
-                        ];
-                    @endphp
                     <div class="funnel-list">
+                        @php
+                            $funnel = [
+                                ['label' => 'Link Clicks', 'val' => 12842, 'pct' => null],
+                                ['label' => 'Apps Started', 'val' => 3421, 'pct' => 26.6],
+                                ['label' => 'Submitted', 'val' => $stats['apps_submitted'], 'pct' => 36.5],
+                                ['label' => 'Disbursed', 'val' => $stats['apps_approved'], 'pct' => 67.5],
+                                ['label' => '1st Payment', 'val' => 632, 'pct' => 75.1],
+                            ];
+                        @endphp
                         @foreach($funnel as $i => $f)
                             <div class="fn-step">
                                 <div class="fn-num">{{ $i + 1 }}</div>
@@ -563,41 +532,46 @@
                                 </div>
                                 <div class="fn-right">
                                     <div class="fn-val">{{ number_format($f['val']) }}</div>
-                                    @if($f['pct'])
-                                    <div class="fn-pct">{{ $f['pct'] }}%</div>@endif
+                                    @if($f['pct'])<div class="fn-pct">{{ $f['pct'] }}%</div>@endif
                                 </div>
                             </div>
                         @endforeach
-                        <div class="fn-footer">Overall conversion: <strong>4.92%</strong></div>
                     </div>
                 </div>
-
-                {{-- Top Referrers moved to main body below Profitability --}}
-
-                {{-- Payout Summary --}}
-                <div class="card">
-                    <div class="card-head">
-                        <div class="card-title">Payout Summary</div>
-                    </div>
-                    <div class="payout-list">
-                        <div class="po-row"><span>Total
-                                Eligible</span><strong>M{{ number_format($stats['pending_payouts'] + $stats['total_paid_out'], 2) }}</strong>
-                        </div>
-                        <div class="po-row po-paid"><span>Paid
-                                Out</span><strong>M{{ number_format($stats['total_paid_out'], 2) }}</strong></div>
-                        <div class="po-row po-pending">
-                            <span>Pending</span><strong>M{{ number_format($stats['pending_payouts'], 2) }}</strong>
-                        </div>
-                        <div class="po-row po-muted"><span>Disqualified</span><strong>M650</strong></div>
-                    </div>
-                    <a href="#" class="card-footer-link">Full payout report →</a>
-                </div>
-
             </div>{{-- /body-right --}}
         </div>{{-- /body-grid --}}
     </div>{{-- /d-wrap --}}
 
     <style>
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #4b5563;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            padding-left: 4px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .kpi-row-6 {
+            grid-template-columns: repeat(6, 1fr);
+        }
+
+        .kpi-row-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        @media (max-width: 1200px) {
+            .kpi-row-6 { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .kpi-row-6 { grid-template-columns: repeat(2, 1fr); }
+            .kpi-row-4 { grid-template-columns: repeat(2, 1fr); }
+            .kpi-row-3 { grid-template-columns: 1fr; }
+        }
+
         /* ══ Reset & Base ══ */
         *,
         *::before,

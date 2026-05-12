@@ -96,7 +96,8 @@ class ApplicationController extends Controller
         ]);
 
         $officers = User::where('role','loan_officer')->where('is_active',true)->orderBy('name')->get();
-        return view('admin.applications.show', compact('application','officers', 'credit', 'fraud', 'decision'));
+        $declineCategories = \App\Models\DeclineCategory::orderBy('display_order')->get();
+        return view('admin.applications.show', compact('application','officers', 'credit', 'fraud', 'decision', 'declineCategories'));
     }
 
     public function updateAffordability(Request $request, LoanApplication $application)

@@ -72,6 +72,15 @@ class PaymentService
                         }
                     }
                 }
+
+                // Trigger Payment Receipt SMS (even if not fully paid)
+                if ($loan->user) {
+                    try {
+                        $loan->user->notify(new \App\Notifications\PaymentReceivedSms($payment));
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::error("Failed to send receipt SMS for verified payment {$payment->payment_reference}: " . $e->getMessage());
+                    }
+                }
             }
         }
     }

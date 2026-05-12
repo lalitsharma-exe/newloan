@@ -8,9 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('referrals', function (Blueprint $table) {
-            $table->string('payout_method')->nullable()->after('paid_at'); // manual, loan_credit, mpesa
-        });
+        if (!Schema::hasColumn('referrals', 'payout_method')) {
+            Schema::table('referrals', function (Blueprint $table) {
+                $table->string('payout_method')->nullable()->after('paid_at'); // manual, loan_credit, mpesa
+            });
+        }
     }
 
     public function down(): void

@@ -272,6 +272,13 @@ class LoanService
         // Referral System: Check if this payment qualifies a referral
         $this->checkReferralQualification($loan);
 
+        // Send Receipt SMS
+        try {
+            $loan->user->notify(new \App\Notifications\PaymentReceivedSms($payment));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to send receipt SMS for payment {$payment->payment_reference}: " . $e->getMessage());
+        }
+
         return $payment;
     }
 
