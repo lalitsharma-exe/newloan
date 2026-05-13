@@ -298,6 +298,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             // Activity
             Route::get('/{user}/activity',          [UserController::class, 'activity'])->name('activity');
+
+            // Settlement
+            Route::get('/{user}/consolidated-settlement', [LoanController::class, 'consolidatedSettlementQuotation'])->name('consolidated-settlement');
+            Route::get('/{user}/consolidated-settlement-letter', [LoanController::class, 'consolidatedSettlementLetter'])->name('consolidated-settlement-letter');
             Route::get('/{user}/loans',             [UserController::class, 'loans'])->name('loans');
             Route::get('/{user}/applications',      [UserController::class, 'applications'])->name('applications');
 

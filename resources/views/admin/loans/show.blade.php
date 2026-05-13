@@ -14,8 +14,17 @@
       <a href="{{ route('admin.loans.disburse.confirm',$loan) }}" class="btn btn-sm btn-ok"><i class="bi bi-send-fill"></i> Disburse Loan</a>
       @endif
       <a href="{{ route('admin.loans.agreement',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-file-pdf"></i> Agreement</a>
-      <a href="{{ route('admin.loans.statement',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-file-earmark-text"></i> Statement</a>
-      <a href="{{ route('admin.loans.settlement-quotation',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-receipt"></i> Quotation</a>
+      @php 
+        $otherLoans = $loan->user->loans()->where('id', '!=', $loan->id)->whereIn('status', ['active', 'overdue'])->count();
+      @endphp
+      @if($otherLoans > 0)
+        <a href="{{ route('admin.users.consolidated-settlement', $loan->user) }}" class="btn btn-sm btn-p" style="background:var(--navy);border-color:var(--navy)"><i class="bi bi-file-earmark-break"></i> Consolidated Quotation</a>
+        <div style="width:100%; margin-top:8px; font-size:11px; color:var(--err); font-weight:700; display:flex; align-items:center; gap:5px">
+          <i class="bi bi-exclamation-triangle-fill"></i> Borrower has {{ $otherLoans }} other active loan(s). Consolidated settlement is required.
+        </div>
+      @else
+        <a href="{{ route('admin.loans.settlement-quotation',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-receipt"></i> Quotation</a>
+      @endif
       @if(in_array($loan->status,['active','overdue','pending']))
       <button onclick="openModal('editLoanModal')" class="btn btn-sm btn-i"><i class="bi bi-pencil-square"></i> Edit Loan</button>
       @endif

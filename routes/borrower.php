@@ -11,6 +11,7 @@ use App\Http\Controllers\Borrower\StatementController;
 use App\Http\Controllers\Borrower\ProfileController;
 use App\Http\Controllers\Borrower\AffordabilityController;
 use App\Http\Controllers\Borrower\NotificationController;
+use App\Http\Controllers\Borrower\ReferralController;
 
 /*
 |--------------------------------------------------------------------------
@@ -247,7 +248,8 @@ Route::prefix('portal')->name('borrower.')->group(function () {
         | ── REFERRALS ──────────────────────────────────────────────
         */
         Route::prefix('referrals')->name('referrals.')->group(function () {
-            Route::get('/',                     [\App\Http\Controllers\Borrower\ReferralController::class, 'index'])->name('index');
+            Route::get('/',                     [ReferralController::class, 'index'])->name('index');
+            Route::post('/payout-request',      [ReferralController::class, 'requestPayout'])->name('payout-request');
         });
 
         /*

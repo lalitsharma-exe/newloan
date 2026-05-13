@@ -3,244 +3,215 @@
 
 @push('styles')
 <style>
-/* ── REFERRAL HERO ─────────────────────────────────────── */
+/* ── REFERRAL HERO (Premium Style) ─────────────────────── */
 .ref-hero {
-    background: linear-gradient(135deg, var(--navy) 0%, var(--navy3) 100%);
-    border-radius: 14px;
-    padding: 40px 30px;
+    background-image: url('/assets/images/referral_hero.png');
+    background-size: cover;
+    background-position: right center;
+    border-radius: 28px;
+    padding: 0;
     position: relative;
     overflow: hidden;
-    margin-bottom: 22px;
+    margin-bottom: 35px;
     color: #fff;
-    box-shadow: 0 8px 30px rgba(7,14,36,.2);
+    box-shadow: 0 25px 60px -15px rgba(30, 27, 75, 0.4);
+    height: 420px;
 }
-.ref-hero::before {
-    content: '';
+.ref-hero-overlay {
     position: absolute;
-    top: -60%;
-    right: -15%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
-    opacity: 0.12;
-    filter: blur(40px);
+    inset: 0;
+    background: linear-gradient(90deg, rgba(30, 27, 75, 0.9) 0%, rgba(30, 27, 75, 0.4) 40%, transparent 100%);
+    display: flex;
+    align-items: center;
+    padding: 50px 40px;
+    z-index: 2;
 }
 .ref-hero-inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
+    gap: 30px;
     position: relative;
-    z-index: 1;
+    z-index: 3;
+    width: 100%;
 }
 .ref-hero-text h2 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 32px;
-    font-weight: 700;
-    line-height: 1.15;
-    margin-bottom: 10px;
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 15px;
+    letter-spacing: -2px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 .ref-hero-text p {
-    font-size: 14px;
-    color: rgba(255,255,255,.7);
-    max-width: 400px;
+    font-size: 16px;
+    color: rgba(255,255,255,0.9);
+    max-width: 420px;
     line-height: 1.6;
+    font-weight: 600;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 .ref-hero-pill {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: rgba(140,198,63,.15);
-    color: var(--accent);
-    padding: 5px 14px;
+    gap: 8px;
+    background: rgba(140, 198, 63, 0.9);
+    color: #1e1b4b;
+    padding: 8px 18px;
     border-radius: 100px;
-    font-weight: 700;
-    font-size: 12px;
-    margin-bottom: 14px;
-    border: 1px solid rgba(140,198,63,.2);
+    font-weight: 900;
+    font-size: 11px;
+    margin-bottom: 22px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    box-shadow: 0 4px 15px rgba(140,198,63,0.3);
 }
 .ref-hero-amount {
-    background: rgba(255,255,255,.08);
-    backdrop-filter: blur(8px);
-    padding: 22px 28px;
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(15px);
+    padding: 30px;
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.2);
     text-align: center;
     flex-shrink: 0;
+    min-width: 170px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
 }
 .ref-hero-amount .val {
-    font-size: 36px;
+    font-size: 52px;
     color: var(--accent);
-    font-family: 'Cormorant Garamond', serif;
-    font-weight: 700;
+    font-weight: 900;
     line-height: 1;
+    letter-spacing: -3px;
 }
 .ref-hero-amount .lbl {
-    font-size: 10px;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: .1em;
-    color: rgba(255,255,255,.5);
-    margin-top: 4px;
+    letter-spacing: 2.5px;
+    color: #fff;
+    margin-top: 8px;
+    font-weight: 900;
 }
 
-/* ── STAT CARDS ────────────────────────────────────────── */
+/* ── STAT CARDS (Glassmorphism) ────────────────────────── */
 .ref-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-bottom: 22px;
+    gap: 20px;
+    margin-bottom: 35px;
 }
 .ref-stat {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 16px;
-    transition: transform .2s, box-shadow .2s;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 28px;
+    padding: 26px;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
 }
 .ref-stat:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(13,27,62,.06);
+    transform: translateY(-8px);
+    background: #fff;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08);
 }
 .ref-stat-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 17px;
-    margin-bottom: 12px;
+    font-size: 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
 }
 .ref-stat .stat-val {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--navy);
+    font-size: 30px;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: -1px;
+    line-height: 1.2;
 }
 .ref-stat .stat-lbl {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 2px;
-    font-weight: 500;
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 8px;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: .04em;
+    letter-spacing: 1.5px;
 }
 
-/* ── CONTENT GRID (main + sidebar) ─────────────────────── */
+/* ── CONTENT GRID ──────────────────────────────────────── */
 .ref-grid {
     display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 20px;
+    grid-template-columns: 1fr 340px;
+    gap: 30px;
     align-items: start;
+}
+
+.premium-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.03);
 }
 
 /* ── LINK BOX ──────────────────────────────────────────── */
 .ref-link-box {
-    background: var(--bg);
-    border: 1.5px dashed var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 16px 20px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
+    transition: all 0.3s;
+}
+.ref-link-box:focus-within {
+    background: #fff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 .ref-link-input {
     background: transparent;
     border: none;
     outline: none;
     flex: 1;
-    font-family: 'Outfit', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--navy);
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
     min-width: 0;
 }
 .ref-copy-btn {
-    background: var(--navy);
+    background: #1e1b4b;
     color: #fff;
     border: none;
-    padding: 9px 16px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 900;
     cursor: pointer;
-    transition: all .2s;
-    white-space: nowrap;
-    font-family: 'Outfit', sans-serif;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
 }
-.ref-copy-btn:hover { background: var(--blue); }
-.ref-copy-btn.copied { background: var(--ok); }
-
-/* ── SHARE BUTTONS ─────────────────────────────────────── */
-.ref-share {
-    display: flex;
-    gap: 8px;
-}
-.ref-share-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    text-decoration: none;
-    transition: transform .2s;
-}
-.ref-share-btn.wa { background: #e7f7ef; color: #25d366; }
-.ref-share-btn.fb { background: #e7f0ff; color: #1877f2; }
-.ref-share-btn:hover { transform: scale(1.1); }
-
-/* ── STATUS PILLS ──────────────────────────────────────── */
-.ref-status {
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 11.5px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-.ref-status.pending   { background: #fef3c7; color: #92400e; }
-.ref-status.validated { background: #dcfce7; color: #166534; }
-.ref-status.qualified { background: #dbeafe; color: #1e40af; }
-.ref-status.paid      { background: #f0fdf4; color: #15803d; }
-.ref-status.rejected  { background: #fef2f2; color: #991b1b; }
-
-/* ── HOW-TO STEPS ──────────────────────────────────────── */
-.ref-step {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-.ref-step:last-child { margin-bottom: 0; }
-.ref-step-num {
-    width: 28px;
-    height: 28px;
-    background: #fff;
-    border: 1.5px solid var(--border);
-    border-radius: 7px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 12px;
-    color: var(--navy);
-    flex-shrink: 0;
-}
+.ref-copy-btn:hover { background: #3b82f6; transform: translateY(-2px); }
 
 /* ── RESPONSIVE ────────────────────────────────────────── */
 @media (max-width: 768px) {
-    .ref-hero-inner { flex-direction: column; text-align: center; }
-    .ref-hero-text p { max-width: none; }
-    .ref-hero-amount { display: none; }
-    .ref-hero-text h2 { font-size: 26px; }
-    .ref-hero { padding: 30px 20px; }
-    .ref-stats { grid-template-columns: 1fr; }
+    .ref-hero { height: 480px; border-radius: 24px; background-position: 70% center; }
+    .ref-hero-overlay { position: absolute; background: linear-gradient(to bottom, rgba(30, 27, 75, 0.2) 0%, rgba(30, 27, 75, 0.95) 80%); align-items: flex-end; padding: 30px 20px; text-align: center; }
+    .ref-hero-inner { flex-direction: column; }
+    .ref-hero-text h2 { font-size: 32px; margin-bottom: 10px; }
+    .ref-hero-text p { font-size: 14px; max-width: none; }
+    .ref-hero-amount { width: 100%; min-width: 0; padding: 20px; margin-top: 15px; }
+    .ref-hero-amount .val { font-size: 40px; }
+    .ref-stats { grid-template-columns: 1fr; gap: 15px; }
     .ref-grid { grid-template-columns: 1fr; }
+    .ref-stat { padding: 22px; }
 }
 @media (min-width: 769px) and (max-width: 960px) {
     .ref-stats { grid-template-columns: 1fr 1fr 1fr; }
@@ -256,17 +227,19 @@
 
 {{-- ── HERO BANNER ──────────────────────────────────────── --}}
 <div class="ref-hero">
-    <div class="ref-hero-inner">
-        <div class="ref-hero-text">
-            <div class="ref-hero-pill">
-                <i class="bi bi-stars"></i> Exclusive Rewards
+    <div class="ref-hero-overlay">
+        <div class="ref-hero-inner">
+            <div class="ref-hero-text">
+                <div class="ref-hero-pill">
+                    <i class="bi bi-stars"></i> Partner Rewards
+                </div>
+                <h2>Turn Friendships<br>into Earnings</h2>
+                <p>Earn <strong>M50.00</strong> for every friend you refer. Share your link and watch your earnings grow as they join the MyLoan family.</p>
             </div>
-            <h2>Turn Friendships<br>into Earnings</h2>
-            <p>Earn <strong>M50.00</strong> for every friend you refer. Share your link and watch your earnings grow as they join the MyLoan family.</p>
-        </div>
-        <div class="ref-hero-amount">
-            <div class="val">M50</div>
-            <div class="lbl">Per Referral</div>
+            <div class="ref-hero-amount">
+                <div class="val">M50</div>
+                <div class="lbl">Per Referral</div>
+            </div>
         </div>
     </div>
 </div>
@@ -289,20 +262,36 @@
     </div>
     <div class="ref-stat">
         <div class="ref-stat-icon" style="background:rgba(245,158,11,.1); color:var(--warn);">
-            <i class="bi bi-hourglass-split"></i>
+            <i class="bi bi-wallet-fill"></i>
         </div>
-        <div class="stat-val">{{ $stats['qualified'] }}</div>
-        <div class="stat-lbl">Pending Payouts</div>
+        <div class="stat-val">M {{ number_format($stats['balance'], 2) }}</div>
+        <div class="stat-lbl">Available Balance</div>
     </div>
 </div>
+
+@if($stats['balance'] >= 250)
+<div class="alert a-i" style="margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; padding: 20px;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="font-size: 24px; color: var(--blue);"><i class="bi bi-gift"></i></div>
+        <div>
+            <div style="font-weight: 700; font-size: 16px;">Payout Milestone Reached!</div>
+            <div style="font-size: 13px; opacity: 0.8;">You have M{{ number_format($stats['balance'], 2) }} available for payout.</div>
+        </div>
+    </div>
+    <form action="{{ route('borrower.referrals.payout-request') }}" method="POST">
+        @csrf
+        <button type="submit" class="btn btn-p">Request Payout Now</button>
+    </form>
+</div>
+@endif
 
 {{-- ── MAIN + SIDEBAR ──────────────────────────────────── --}}
 <div class="ref-grid">
     <div>
         {{-- Share Card --}}
-        <div class="card" style="margin-bottom:18px;">
-            <div class="card-hdr">
-                <span class="card-title">Share Your Link</span>
+        <div class="premium-card" style="margin-bottom:20px;">
+            <div class="card-hdr" style="background:rgba(0,0,0,0.02); padding:20px 24px; border-bottom:1px solid rgba(0,0,0,0.05)">
+                <span class="card-title" style="font-weight:900; color:#0f172a">Share Your Link</span>
                 <div class="ref-share">
                     <a href="https://wa.me/?text={{ urlencode('Get a loan easily with MyLoan! Apply here: ' . $user->referral_link) }}" target="_blank" class="ref-share-btn wa" title="Share on WhatsApp">
                         <i class="bi bi-whatsapp"></i>
@@ -312,31 +301,31 @@
                     </a>
                 </div>
             </div>
-            <div class="card-body">
+            <div class="card-body" style="padding:24px;">
                 @if(!$user->canRefer())
-                <div class="alert a-w" style="margin-bottom:14px;">
+                <div class="alert a-w" style="margin-bottom:20px; border-radius:16px;">
                     <i class="bi bi-info-circle-fill"></i>
                     <div><strong>Action Required:</strong> You need an active or closed loan to be eligible for rewards. Once your first loan is disbursed, you can start earning!</div>
                 </div>
                 @endif
 
                 <div class="ref-link-box">
-                    <i class="bi bi-link-45deg" style="font-size:18px; color:var(--muted);"></i>
+                    <i class="bi bi-link-45deg" style="font-size:20px; color:#64748b;"></i>
                     <input type="text" id="referralLink" class="ref-link-input" value="{{ $user->referral_link }}" readonly>
                     <button class="ref-copy-btn" id="copyBtn" onclick="copyReferralLink()">
-                        <i class="bi bi-copy"></i> Copy
+                        <i class="bi bi-copy"></i> Copy Link
                     </button>
                 </div>
-                <div id="copyAlert" style="display:none; margin-top:8px; font-size:12px; color:var(--ok); font-weight:600;">
-                    <i class="bi bi-check2-circle"></i> Link copied to clipboard!
+                <div id="copyAlert" style="display:none; margin-top:12px; font-size:13px; color:#10b981; font-weight:800; text-align:center;">
+                    <i class="bi bi-check2-circle"></i> Referral link copied successfully!
                 </div>
             </div>
         </div>
 
         {{-- Referral History --}}
-        <div class="card">
-            <div class="card-hdr">
-                <span class="card-title">Referral History</span>
+        <div class="premium-card">
+            <div class="card-hdr" style="background:rgba(0,0,0,0.02); padding:20px 24px; border-bottom:1px solid rgba(0,0,0,0.05)">
+                <span class="card-title" style="font-weight:900; color:#0f172a">Recent Referrals</span>
             </div>
             <div style="overflow-x:auto;">
                 <table class="dt">
@@ -373,6 +362,9 @@
                                     @case('qualified')
                                         <span class="ref-status qualified"><i class="bi bi-cash-stack"></i> Qualified</span>
                                         @break
+                                    @case('payout_pending')
+                                        <span class="ref-status payout_pending"><i class="bi bi-clock-history"></i> Payout Requested</span>
+                                        @break
                                     @case('paid')
                                         <span class="ref-status paid"><i class="bi bi-check-circle-fill"></i> Paid</span>
                                         @break
@@ -407,9 +399,9 @@
 
     {{-- Sidebar --}}
     <div>
-        <div class="card" style="background:#fafbff;">
-            <div class="card-hdr">
-                <span class="card-title">How to Earn</span>
+        <div class="premium-card" style="background:rgba(30, 27, 75, 0.02)">
+            <div class="card-hdr" style="background:rgba(0,0,0,0.02); padding:16px 20px; border-bottom:1px solid rgba(0,0,0,0.05)">
+                <span class="card-title" style="font-size:15px; font-weight:900; color:#0f172a">How to Earn</span>
             </div>
             <div class="card-body">
                 <div class="ref-step">

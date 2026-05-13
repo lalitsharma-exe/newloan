@@ -27,9 +27,7 @@ class PaymentController extends Controller
 
     public function show(Payment $payment)
     {
-        abort_if($payment->user_id !== auth('borrower')->id(), 403);
-        $payment->load(['loan.loanProduct']);
-        return view('borrower.payments.show', compact('payment'));
+        return $this->receipt($payment);
     }
 
     public function showMakePayment()
@@ -270,8 +268,25 @@ class PaymentController extends Controller
     public function receipt(Payment $payment)
     {
         abort_if($payment->user_id !== auth('borrower')->id(), 403);
-        $payment->load(['loan.loanProduct']);
-        return view('borrower.payments.receipt', compact('payment'));
+        $payment->load(['loan.user', 'verifiedBy', 'loan.installments', 'loan.loanProduct']);
+        
+        // Calculate balance before payment
+        $balanceBefore = $payment->loan->outstanding_balance + $payment->amount;
+        
+        // Get next due date
+        $nextDue = $payment->loan->installments()
+            ->whereIn('status', ['pending', 'overdue', 'partial'])
+            ->where('due_date', '>', now())
+            ->orderBy('due_date')
+            ->first();
+
+        return view('borrower.payments.receipt', [
+            'payment'       => $payment,
+            'loan'          => $payment->loan,
+            'balanceBefore' => $balanceBefore,
+            'nextDue'       => $nextDue,
+            'isPdf'         => false
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

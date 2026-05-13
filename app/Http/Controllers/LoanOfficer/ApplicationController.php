@@ -213,7 +213,7 @@ class ApplicationController extends Controller
     public function uploadDocument(\Illuminate\Http\Request $request, \App\Models\LoanApplication $application)
     {
         $request->validate([
-            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'type' => 'required|string',
         ]);
 

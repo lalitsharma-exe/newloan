@@ -160,6 +160,12 @@ body{background:linear-gradient(160deg,#070e24 0%,#0d1b3e 40%,#162552 70%,#0d1b3
           <i class="bi bi-gift-fill field-icon"></i>
           <input type="text" name="referral_code" class="fc" value="{{ old('referral_code', session('referral_code')) }}" placeholder="Enter code if you have one">
         </div>
+        @if(isset($referrerName) && $referrerName)
+          <div style="margin-top: 6px; font-size: 12px; color: #166534; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+            <i class="bi bi-check-circle-fill"></i>
+            You've been invited by {{ $referrerName }}
+          </div>
+        @endif
       </div>
 
       <button type="submit" class="btn-submit">

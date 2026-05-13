@@ -484,7 +484,7 @@ $totalSteps = 9;
 <div class="card">
   <div class="card-hdr">
     <span class="card-title"><i class="bi bi-cloud-upload" style="color:var(--p)"></i> Document Uploads</span>
-    <span class="badge bs">Max 5MB · PDF, JPG, PNG</span>
+    <span class="badge bs">Max 10MB · PDF, JPG, PNG</span>
   </div>
   <div class="card-body">
     <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Upload clear documents for the client. These will be marked for verification.</div>
@@ -690,7 +690,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
 function uploadDoc(type, btn) {
     let input = document.getElementById('file_' + type);
     if (!input || !input.files[0]) return alert('Please select a file first.');
-    if (input.files[0].size > 5 * 1024 * 1024) return alert('File is too large (max 5MB).');
+    if (input.files[0].size > 10 * 1024 * 1024) return alert('File is too large (max 10MB).');
     
     let oldHtml = btn.innerHTML;
     btn.innerHTML = '<i class="bi bi-hourglass-split"></i>...';

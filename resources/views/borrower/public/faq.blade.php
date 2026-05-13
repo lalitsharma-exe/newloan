@@ -64,7 +64,7 @@
           ]],
           'documents' => ['Required Documents', [
             ['Do you have an office?', 'Yes, we are located in the main city center. You can view our map link on the contact page, or use the portal to do everything online.'],
-            ['Can I upload documents online?', 'Yes. Our portal allows you to upload documents securely as part of the application process. Accepted formats are PDF, JPG, and PNG up to 5MB per file.'],
+            ['Can I upload documents online?', 'Yes. Our portal allows you to upload documents securely as part of the application process. Accepted formats are PDF, JPG, and PNG up to 10MB per file.'],
             ['What if my document is rejected?', 'If a document is rejected, you will receive a notification explaining the reason. Common reasons include blurry images, expired documents, or wrong document type. You can re-upload corrected documents through your portal account.'],
           ]],
           'repayment' => ['Repayment', [

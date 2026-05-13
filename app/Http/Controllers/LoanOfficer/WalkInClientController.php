@@ -342,7 +342,7 @@ class WalkInClientController extends Controller
     private function saveDocuments(Request $request, LoanApplication $application): void
     {
         $request->validate([
-            'documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
 
         if ($request->hasFile('documents')) {

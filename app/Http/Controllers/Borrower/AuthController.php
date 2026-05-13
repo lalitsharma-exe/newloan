@@ -35,8 +35,16 @@ class AuthController extends Controller
         return redirect()->intended(route('borrower.dashboard'));
     }
 
-    public function showRegister() {
-        return view('borrower.auth.register');
+    public function showRegister(Request $request) {
+        $referrerName = null;
+        $refCode = session('referral_code') ?? $request->cookie('referral_code');
+        if ($refCode) {
+            $referrer = User::where('referral_code', $refCode)->first();
+            if ($referrer) {
+                $referrerName = $referrer->name;
+            }
+        }
+        return view('borrower.auth.register', compact('referrerName'));
     }
 
    

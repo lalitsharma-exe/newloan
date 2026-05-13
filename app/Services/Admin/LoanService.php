@@ -45,6 +45,7 @@ class LoanService
             $referral->update([
                 'status'       => 'qualified',
                 'qualified_at' => now(),
+                'amount'       => 50.00, // Fixed referral reward
             ]);
         }
     }

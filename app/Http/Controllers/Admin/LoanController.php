@@ -280,6 +280,41 @@ class LoanController extends Controller
         return view('admin.loans.settlement-letter', compact('loan', 'totalPaid')); 
     }
 
+    public function consolidatedSettlementQuotation(User $user)
+    {
+        $loans = $user->loans()
+            ->whereIn('status', ['active', 'overdue'])
+            ->with(['loanProduct', 'installments'])
+            ->get();
+
+        if ($loans->isEmpty()) {
+            return back()->with('error', 'This borrower has no active loans to settle.');
+        }
+
+        $totalOutstanding = 0;
+        foreach ($loans as $loan) {
+            $totalOutstanding += $loan->installments()
+                ->whereNotIn('status', ['paid', 'waived'])
+                ->sum('outstanding_amount');
+        }
+
+        $validDate = now()->day > 24 ? now()->addMonth()->day(24) : now()->day(24);
+        $validUntil = $validDate->format('d M Y');
+
+        return view('admin.loans.consolidated-settlement', compact('user', 'loans', 'totalOutstanding', 'validUntil'));
+    }
+
+    public function consolidatedSettlementLetter(User $user)
+    {
+        $loans = $user->loans()
+            ->whereIn('status', ['paid_off', 'closed'])
+            ->with(['loanProduct'])
+            ->latest()
+            ->get();
+
+        return view('admin.loans.consolidated-settlement-letter', compact('user', 'loans'));
+    }
+
     public function export(Request $request)
     {
         $loans = $this->svc->getPaginated($request->all(), 9999);
@@ -311,7 +346,7 @@ class LoanController extends Controller
     public function importLoans(Request $request)
     {
         if ($request->isMethod('get')) return view('admin.loans.import');
-        $request->validate(['file'=>'required|file|mimes:csv,txt|max:5120']);
+        $request->validate(['file'=>'required|file|mimes:csv,txt|max:10240']);
         $rows   = array_map('str_getcsv', file($request->file('file')->path()));
         $header = array_map('trim', array_shift($rows));
         $data   = array_map(fn($r)=>array_combine($header,array_map('trim',$r)), $rows);

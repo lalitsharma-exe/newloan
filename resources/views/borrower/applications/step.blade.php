@@ -280,7 +280,7 @@ $totalSteps = 9;
 
       {{-- STEP 8: Documents --}}
       @elseif($step === 8)
-      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Upload required documents. Accepted: PDF, JPG, PNG (max 5MB each).</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Upload required documents. Accepted: PDF, JPG, PNG (max 10MB each).</div>
       @foreach([['national_id','National ID'],['payslip','Latest Payslip'],['bank_statement','3 Months Bank Statement'],['photo','Selfie Picture']] as [$dtype,$dlabel])
       @php $existing = $application->documents->where('type',$dtype)->first(); @endphp
       <div style="background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid {{ $existing?'#bbf7d0':'var(--border)' }}">
@@ -465,7 +465,7 @@ $totalSteps = 9;
 function uploadDoc(type, btn) {
     let input = document.getElementById('file_' + type);
     if (!input.files[0]) return alert('Please select a file first.');
-    if (input.files[0].size > 5 * 1024 * 1024) return alert('File is too large (max 5MB).');
+    if (input.files[0].size > 10 * 1024 * 1024) return alert('File is too large (max 10MB).');
     let oldHtml = btn.innerHTML;
     btn.innerHTML = 'Uploading...';
     btn.disabled = true;

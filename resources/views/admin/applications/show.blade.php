@@ -550,7 +550,7 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
               </select>
             </div>
             <div class="fg" style="margin-bottom:0">
-              <label class="fl">File * <span style="font-weight:400;font-size:11px;color:var(--muted)">(PDF/JPG/PNG max 5MB)</span></label>
+              <label class="fl">File * <span style="font-weight:400;font-size:11px;color:var(--muted)">(PDF/JPG/PNG max 10MB)</span></label>
               <input type="file" name="file" class="fc" accept=".pdf,.jpg,.jpeg,.png" required style="padding:8px 10px">
             </div>
             <div>

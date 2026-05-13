@@ -1,334 +1,258 @@
-@extends('borrower.layouts.app')
-@section('title','Payment Receipt')
-
-@push('styles')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receipt {{ $payment->payment_reference }}</title>
 <style>
-  @media print {
-    .topnav, .bottomnav, .btn-print-wrap { display: none !important; }
-    body { background: #fff !important; padding: 0 !important; }
-    .wrap { padding: 0 !important; max-width: none !important; margin: 0 !important; }
-    .receipt-container { border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: none !important; }
-  }
+    @page { margin: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Helvetica', 'Arial', sans-serif; }
+    body { background: #f4f7fa; padding: 40px 20px; color: #334155; line-height: 1.5; }
+    
+    .receipt-container {
+        max-width: 700px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        position: relative;
+    }
+    
+    .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 80px;
+        color: rgba(10, 25, 47, 0.03); /* Dark Navy */
+        font-weight: 900;
+        z-index: 0;
+        pointer-events: none;
+        text-transform: uppercase;
+    }
 
-  .receipt-container {
-    max-width: 800px;
-    margin: 40px auto;
-    background: #fff;
-    padding: 60px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    color: #1e293b;
-  }
+    .header {
+        background: #0a192f; /* Dark Navy Blue */
+        color: #fff;
+        padding: 35px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .header-center h1 { font-size: 22px; font-weight: 800; margin-bottom: 2px; letter-spacing: 1px; }
+    .header-center p { font-size: 13px; opacity: 0.9; font-weight: 500; }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 100px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
 
-  .receipt-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 60px;
-  }
+    .content { padding: 40px; position: relative; z-index: 1; }
+    
+    .amount-section {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #f1f5f9;
+    }
+    .amount-label { font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 8px; display: block; }
+    .amount-value { font-size: 48px; font-weight: 800; color: #0a192f; }
+    .settlement-type { 
+        display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 700; 
+        padding: 4px 12px; border-radius: 4px;
+        @if($payment->loan->outstanding_balance <= 0)
+            background: #dcfce7; color: #15803d; 
+        @else
+            background: #e0e7ff; color: #0a192f;
+        @endif
+    }
 
-  .company-info h2 {
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0 0 8px 0;
-    color: #0f172a;
-  }
+    .info-grid { display: flex; flex-wrap: wrap; margin: 0 -15px; }
+    .info-col { width: 50%; padding: 0 15px; margin-bottom: 30px; }
+    .info-item { margin-bottom: 15px; }
+    .info-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
+    .info-value { font-size: 14px; font-weight: 600; color: #1e293b; display: block; }
 
-  .company-info p {
-    margin: 2px 0;
-    color: #64748b;
-    font-size: 14px;
-  }
+    .divider { border-top: 1px solid #f1f5f9; margin: 20px 0; }
 
-  .receipt-logo-wrap {
-    text-align: right;
-  }
+    .loan-summary {
+        background: #0a192f;
+        color: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .ls-item { text-align: center; flex: 1; }
+    .ls-label { font-size: 10px; font-weight: 600; opacity: 0.7; text-transform: uppercase; margin-bottom: 5px; display: block; }
+    .ls-value { font-size: 16px; font-weight: 700; }
 
-  .receipt-logo {
-    max-height: 60px;
-    margin-bottom: 10px;
-  }
+    .footer {
+        padding: 40px;
+        background: #f8fafc;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+    
+    .company-info { font-size: 12px; color: #64748b; }
+    .company-info strong { color: #0a192f; font-size: 14px; display: block; margin-bottom: 5px; }
+    
+    .qr-box { text-align: right; }
+    .qr-box img { width: 80px; height: 80px; border: 1px solid #e2e8f0; padding: 4px; border-radius: 8px; background: #fff; }
+    .qr-text { font-size: 10px; color: #94a3b8; margin-top: 5px; display: block; }
 
-  .receipt-title-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 40px;
-  }
+    .actions {
+        max-width: 700px;
+        margin: 20px auto 40px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+    .btn {
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        display: inline-block;
+    }
+    .btn-primary { background: #0a192f; color: #fff; }
+    .btn-outline { background: #fff; color: #0a192f; border: 1px solid #0a192f; }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-  .billed-to h3 {
-    font-size: 14px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #2563eb;
-    margin-bottom: 12px;
-  }
-
-  .billed-to p {
-    margin: 4px 0;
-    font-weight: 600;
-    font-size: 16px;
-  }
-
-  .billed-to span {
-    display: block;
-    color: #64748b;
-    font-size: 14px;
-    font-weight: 400;
-    margin-top: 2px;
-  }
-
-  .receipt-meta {
-    text-align: right;
-  }
-
-  .receipt-meta h1 {
-    font-size: 48px;
-    font-weight: 900;
-    color: #1e40af;
-    margin: 0 0 20px 0;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-  }
-
-  .meta-grid {
-    display: grid;
-    grid-template-columns: auto 120px;
-    gap: 8px 20px;
-    text-align: right;
-  }
-
-  .meta-lbl {
-    font-weight: 800;
-    font-size: 13px;
-    color: #1e40af;
-    text-transform: uppercase;
-  }
-
-  .meta-val {
-    font-weight: 500;
-    font-size: 14px;
-    color: #334155;
-  }
-
-  .receipt-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 30px;
-  }
-
-  .receipt-table th {
-    background: #1e40af;
-    color: #fff;
-    text-align: left;
-    padding: 12px 15px;
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-  }
-
-  .receipt-table th:last-child,
-  .receipt-table td:last-child,
-  .receipt-table th:nth-child(3),
-  .receipt-table td:nth-child(3) {
-    text-align: right;
-  }
-
-  .receipt-table td {
-    padding: 15px;
-    border-bottom: 1px solid #e2e8f0;
-    font-size: 14px;
-  }
-
-  .totals-section {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
-  }
-
-  .total-row {
-    display: grid;
-    grid-template-columns: 150px 150px;
-    gap: 20px;
-    text-align: right;
-  }
-
-  .total-lbl {
-    font-size: 14px;
-    color: #64748b;
-    font-weight: 600;
-  }
-
-  .total-val {
-    font-size: 14px;
-    color: #1e293b;
-    font-weight: 600;
-  }
-
-  .final-total {
-    border-top: 2px solid #1e40af;
-    border-bottom: 2px solid #1e40af;
-    padding: 12px 0;
-    margin-top: 10px;
-  }
-
-  .final-total .total-lbl {
-    color: #1e40af;
-    font-weight: 800;
-    font-size: 15px;
-  }
-
-  .final-total .total-val {
-    color: #1e40af;
-    font-weight: 800;
-    font-size: 18px;
-  }
-
-  .receipt-notes {
-    margin-top: 80px;
-    border-top: 1px solid #f1f5f9;
-    padding-top: 30px;
-  }
-
-  .notes-title {
-    font-size: 14px;
-    font-weight: 800;
-    color: #1e40af;
-    margin-bottom: 12px;
-  }
-
-  .notes-content {
-    font-size: 13px;
-    color: #64748b;
-    line-height: 1.6;
-  }
-
-  .notes-footer {
-    margin-top: 24px;
-    font-size: 13px;
-    color: #94a3b8;
-  }
-
-  .btn-print-wrap {
-    max-width: 800px;
-    margin: 0 auto 40px;
-    text-align: center;
-  }
-
-  .btn-print {
-    background: #1e40af;
-    color: #fff;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(30,64,175, 0.2);
-    transition: all 0.2s;
-  }
-
-  .btn-print:hover {
-    background: #1e3a8a;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 12px -2px rgba(30,64,175, 0.3);
-  }
+    @media print {
+        body { background: #fff; padding: 0; }
+        .receipt-container { box-shadow: none; border: 1px solid #eee; width: 100%; max-width: 100%; }
+        .actions { display: none; }
+    }
 </style>
-@endpush
+</head>
+<body>
 
-@section('content')
 <div class="receipt-container">
-  <div class="receipt-header">
-    <div class="company-info">
-      <h2>MyLoan Limited</h2>
-      <p>Kingsway Road, Maseru</p>
-      <p>Maseru, Lesotho 100</p>
+    <div class="watermark">Official</div>
+    
+    <div class="header">
+        <div style="width: 25%;">
+            <img src="{{ asset(config('app.logo')) }}" alt="Logo" style="height: 50px; width: auto; filter: brightness(0) invert(1);">
+        </div>
+        
+        <div class="header-center" style="width: 50%; text-align: center;">
+            <h1>PAYMENT RECEIPT</h1>
+            <p>Reference: {{ $payment->payment_reference }}</p>
+        </div>
+        
+        <div style="width: 25%; text-align: right;">
+            <div class="status-badge">
+                {{ $payment->status === 'verified' ? 'Verified' : 'Processing' }}
+            </div>
+        </div>
     </div>
-    <div class="receipt-logo-wrap">
-      <img src="{{ asset(config('app.logo')) }}" alt="Logo" class="receipt-logo">
+    
+    <div class="content">
+        <div class="amount-section">
+            <span class="amount-label">Amount Paid</span>
+            <div class="amount-value">M {{ number_format($payment->amount, 2) }}</div>
+            <div class="settlement-type">
+                {{ $payment->loan->outstanding_balance <= 0 ? 'FULL SETTLEMENT' : 'PARTIAL REPAYMENT' }}
+            </div>
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-col">
+                <div class="info-item">
+                    <span class="info-label">Customer Name</span>
+                    <span class="info-value">{{ $payment->user?->name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">National ID</span>
+                    <span class="info-value">{{ $payment->user?->national_id ?? '—' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Loan Account</span>
+                    <span class="info-value">{{ $payment->loan?->loan_number }}</span>
+                </div>
+            </div>
+            
+            <div class="info-col">
+                <div class="info-item">
+                    <span class="info-label">Payment Date</span>
+                    <span class="info-value">{{ ($payment->verified_at ?? $payment->created_at)->format('d M Y, H:i') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Channel / Method</span>
+                    <span class="info-value">{{ ucwords(str_replace('_', ' ', $payment->method)) }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Status</span>
+                    <span class="info-value">{{ ucfirst($payment->status) }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="loan-summary">
+            <div class="ls-item">
+                <span class="ls-label">Balance Before</span>
+                <div class="ls-value">M {{ number_format($balanceBefore, 2) }}</div>
+            </div>
+            <div style="width: 1px; background: rgba(255,255,255,0.2); margin: 0 20px;"></div>
+            <div class="ls-item">
+                <span class="ls-label">Balance After</span>
+                <div class="ls-value">M {{ number_format($payment->loan->outstanding_balance, 2) }}</div>
+            </div>
+            <div style="width: 1px; background: rgba(255,255,255,0.2); margin: 0 20px;"></div>
+            <div class="ls-item">
+                <span class="ls-label">Next Due Date</span>
+                <div class="ls-value">{{ $nextDue ? $nextDue->due_date->format('d M Y') : 'N/A' }}</div>
+            </div>
+        </div>
+        
+        @if($payment->notes)
+        <div style="margin-top: 30px; font-size: 13px; font-style: italic; color: #64748b; border-left: 3px solid #0a192f; padding-left: 15px;">
+            <strong>Note:</strong> {{ $payment->notes }}
+        </div>
+        @endif
     </div>
-  </div>
-
-  <div class="receipt-title-section">
-    <div class="billed-to">
-      <h3>Billed To</h3>
-      <p>{{ auth('borrower')->user()->name }}</p>
-      <span>{{ auth('borrower')->user()->phone }}</span>
-      @if(auth('borrower')->user()->email)
-        <span>{{ auth('borrower')->user()->email }}</span>
-      @endif
+    
+    <div class="footer">
+        <div class="company-info">
+            <strong>MyLoan Limited</strong>
+            <p>L&M Complex, Ha Thamae, Maseru</p>
+            <p>Phone: (+266) 59 229 149</p>
+            <p>Email: info@myloan.co.ls</p>
+        </div>
+        
+        <div class="qr-box">
+            @php $verifyUrl = route('receipt.verify', ['ref' => $payment->payment_reference]); @endphp
+            <img src="https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl={{ urlencode($verifyUrl) }}&choe=UTF-8" alt="QR Code">
+            <span class="qr-text">Scan to Verify</span>
+        </div>
     </div>
-    <div class="receipt-meta">
-      <h1>RECEIPT</h1>
-      <div class="meta-grid">
-        <div class="meta-lbl">Receipt #</div>
-        <div class="meta-val">{{ $payment->payment_reference }}</div>
-        <div class="meta-lbl">Receipt Date</div>
-        <div class="meta-val">{{ $payment->verified_at ? $payment->verified_at->format('d-m-Y') : $payment->created_at->format('d-m-Y') }}</div>
-      </div>
-    </div>
-  </div>
-
-  <table class="receipt-table">
-    <thead>
-      <tr>
-        <th style="width: 60px;">QTY</th>
-        <th>Description</th>
-        <th style="width: 120px;">Unit Price</th>
-        <th style="width: 120px;">Amount</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>1</td>
-        <td>
-            <strong>Loan Repayment</strong><br>
-            <span style="font-size: 12px; color: #64748b;">Loan #{{ $payment->loan?->loan_number }} - {{ $payment->loan?->loanProduct?->name }}</span>
-        </td>
-        <td>{{ number_format($payment->amount, 2) }}</td>
-        <td>{{ number_format($payment->amount, 2) }}</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div class="totals-section">
-    <div class="total-row">
-      <div class="total-lbl">Subtotal</div>
-      <div class="total-val">M {{ number_format($payment->amount, 2) }}</div>
-    </div>
-    <div class="total-row">
-      <div class="total-lbl">Sales Tax (0%)</div>
-      <div class="total-val">M 0.00</div>
-    </div>
-    <div class="total-row final-total">
-      <div class="total-lbl">Total (LSL)</div>
-      <div class="total-val">M {{ number_format($payment->amount, 2) }}</div>
-    </div>
-  </div>
-
-  <div class="receipt-notes">
-    <div class="notes-title">Notes</div>
-    <div class="notes-content">
-      Thank you for your payment! This receipt confirms that the amount stated above has been applied to your loan balance. 
-      Please retain this receipt for your records.
-    </div>
-    <div class="notes-footer">
-      For questions or support, contact us at support@myloan.ls or call +266 2231 1234
-    </div>
-  </div>
 </div>
 
-<div class="btn-print-wrap">
-  <button onclick="window.print()" class="btn-print">
-    <i class="bi bi-printer"></i> Print Receipt
-  </button>
-  <div style="margin-top: 16px;">
-    <a href="{{ route('borrower.payments.index') }}" style="font-size: 13px; color: #64748b; text-decoration: none;">
-      <i class="bi bi-arrow-left"></i> Back to Payment History
-    </a>
-  </div>
+<div class="actions">
+    <button onclick="window.print()" class="btn btn-outline">Print Receipt</button>
+    <a href="{{ route('borrower.payments.index') }}" class="btn btn-primary">Back to History</a>
 </div>
-@endsection
+
+</body>
+</html>

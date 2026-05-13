@@ -115,10 +115,27 @@
       </div>
     </div>
 
-    {{-- Loans panel --}}
     <div id="upanel-loans" style="display:none">
       <div class="card">
-        <div class="card-hdr"><span class="card-title">Loans</span></div>
+        <div class="card-hdr" style="justify-content: space-between;">
+          <span class="card-title">Loans</span>
+          @php 
+            $activeLoans = $user->loans()->whereIn('status', ['active', 'overdue'])->get();
+          @endphp
+          @if($activeLoans->count() > 1)
+            <a href="{{ route('admin.users.consolidated-settlement', $user) }}" target="_blank" class="btn btn-xs btn-p" style="background: var(--navy); border-color: var(--navy);">
+              <i class="bi bi-file-earmark-break"></i> Consolidated Quotation
+            </a>
+          @endif
+          @php 
+            $closedLoans = $user->loans()->whereIn('status', ['paid_off', 'closed'])->get();
+          @endphp
+          @if($closedLoans->count() > 1)
+            <a href="{{ route('admin.users.consolidated-settlement-letter', $user) }}" target="_blank" class="btn btn-xs btn-ok">
+              <i class="bi bi-patch-check-fill"></i> Consolidated Clearance
+            </a>
+          @endif
+        </div>
         <div style="overflow-x:auto">
           <table class="dt">
             <thead><tr><th>Loan #</th><th>Principal</th><th>Outstanding</th><th>Monthly</th><th>Status</th><th>Disbursed</th><th></th></tr></thead>

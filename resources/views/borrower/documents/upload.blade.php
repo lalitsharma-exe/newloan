@@ -14,7 +14,7 @@
         <select name="application_id" class="fc"><option value="">— Not linked —</option>@foreach($applications as $a)<option value="{{ $a->id }}">{{ $a->application_number }} — {{ $a->loanProduct?->name }}</option>@endforeach</select>
       </div>
       @endif
-      <div class="fg"><label class="fl">File * <span style="font-size:11px;color:var(--muted)">(PDF, JPG, PNG — max 5MB)</span></label>
+      <div class="fg"><label class="fl">File * <span style="font-size:11px;color:var(--muted)">(PDF, JPG, PNG — max 10MB)</span></label>
         <input type="file" name="file" class="fc" accept=".pdf,.jpg,.jpeg,.png" required>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end">

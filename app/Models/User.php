@@ -70,7 +70,7 @@ class User extends Authenticatable {
     public function getReferralLinkAttribute(): string
     {
         if (!$this->referral_code) return '';
-        return route('borrower.apply.start', ['ref' => $this->referral_code]);
+        return route('borrower.register', ['ref' => $this->referral_code]);
     }
 
     /**
