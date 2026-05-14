@@ -19,7 +19,7 @@
     .badge-cbl { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
     .table-premium th { background: var(--bg); color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 15px; }
     .table-premium td { padding: 14px 15px; font-size: 13px; border-bottom: 1px solid var(--bg); }
-    .report-section { scroll-margin-top: 100px; }
+    .report-section { scroll-margin-top: 100px; margin-bottom: 40px; }
     .grid-report { display: grid; grid-template-columns: 280px 1fr; gap: 30px; align-items: start; }
     @media (max-width: 1200px) { .grid-report { grid-template-columns: 1fr; } .section-nav { display: none; } }
 </style>
@@ -90,9 +90,9 @@
     </div>
 
     <!-- Report Content -->
-    <div style="display:flex; flex-direction:column; gap:30px">
+    <div style="display:flex; flex-direction:column; gap:0">
         <!-- Premium Header -->
-        <div class="card" style="background: linear-gradient(135deg, #1a1a1a 0%, #333 100%); border:none; border-radius:24px; overflow:hidden; position:relative">
+        <div class="card" style="background: linear-gradient(135deg, #1a1a1a 0%, #333 100%); border:none; border-radius:24px; overflow:hidden; position:relative; margin-bottom:30px">
             <div style="position:absolute; right:-20px; top:-20px; font-size:160px; color:rgba(255,255,255,0.03); transform:rotate(-15deg)"><i class="bi bi-bank"></i></div>
             <div style="padding: 40px; position:relative; z-index:1; display:flex; justify-content:space-between; align-items:center">
                 <div>
@@ -217,56 +217,53 @@
             </div>
         </div>
 
-        <!-- Multi-Grid Sections -->
-        <div class="g2">
-            <!-- 3.4: Demographics -->
-            <div class="report-section" id="s34">
-                <div class="stat-lbl" style="margin-bottom:15px">Section 3.4 — Gender Distribution</div>
-                <div class="card">
-                    <table class="table-premium w-100">
-                        <thead>
-                            <tr>
-                                <th>Gender</th>
-                                <th style="text-align:center">Borrowers</th>
-                                <th style="text-align:right">Volume</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($report['data']['3.4'] as $row)
-                            <tr>
-                                <td style="font-weight:700">{{ $row['gender'] }}</td>
-                                <td style="text-align:center">{{ number_format($row['count']) }}</td>
-                                <td style="text-align:right">L {{ number_format($row['amount'], 2) }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+        <!-- Section 3.4: Demographics -->
+        <div class="report-section" id="s34">
+            <div class="stat-lbl" style="margin-bottom:15px">Section 3.4 — Gender Distribution</div>
+            <div class="card">
+                <table class="table-premium w-100">
+                    <thead>
+                        <tr>
+                            <th>Gender</th>
+                            <th style="text-align:center">Borrowers</th>
+                            <th style="text-align:right">Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($report['data']['3.4'] as $row)
+                        <tr>
+                            <td style="font-weight:700">{{ $row['gender'] }}</td>
+                            <td style="text-align:center">{{ number_format($row['count']) }}</td>
+                            <td style="text-align:right">L {{ number_format($row['amount'], 2) }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
+        </div>
 
-            <!-- 3.5: SME Classification -->
-            <div class="report-section" id="s35">
-                <div class="stat-lbl" style="margin-bottom:15px">Section 3.5 — SME Loans (by Size)</div>
-                <div class="card">
-                    <table class="table-premium w-100">
-                        <thead>
-                            <tr>
-                                <th>Company Size</th>
-                                <th style="text-align:center">Loans</th>
-                                <th style="text-align:right">Volume</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($report['data']['3.5'] as $row)
-                            <tr>
-                                <td style="font-weight:700">{{ $row['category'] }}</td>
-                                <td style="text-align:center">{{ number_format($row['count']) }}</td>
-                                <td style="text-align:right">L {{ number_format($row['amount'], 2) }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+        <!-- Section 3.5: SME Classification -->
+        <div class="report-section" id="s35">
+            <div class="stat-lbl" style="margin-bottom:15px">Section 3.5 — SME Loans (by Size)</div>
+            <div class="card">
+                <table class="table-premium w-100">
+                    <thead>
+                        <tr>
+                            <th>Company Size</th>
+                            <th style="text-align:center">Loans</th>
+                            <th style="text-align:right">Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($report['data']['3.5'] as $row)
+                        <tr>
+                            <td style="font-weight:700">{{ $row['category'] }}</td>
+                            <td style="text-align:center">{{ number_format($row['count']) }}</td>
+                            <td style="text-align:right">L {{ number_format($row['amount'], 2) }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -284,7 +281,91 @@
             </div>
         </div>
 
-        <!-- 3.11: Over-Indebtedness -->
+        <!-- 3.7: Loan Activity -->
+        <div class="report-section" id="s37">
+            <div class="stat-lbl" style="margin-bottom:15px">Section 3.7 — Loan Activity (Reporting Period)</div>
+            <div class="card">
+                <table class="table-premium w-100">
+                    <thead>
+                        <tr>
+                            <th>Activity Type</th>
+                            <th style="text-align:center">Count</th>
+                            <th style="text-align:right">Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight:700">New Disbursements</td>
+                            <td style="text-align:center">{{ number_format($report['data']['3.7']['new']['count']) }}</td>
+                            <td style="text-align:right">L {{ number_format($report['data']['3.7']['new']['amount'], 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight:700">Settled Loans</td>
+                            <td style="text-align:center">{{ number_format($report['data']['3.7']['settled']['count']) }}</td>
+                            <td style="text-align:right">L {{ number_format($report['data']['3.7']['settled']['amount'], 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight:700">Written Off</td>
+                            <td style="text-align:center">{{ number_format($report['data']['3.7']['write_offs']['count']) }}</td>
+                            <td style="text-align:right">L {{ number_format($report['data']['3.7']['write_offs']['amount'], 2) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3.8: Arrears Summary -->
+        <div class="report-section" id="s38">
+            <div class="stat-lbl" style="margin-bottom:15px">Section 3.8 — Arrears Classification Summary</div>
+            <div class="card">
+                <table class="table-premium w-100">
+                    <thead>
+                        <tr>
+                            <th>Aging Category</th>
+                            <th style="text-align:center">Loans</th>
+                            <th style="text-align:right">Volume in Arrears</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($report['data']['3.8'] as $label => $vals)
+                        <tr>
+                            <td style="font-weight:700">{{ $label }}</td>
+                            <td style="text-align:center">{{ number_format($vals['count']) }}</td>
+                            <td style="text-align:right">L {{ number_format($vals['amount'], 2) }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 3.9: Write-Offs -->
+        <div class="report-section" id="s39">
+            <div class="stat-lbl" style="margin-bottom:15px">Section 3.9 — Write-Offs Analysis</div>
+            <div class="card" style="padding:24px; text-align:center">
+                <div class="stat-lbl">Total Written Off</div>
+                <div style="font-size:24px; font-weight:800; color:var(--err); margin:10px 0">L {{ number_format($report['data']['3.9']['amount'], 2) }}</div>
+                <div class="muted" style="font-size:12px">{{ $report['data']['3.9']['count'] }} loans categorized as loss</div>
+            </div>
+        </div>
+
+        <!-- Section 3.10: Complaints -->
+        <div class="report-section" id="s310">
+            <div class="stat-lbl" style="margin-bottom:15px">Section 3.10 — Complaints Register Summary</div>
+            <div class="card" style="padding:24px; display:flex; justify-content:space-around; align-items:center; text-align:center">
+                <div>
+                    <div class="stat-lbl">Internal Resolution</div>
+                    <div style="font-size:24px; font-weight:800; color:var(--ok)">{{ $report['data']['3.10']['internal'] }}</div>
+                </div>
+                <div style="width:1px; height:40px; background:var(--border)"></div>
+                <div>
+                    <div class="stat-lbl">CBL Referrals</div>
+                    <div style="font-size:24px; font-weight:800; color:var(--err)">{{ $report['data']['3.10']['referred'] }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3.11: Over-Indebtedness -->
         <div class="report-section" id="s311">
             <div class="stat-lbl" style="margin-bottom:15px">Section 3.11 — Over-Indebtedness Indicators</div>
             <div class="card" style="padding:20px">
@@ -311,35 +392,28 @@
             </div>
         </div>
 
-        <!-- 3.10 & 3.13: Complaints & Growth -->
-        <div class="g2">
-            <div class="report-section" id="s310">
-                <div class="stat-lbl" style="margin-bottom:15px">Section 3.10 — Complaints Register Summary</div>
-                <div class="card" style="padding:24px; display:flex; justify-content:space-around; align-items:center; text-align:center">
-                    <div>
-                        <div class="stat-lbl">Internal Resolution</div>
-                        <div style="font-size:24px; font-weight:800; color:var(--ok)">{{ $report['data']['3.10']['internal'] }}</div>
-                    </div>
-                    <div style="width:1px; height:40px; background:var(--border)"></div>
-                    <div>
-                        <div class="stat-lbl">CBL Referrals</div>
-                        <div style="font-size:24px; font-weight:800; color:var(--err)">{{ $report['data']['3.10']['referred'] }}</div>
-                    </div>
-                </div>
+        <!-- Section 3.12: Pricing Fairness -->
+        <div class="report-section" id="s312">
+            <div class="stat-lbl" style="margin-bottom:15px">Section 3.12 — Pricing & Fairness</div>
+            <div class="card" style="padding:24px; text-align:center">
+                <div class="stat-lbl">Max Interest Rate Applied</div>
+                <div style="font-size:24px; font-weight:800; color:var(--p); margin:10px 0">{{ number_format($report['data']['3.12']['max_rate'], 2) }}%</div>
+                <div class="muted" style="font-size:11px"><i class="bi bi-shield-check"></i> Within approved rate schedule</div>
             </div>
+        </div>
 
-            <div class="report-section" id="s313">
-                <div class="stat-lbl" style="margin-bottom:15px">Section 3.13 — Client Acquisition & Growth</div>
-                <div class="card" style="padding:24px; display:flex; justify-content:space-around; align-items:center; text-align:center">
-                    <div>
-                        <div class="stat-lbl">New Acquisitions</div>
-                        <div style="font-size:24px; font-weight:800; color:var(--p)">{{ $report['data']['3.13']['new_clients'] }}</div>
-                    </div>
-                    <div style="width:1px; height:40px; background:var(--border)"></div>
-                    <div>
-                        <div class="stat-lbl">Active Base</div>
-                        <div style="font-size:24px; font-weight:800">{{ $report['data']['3.13']['total_active'] }}</div>
-                    </div>
+        <!-- Section 3.13: Client Growth -->
+        <div class="report-section" id="s313">
+            <div class="stat-lbl" style="margin-bottom:15px">Section 3.13 — Client Acquisition & Growth</div>
+            <div class="card" style="padding:24px; display:flex; justify-content:space-around; align-items:center; text-align:center">
+                <div>
+                    <div class="stat-lbl">New Acquisitions</div>
+                    <div style="font-size:24px; font-weight:800; color:var(--p)">{{ $report['data']['3.13']['new_clients'] }}</div>
+                </div>
+                <div style="width:1px; height:40px; background:var(--border)"></div>
+                <div>
+                    <div class="stat-lbl">Active Base</div>
+                    <div style="font-size:24px; font-weight:800">{{ $report['data']['3.13']['total_active'] }}</div>
                 </div>
             </div>
         </div>
