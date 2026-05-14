@@ -81,7 +81,7 @@ body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
         </div>
         <div class="header-info">
             <h1>Consolidated Settlement</h1>
-            <div class="meta-row">Borrower ID: <strong>{{ $user->national_id }}</strong></div>
+            <div class="meta-row">Phone Number: <strong>{{ $user->phone }}</strong></div>
             <div class="meta-row">Generated: <strong>{{ now()->format('d M Y') }}</strong></div>
             <div class="meta-row">Valid Until: <strong style="color:var(--danger)">{{ $validUntil }}</strong></div>
         </div>
@@ -96,10 +96,17 @@ body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
 
         <div class="section-title">Borrower Information</div>
         <div class="info-grid">
-            <div class="info-item"><div class="lbl">Full Name</div><div class="val">{{ $user->name }}</div></div>
+            <div class="info-item">
+                <div class="lbl">Full Name & Address</div>
+                <div class="val">
+                    {{ $user->name }}<br>
+                    <span style="font-size:12px;color:var(--text-muted);font-weight:400">{{ $user->employment?->postal_address ?? $user->address ?? 'N/A' }}</span>
+                </div>
+            </div>
             <div class="info-item"><div class="lbl">Total Active Loans</div><div class="val">{{ $loans->count() }} Accounts</div></div>
             <div class="info-item"><div class="lbl">National ID</div><div class="val">{{ $user->national_id }}</div></div>
             <div class="info-item"><div class="lbl">Phone Number</div><div class="val">{{ $user->phone }}</div></div>
+            <div class="info-item"><div class="lbl">Account Reference</div><div class="val" style="font-weight:800;color:var(--primary)">{{ $user->phone }}</div></div>
         </div>
 
         <div class="section-title">Loan Account Breakdown</div>
@@ -139,7 +146,7 @@ body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
                     <br><br>
                     <strong>Use Reference:</strong>
                     <div style="background:#fff;padding:10px;border-radius:8px;border:1px solid #bfdbfe;font-size:18px;font-weight:800;text-align:center;margin-top:10px;color:var(--primary);letter-spacing:1px">
-                        {{ $user->national_id }}
+                        {{ $user->phone }}
                     </div>
                 </div>
             </div>
@@ -161,7 +168,11 @@ body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
                     $sigVal = \App\Models\SystemSetting::get('director_signature');
                     $sigDataUrl = null;
                     if ($sigVal && \Illuminate\Support\Facades\Storage::disk('public')->exists($sigVal)) {
-                        try { $sigDataUrl = 'data:image/png;base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($sigVal)); } catch (\Exception $e) {}
+                        try { 
+                            $ext = pathinfo($sigVal, PATHINFO_EXTENSION);
+                            $mime = ($ext === 'svg') ? 'image/svg+xml' : ($ext === 'webp' ? 'image/webp' : 'image/png');
+                            $sigDataUrl = 'data:' . $mime . ';base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($sigVal)); 
+                        } catch (\Exception $e) {}
                     }
                     $directorName = \App\Models\SystemSetting::get('director_name', 'Tjale Maila');
                     $directorTitle = \App\Models\SystemSetting::get('director_title', 'Managing Director');
@@ -177,21 +188,26 @@ body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
                 <div style="font-weight:700;color:var(--primary);margin-top:2px">MyLoan Limited</div>
             </div>
             <div class="sig-stamp">
-                @php
-                    $qrVal = \App\Models\SystemSetting::get('system_qr');
-                    $qrDataUrl = null;
-                    if ($qrVal && \Illuminate\Support\Facades\Storage::disk('public')->exists($qrVal)) {
-                        try { $qrDataUrl = 'data:image/png;base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($qrVal)); } catch (\Exception $e) {}
-                    }
-                @endphp
-                @if($qrDataUrl)
-                    <div style="text-align:center">
-                        <img src="{{ $qrDataUrl }}" style="width:100px;height:100px" alt="QR Authentication">
-                        <div style="font-size:8px;color:var(--text-muted);margin-top:6px;text-transform:uppercase;letter-spacing:1px">Verified Digital Doc</div>
-                    </div>
-                @else
-                    <div style="width:100px;height:100px;border-radius:50%;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:10px;text-align:center;text-transform:uppercase;font-weight:700;letter-spacing:1px">Official<br>Stamp</div>
-                @endif
+                <div style="text-align:center">
+                    @php 
+                        $qrVal = \App\Models\SystemSetting::get('system_qr');
+                        $qrDataUrl = null;
+                        if ($qrVal && \Illuminate\Support\Facades\Storage::disk('public')->exists($qrVal)) {
+                            try { 
+                                $ext = pathinfo($qrVal, PATHINFO_EXTENSION);
+                                $mime = ($ext === 'svg') ? 'image/svg+xml' : ($ext === 'webp' ? 'image/webp' : 'image/png');
+                                $qrDataUrl = 'data:' . $mime . ';base64,' . base64_encode(\Illuminate\Support\Facades\Storage::disk('public')->get($qrVal)); 
+                            } catch (\Exception $e) {}
+                        }
+                    @endphp
+                    @if($qrDataUrl)
+                        <img src="{{ $qrDataUrl }}" style="width:100px;height:100px" alt="Official QR">
+                    @else
+                        @php $verifyUrl = route('borrower.login'); @endphp
+                        <img src="https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl={{ urlencode($verifyUrl) }}&choe=UTF-8" style="width:100px;height:100px" alt="QR Code">
+                    @endif
+                    <div style="font-size:8px;color:var(--text-muted);margin-top:6px;text-transform:uppercase;letter-spacing:1px">Verified Digital Doc</div>
+                </div>
             </div>
         </div>
     </div>

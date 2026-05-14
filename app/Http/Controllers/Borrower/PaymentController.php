@@ -268,17 +268,20 @@ class PaymentController extends Controller
     public function receipt(Payment $payment)
     {
         abort_if($payment->user_id !== auth('borrower')->id(), 403);
-        $payment->load(['loan.user', 'verifiedBy', 'loan.installments', 'loan.loanProduct']);
+        $payment->load(['user', 'loan.user', 'verifiedBy', 'loan.installments', 'loan.loanProduct']);
         
         // Calculate balance before payment
-        $balanceBefore = $payment->loan->outstanding_balance + $payment->amount;
+        $balanceBefore = $payment->loan ? ($payment->loan->outstanding_balance + $payment->amount) : $payment->amount;
         
         // Get next due date
-        $nextDue = $payment->loan->installments()
-            ->whereIn('status', ['pending', 'overdue', 'partial'])
-            ->where('due_date', '>', now())
-            ->orderBy('due_date')
-            ->first();
+        $nextDue = null;
+        if ($payment->loan) {
+            $nextDue = $payment->loan->installments()
+                ->whereIn('status', ['pending', 'overdue', 'partial'])
+                ->where('due_date', '>', now())
+                ->orderBy('due_date')
+                ->first();
+        }
 
         return view('borrower.payments.receipt', [
             'payment'       => $payment,

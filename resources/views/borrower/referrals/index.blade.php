@@ -5,7 +5,7 @@
 <style>
 /* ── REFERRAL HERO (Premium Style) ─────────────────────── */
 .ref-hero {
-    background-image: url('/assets/images/referral_hero.png');
+    background-image: url('/assets/images/referral_hero.jpg');
     background-size: cover;
     background-position: right center;
     border-radius: 28px;
