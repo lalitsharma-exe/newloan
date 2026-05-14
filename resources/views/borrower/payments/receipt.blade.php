@@ -178,7 +178,7 @@
             <span class="amount-label">Amount Paid</span>
             <div class="amount-value">M {{ number_format($payment->amount, 2) }}</div>
             <div class="settlement-type">
-                {{ $payment->loan->outstanding_balance <= 0 ? 'FULL SETTLEMENT' : 'PARTIAL REPAYMENT' }}
+                {{ ($payment->loan && $payment->loan->outstanding_balance <= 0) ? 'FULL SETTLEMENT' : 'PARTIAL REPAYMENT' }}
             </div>
         </div>
         
@@ -231,7 +231,7 @@
             <div style="width: 1px; background: rgba(255,255,255,0.2); margin: 0 20px;"></div>
             <div class="ls-item">
                 <span class="ls-label">Balance After</span>
-                <div class="ls-value">M {{ number_format($payment->loan->outstanding_balance, 2) }}</div>
+                <div class="ls-value">M {{ number_format($payment->loan->outstanding_balance ?? 0, 2) }}</div>
             </div>
             <div style="width: 1px; background: rgba(255,255,255,0.2); margin: 0 20px;"></div>
             <div class="ls-item">
