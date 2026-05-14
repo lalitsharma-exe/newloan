@@ -8,6 +8,7 @@ use App\Services\CPayService;
 use App\Services\MpesaService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Services\Admin\FinancialService;
 use Illuminate\Support\Facades\Log;
 
 class LoanController extends Controller
@@ -15,7 +16,8 @@ class LoanController extends Controller
     public function __construct(
         private LoanService $svc,
         private CPayService $cpay,
-        private MpesaService $mpesa
+        private MpesaService $mpesa,
+        private FinancialService $financialSvc
     ) {}
 
     public function index(Request $request)
@@ -31,7 +33,8 @@ class LoanController extends Controller
     public function show(Loan $loan)
     {
         $loan->load(['user','loanProduct','application.bankDetails','installments','payments.verifiedBy']);
-        return view('admin.loans.show', compact('loan'));
+        $accounts = TreasuryAccount::where('is_active', true)->get();
+        return view('admin.loans.show', compact('loan', 'accounts'));
     }
 
     public function schedule(Loan $loan)
@@ -49,7 +52,8 @@ class LoanController extends Controller
         $cpayConfigured = $this->cpay->isConfigured();
         $cpayIsSandbox  = $this->cpay->isSandbox();
         $mpesaConfigured = $this->mpesa->isConfigured();
-        return view('admin.loans.disburse-confirm', compact('loan','checks','reference','cpayConfigured','cpayIsSandbox','mpesaConfigured'));
+        $accounts = TreasuryAccount::where('is_active', true)->get();
+        return view('admin.loans.disburse-confirm', compact('loan','checks','reference','cpayConfigured','cpayIsSandbox','mpesaConfigured', 'accounts'));
     }
 
     // ── DISBURSE — Mobile Money + Bank Transfer + Cash + CPay Wallet ─────────
@@ -59,6 +63,7 @@ class LoanController extends Controller
             'disbursement_date'      => 'required|date',
             'disbursement_reference' => 'required|string|max:80',
             'disbursement_method'    => 'required|in:bank_transfer,cash,cpay_wallet,mpesa_b2c',
+            'treasury_account_id'    => 'required|exists:treasury_accounts,id',
             'disbursement_phone'     => 'nullable|string|max:30',
             'disbursement_provider'  => 'nullable|string|max:50',
             'confirm'                => 'required|accepted',
@@ -135,6 +140,19 @@ class LoanController extends Controller
             'maturity_date'          => $disbDate->copy()->addMonths($loan->term_months)->setDay((int)($loan->salary_payday ?? $loan->application?->salary_payday ?? 25))->toDateString(),
         ]);
 
+        // Record Treasury Transaction
+        $this->financialSvc->recordTransaction(
+            $request->treasury_account_id,
+            'disbursement',
+            $loan->principal_amount,
+            'out',
+            [
+                'description' => "Disbursement for Loan {$loan->loan_number}",
+                'loan_id' => $loan->id,
+                'reference' => $reference
+            ]
+        );
+
         if ($loan->installments()->count() === 0) {
             $this->svc->generateInstallments($loan);
         }
@@ -176,12 +194,29 @@ class LoanController extends Controller
         $request->validate([
             'amount'    => 'required|numeric|min:0.01',
             'method'    => 'required|in:cash,bank_transfer,mobile_money,card,cheque',
+            'treasury_account_id' => 'required|exists:treasury_accounts,id',
             'notes'     => 'nullable|string|max:500',
             'paid_date' => 'nullable|date',
         ]);
+        
         $payment = $this->svc->recordManualPayment($loan, $request->all(), auth('admin')->user());
+        
+        // Update Treasury Ledger
+        $this->financialSvc->recordTransaction(
+            $request->treasury_account_id,
+            'collection',
+            $request->amount,
+            'in',
+            [
+                'description' => "Repayment for Loan {$loan->loan_number}",
+                'payment_id' => $payment->id,
+                'loan_id' => $loan->id,
+                'reference' => $payment->payment_reference
+            ]
+        );
+
         AuditLog::record('loan.record_payment', "Manual payment M{$request->amount} on {$loan->loan_number}", $loan, [], ['amount' => $request->amount, 'method' => $request->method]);
-        return redirect()->route('admin.loans.show', $loan)->with('success', "Payment of M{$request->amount} recorded. Ref: {$payment->payment_reference}");
+        return redirect()->route('admin.loans.show', $loan)->with('success', "Payment of M{$request->amount} recorded and treasury updated. Ref: {$payment->payment_reference}");
     }
 
     public function reversePayment(Request $request, Loan $loan)

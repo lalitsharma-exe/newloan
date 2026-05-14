@@ -320,6 +320,16 @@ Disburse
             </div>
 
             <div class="fg">
+              <label class="fl">Disburse From Account *</label>
+              <select name="treasury_account_id" class="fc" required>
+                @foreach($accounts as $acc)
+                  <option value="{{ $acc->id }}">{{ $acc->name }} (Balance: L {{ number_format($acc->balance, 2) }})</option>
+                @endforeach
+              </select>
+              <div class="ft">Select the source of funds for this disbursement</div>
+            </div>
+
+            <div class="fg">
               <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;background:#f8fafc">
                 <input type="checkbox" name="confirm" value="1" id="confirmCheck" required style="width:18px;height:18px;cursor:pointer;accent-color:var(--p)">
                 <span style="font-size:13px;font-weight:600;color:var(--dark)">I confirm this disbursement is correct and authorised</span>

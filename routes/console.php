@@ -19,3 +19,6 @@ Schedule::command('mybill:process-paydays')->dailyAt('06:00');
 
 // Expire old inactive applications
 Schedule::command('loans:expire-applications')->dailyAt('02:00');
+
+// Capture daily liquidity snapshot & refresh forecasts
+Schedule::command('financial:refresh')->dailyAt('23:30');

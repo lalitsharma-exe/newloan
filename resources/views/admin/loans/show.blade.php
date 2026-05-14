@@ -160,6 +160,14 @@
         <div class="fg"><label class="fl">Amount (L)*</label><input type="number" name="amount" class="fc" step="0.01" required></div>
         <div class="fg"><label class="fl">Date*</label><input type="date" name="payment_date" class="fc" value="{{ today()->format('Y-m-d') }}" required></div>
         <div class="fg"><label class="fl">Method*</label><select name="method" class="fc"><option value="cash">Cash</option><option value="bank_transfer">Bank Transfer</option><option value="mobile_money">Mobile Money</option><option value="card">Card</option></select></div>
+        <div class="fg">
+          <label class="fl">Treasury Account*</label>
+          <select name="treasury_account_id" class="fc" required>
+            @foreach($accounts as $acc)
+              <option value="{{ $acc->id }}">{{ $acc->name }} (L {{ number_format($acc->balance, 2) }})</option>
+            @endforeach
+          </select>
+        </div>
         <div class="fg"><label class="fl">Reference</label><input type="text" name="reference" class="fc"></div>
       </div>
     </div>

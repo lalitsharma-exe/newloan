@@ -35,6 +35,10 @@ class Loan extends Model
         'closed_at',
         'closed_reason',
         'closed_by',
+        'segment',
+        'business_employee_count',
+        'borrower_monthly_income',
+        'borrower_total_obligations',
     ];
 
     protected $casts = [

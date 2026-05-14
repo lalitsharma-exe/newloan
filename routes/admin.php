@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OfficerAssignmentController;
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Admin\BankController;
+use App\Http\Controllers\Admin\FinancialController;
 
 /*
 |--------------------------------------------------------------------------
@@ -213,6 +214,26 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         /*
+        | ── FINANCIAL INFRASTRUCTURE (Treasury & Liquidity) ───────
+        | ── Added as per Phase 2 Implementation Guide ───────────
+        */
+        Route::prefix('financial')->name('financial.')->group(function () {
+            Route::get('/dashboard', [FinancialController::class, 'dashboard'])->name('dashboard');
+            
+            // Treasury Accounts
+            Route::get('/accounts', [FinancialController::class, 'accounts'])->name('accounts');
+            Route::post('/accounts', [FinancialController::class, 'storeAccount'])->name('accounts.store');
+            
+            // Expense Management
+            Route::get('/expenses', [FinancialController::class, 'expenses'])->name('expenses');
+            Route::post('/expenses', [FinancialController::class, 'storeExpense'])->name('expenses.store');
+            Route::post('/expenses/{expense}/pay', [FinancialController::class, 'payExpense'])->name('expenses.pay');
+            
+            // Forecasting
+            Route::post('/forecasts/refresh', [FinancialController::class, 'refreshForecasts'])->name('forecasts.refresh');
+        });
+
+        /*
         | ── REPORTS ────────────────────────────────────────────────
         */
         Route::prefix('reports')->name('reports.')->middleware('admin.permission:reports')->group(function () {
@@ -232,6 +253,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/product-performance',  [ReportController::class, 'productPerformance'])->name('product-performance');
             Route::get('/officer-performance',  [ReportController::class, 'officerPerformance'])->name('officer-performance');
             Route::get('/income-statement',     [ReportController::class, 'incomeStatement'])->name('income-statement');
+
+            // CBL Regulatory Report
+            Route::prefix('cbl')->name('cbl.')->group(function () {
+                Route::get('/',                 [\App\Http\Controllers\Admin\CblReportController::class, 'index'])->name('index');
+                Route::get('/generate',         [\App\Http\Controllers\Admin\CblReportController::class, 'generate'])->name('generate');
+                Route::post('/archive',         [\App\Http\Controllers\Admin\CblReportController::class, 'archive'])->name('archive');
+                Route::get('/archive/{id}',     [\App\Http\Controllers\Admin\CblReportController::class, 'viewArchive'])->name('view-archive');
+                
+                // Complaints Register
+                Route::get('/complaints',       [\App\Http\Controllers\Admin\CblReportController::class, 'complaints'])->name('complaints');
+                Route::post('/complaints',      [\App\Http\Controllers\Admin\CblReportController::class, 'storeComplaint'])->name('complaints.store');
+                Route::get('/search-users',     [\App\Http\Controllers\Admin\CblReportController::class, 'searchUsers'])->name('search-users');
+            });
             Route::get('/borrower-demographics',[ReportController::class, 'borrowerDemographics'])->name('borrower-demographics');
             Route::get('/collection-sheet',     [ReportController::class, 'collectionSheet'])->name('collection-sheet');
             Route::get('/collection-sheet/export', [ReportController::class, 'exportCollectionSheet'])->name('collection-sheet.export');
