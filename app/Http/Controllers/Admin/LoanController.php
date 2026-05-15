@@ -2,7 +2,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{AuditLog, Loan, LoanProduct, Payment, User};
+use App\Models\{AuditLog, Loan, LoanProduct, Payment, User, TreasuryAccount};
 use App\Services\Admin\LoanService;
 use App\Services\CPayService;
 use App\Services\MpesaService;
