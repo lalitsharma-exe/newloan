@@ -12,6 +12,7 @@ use App\Http\Controllers\Borrower\ProfileController;
 use App\Http\Controllers\Borrower\AffordabilityController;
 use App\Http\Controllers\Borrower\NotificationController;
 use App\Http\Controllers\Borrower\ReferralController;
+use App\Http\Controllers\Borrower\FloatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -266,6 +267,14 @@ Route::prefix('portal')->name('borrower.')->group(function () {
             Route::post('/purchase',           [\App\Http\Controllers\Borrower\MyBillController::class, 'store'])->name('store');
             Route::get('/loans/{loan}',        [\App\Http\Controllers\Borrower\MyBillController::class, 'show'])->name('show');
             Route::get('/history',             [\App\Http\Controllers\Borrower\MyBillController::class, 'history'])->name('history');
+        });
+
+        /*
+        | ── MYLOAN FLOAT — Emergency Cash ──────────────────────────
+        */
+        Route::prefix('float')->name('float.')->group(function () {
+            Route::get('/', [FloatController::class, 'index'])->name('index');
+            Route::post('/apply', [FloatController::class, 'apply'])->name('apply');
         });
 
         /*

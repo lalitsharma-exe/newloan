@@ -14,6 +14,7 @@
       <a href="{{ route('admin.loans.disburse.confirm',$loan) }}" class="btn btn-sm btn-ok"><i class="bi bi-send-fill"></i> Disburse Loan</a>
       @endif
       <a href="{{ route('admin.loans.agreement',$loan) }}" class="btn btn-sm btn-o"><i class="bi bi-file-pdf"></i> Agreement</a>
+      <a href="{{ route('admin.loans.statement',$loan) }}" class="btn btn-sm btn-i"><i class="bi bi-journal-text"></i> Statement</a>
       @php 
         $otherLoans = $loan->user->loans()->where('id', '!=', $loan->id)->whereIn('status', ['active', 'overdue'])->count();
       @endphp

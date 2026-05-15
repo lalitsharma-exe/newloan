@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 @section('title','Users')
 @section('page-title','User Management')
-@section('bc','Users')
+@section('bc') <a href="{{ route('admin.dashboard') }}">Dashboard</a> / Users @endsection
 @section('content')
 
 {{-- Flash messages --}}
@@ -141,7 +141,7 @@
       <tr>
         <td>
           <div style="display:flex;align-items:center;gap:11px">
-            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,{{ $user->role==='admin'?'#ef4444,#dc2626':($user->role==='loan_officer'?'#4f46e5,#6366f1':'#10b981,#059669') }});display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0">
+            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,{{ $user->role==='admin'?'#ef4444,#dc2626':($user->role==='loan_officer'?'#4f46e5,#6366f1':'#10b981,#059669') }});display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0">
               {{ strtoupper(substr($user->name,0,1)) }}
             </div>
             <div>

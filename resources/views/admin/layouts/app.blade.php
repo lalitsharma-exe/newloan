@@ -179,6 +179,13 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     @if($u->hasAdminPermission('mybill'))
     <div class="nav-item"><a href="{{ route('admin.mybill.dashboard') }}" class="{{ request()->routeIs('admin.mybill.*')?'active':'' }}"><i class="bi bi-lightning-charge-fill"></i> MyBill</a></div>
     @endif
+    <div class="nav-item">
+      <a href="{{ route('admin.float.index') }}" class="{{ request()->routeIs('admin.float.*')?'active':'' }}">
+        <i class="bi bi-lightning-fill" style="color:#e0c06a"></i> 
+        MyFloat
+        <span class="badge" style="font-size:8px;margin-left:auto;background:var(--accent);color:#0d1b3e">HOT</span>
+      </a>
+    </div>
     <div class="nav-lbl">Reports</div>
     @if($u->hasAdminPermission('reports'))
     <div class="nav-item"><a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.index')?'active':'' }}"><i class="bi bi-bar-chart-fill"></i> Standard Reports</a></div>

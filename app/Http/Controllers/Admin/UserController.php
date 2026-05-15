@@ -135,6 +135,14 @@ class UserController extends Controller
         return back()->with('success', "{$user->name} has been {$status}.");
     }
 
+    public function toggleFloat(User $user)
+    {
+        $user->update(['float_eligible' => !$user->float_eligible]);
+        $status = $user->float_eligible ? 'eligible' : 'ineligible';
+        \App\Models\AuditLog::record('user.toggle_float', "Float eligibility set to {$status} for {$user->name}", $user);
+        return back()->with('success', "{$user->name} is now {$status} for MyFloat.");
+    }
+
     public function destroy(User $user)
     {
         if ($user->id === auth('admin')->id()) {

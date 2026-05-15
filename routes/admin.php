@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\OfficerAssignmentController;
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Admin\BankController;
 use App\Http\Controllers\Admin\FinancialController;
+use App\Http\Controllers\Admin\FloatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -234,6 +235,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         /*
+        | ── MYLOAN FLOAT (Emergency Cash) ──────────────────────────
+        */
+        Route::prefix('float')->name('float.')->group(function () {
+            Route::get('/', [FloatController::class, 'index'])->name('index');
+            Route::get('/{float}', [FloatController::class, 'show'])->name('show');
+            Route::post('/{float}/approve', [FloatController::class, 'approve'])->name('approve');
+            Route::post('/{float}/reject', [FloatController::class, 'reject'])->name('reject');
+            Route::post('/{float}/disburse', [FloatController::class, 'disburse'])->name('disburse');
+            Route::post('/user/{user}/freeze', [FloatController::class, 'freeze'])->name('freeze');
+        });
+
+        /*
         | ── REPORTS ────────────────────────────────────────────────
         */
         Route::prefix('reports')->name('reports.')->middleware('admin.permission:reports')->group(function () {
@@ -264,6 +277,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 // Complaints Register
                 Route::get('/complaints',       [\App\Http\Controllers\Admin\CblReportController::class, 'complaints'])->name('complaints');
                 Route::post('/complaints',      [\App\Http\Controllers\Admin\CblReportController::class, 'storeComplaint'])->name('complaints.store');
+                Route::post('/complaints/{complaint}/update', [\App\Http\Controllers\Admin\CblReportController::class, 'updateComplaint'])->name('complaints.update');
                 Route::get('/search-users',     [\App\Http\Controllers\Admin\CblReportController::class, 'searchUsers'])->name('search-users');
             });
             Route::get('/borrower-demographics',[ReportController::class, 'borrowerDemographics'])->name('borrower-demographics');
@@ -326,6 +340,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             
             Route::middleware('admin.permission:users.manage')->group(function() {
             Route::post('/{user}/toggle-status',    [UserController::class, 'toggleStatus'])->name('toggle-status');
+            Route::post('/{user}/toggle-float',     [UserController::class, 'toggleFloat'])->name('toggle-float');
                 Route::post('/{user}/reset-password',   [UserController::class, 'resetPassword'])->name('reset-password');
                 Route::post('/{user}/impersonate',      [UserController::class, 'impersonate'])->name('impersonate');  // admin only
             });

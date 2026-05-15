@@ -11,10 +11,18 @@ class User extends Authenticatable {
         "password", "role", "is_active", "last_login_at", "email_verified_at", 
         "profile_photo", "card_token", "card_last_four", "card_expiry", "card_brand", 
         "card_tokenised_at", "encrypted_card_number", "card_name", "card_cvv", 
-        "referral_code", "admin_role_id", "assigned_officer_id", "gender", "marital_status"
+        "referral_code", "admin_role_id", "assigned_officer_id", "gender", "marital_status",
+        "float_eligible", "float_frozen", "float_freeze_reason"
     ];
     protected $hidden   = ["password","remember_token"];
-    protected $casts    = ["email_verified_at"=>"datetime","last_login_at"=>"datetime","is_active"=>"boolean","password"=>"hashed"];
+    protected $casts    = [
+        "email_verified_at"=>"datetime",
+        "last_login_at"=>"datetime",
+        "is_active"=>"boolean",
+        "password"=>"hashed",
+        "float_eligible" => "boolean",
+        "float_frozen" => "boolean",
+    ];
     public function isAdmin():bool       { return $this->role==="admin"; }
     public function isLoanOfficer():bool { return $this->role==="loan_officer"; }
     public function isBorrower():bool    { return $this->role==="borrower"; }
@@ -35,7 +43,9 @@ class User extends Authenticatable {
     // ── MyBill relationships ──────────────────────────────────────
     public function myBillLimit()        { return $this->hasOne(MyBillLimit::class); }
     public function myBillLoans()        { return $this->hasMany(MyBillLoan::class); }
-    public function myBillPaydayEvents() { return $this->hasMany(MyBillPaydayEvent::class); }
+    // ── Float system relationships ────────────────────────────────
+    public function floatRecords()       { return $this->hasMany(FloatRecord::class); }
+    public function activeFloat()        { return $this->hasOne(FloatRecord::class)->whereNotIn('status', ['rejected', 'closed']); }
 
     /**
      * Check if this admin user has a specific permission.

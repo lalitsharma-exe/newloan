@@ -113,15 +113,51 @@
 
 </div>
 @else
-{{-- No active loan --}}
-<div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:2px solid #93c5fd;border-radius:18px;padding:36px 28px;text-align:center;margin-bottom:24px">
-  <div style="font-size:48px;margin-bottom:14px">💳</div>
-  <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--navy);margin-bottom:8px">Ready for a Loan?</div>
-  <div style="font-size:14px;color:var(--muted);margin-bottom:24px">Apply in minutes. Quick approval, funds disbursed directly to you.</div>
-  <a href="{{ route('borrower.apply.start') }}" style="display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;padding:13px 28px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none">
-    <i class="bi bi-plus-circle-fill"></i> Apply for a Loan
-  </a>
-</div>
+@endif
+
+{{-- ─── MYFLOAT SECTION ────────────────────────────────────────── --}}
+@if($activeFloat)
+    <div class="card" style="margin-bottom: 24px; border: 1px solid var(--navy); background: linear-gradient(135deg, #fff, #f8fafc); overflow: hidden;">
+        <div style="display: flex; align-items: stretch; min-height: 100px;">
+            <div style="width: 8px; background: var(--navy);"></div>
+            <div style="padding: 20px; flex: 1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="width: 44px; height: 44px; background: rgba(13, 27, 62, 0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--navy); font-size: 20px;">
+                        <i class="bi bi-lightning-fill"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 700;">MyFloat Status</div>
+                        <div style="font-size: 16px; font-weight: 700; color: var(--navy);">Active Float: M {{ number_format($activeFloat->outstanding_balance, 2) }}</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 24px;">
+                    <div style="text-align: right;">
+                        <div style="font-size: 11px; color: var(--muted); font-weight: 600;">Due Date</div>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--navy);">{{ $activeFloat->due_date ? $activeFloat->due_date->format('d M Y') : 'Processing' }}</div>
+                    </div>
+                    <a href="{{ route('borrower.float.index') }}" class="btn btn-sm btn-p" style="border-radius: 10px; padding: 10px 20px;">Manage Float</a>
+                </div>
+            </div>
+        </div>
+    </div>
+@elseif($user->float_eligible && !$user->float_frozen)
+    <a href="{{ route('borrower.float.index') }}" style="display: block; text-decoration: none; margin-bottom: 24px;">
+        <div class="card" style="border: none; border-radius: 20px; overflow: hidden; background: #000; position: relative; min-height: 160px; display: flex; align-items: center;">
+            <img src="{{ asset('emergency_float_banner_1778866066374.png') }}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6;">
+            <div style="position: relative; z-index: 2; padding: 24px 32px; width: 100%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <div style="max-width: 480px;">
+                    <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; margin-bottom: 12px; letter-spacing: 0.5px;">
+                        <i class="bi bi-star-fill" style="font-size: 8px;"></i> EXCLUSIVE OFFER
+                    </div>
+                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; color: #fff; line-height: 1.1;">Need quick cash? Get <span style="color: var(--accent);">M500</span> instantly.</h2>
+                    <p style="font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 6px;">Exclusive emergency float for you. M125 fixed fee. No paperwork.</p>
+                </div>
+                <div class="btn" style="background: var(--accent); color: #fff; font-weight: 700; padding: 12px 28px; border-radius: 12px; font-size: 14px; box-shadow: 0 10px 20px rgba(140, 198, 63, 0.3);">
+                    Claim M500 Now <i class="bi bi-arrow-right"></i>
+                </div>
+            </div>
+        </div>
+    </a>
 @endif
 
 {{-- Recent Applications strip --}}

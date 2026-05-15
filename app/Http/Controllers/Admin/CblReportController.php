@@ -75,14 +75,54 @@ class CblReportController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'complaint_date' => 'required|date',
-            'complaint_type' => 'required|string',
-            'description' => 'required|string',
+            'complaint_date' => 'required|date|before_or_equal:today',
+            'customer_first_name' => 'required|string|max:100',
+            'customer_surname' => 'required|string|max:100',
+            'account_number' => 'required|string',
+            'customer_type' => 'required|string',
+            'customer_cell_number' => 'required|numeric',
+            'age_group' => 'required|string',
+            'sex' => 'required|string',
+            'mode_of_receipt' => 'required|string',
+            'received_at_place' => 'required|string|max:150',
+            'district' => 'required|string',
+            'product_category' => 'required|string',
+            'issue_category' => 'required|string',
+            'description' => 'required|string|min:50',
         ]);
 
-        Complaint::create($request->all());
+        $data = $request->all();
+        
+        // Auto-derived Section 1 & 2
+        $date = Carbon::parse($request->complaint_date);
+        $data['financial_year'] = $date->year;
+        $data['reporting_period'] = 'Quarter ' . $date->quarter;
+        $data['institution_id'] = 'MyLoan Limited';
+        $data['reference_number'] = Complaint::generateReference();
+        $data['status'] = 'Pending';
 
-        return back()->with('success', 'Complaint logged successfully.');
+        Complaint::create($data);
+
+        return back()->with('success', 'Complaint MLL Reference generated and logged successfully.');
+    }
+
+    public function updateComplaint(Request $request, Complaint $complaint)
+    {
+        $request->validate([
+            'status' => 'required|in:Pending,Resolved,Other',
+            'status_description' => 'required|string',
+            'resolved_date' => 'required_if:status,Resolved|nullable|date|after_or_equal:'.$complaint->complaint_date->format('Y-m-d'),
+        ]);
+
+        $data = $request->only(['status', 'status_description', 'resolved_date', 'amount_reimbursed', 'complainant_name_third_party']);
+        
+        if ($request->status === 'Resolved' && $request->resolved_date) {
+            $data['working_days_to_resolve'] = Complaint::calculateWorkingDays($complaint->complaint_date, $request->resolved_date);
+        }
+
+        $complaint->update($data);
+
+        return back()->with('success', 'Complaint status updated successfully.');
     }
 
     public function searchUsers(Request $request)

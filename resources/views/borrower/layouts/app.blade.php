@@ -295,6 +295,7 @@ select.fc { cursor: pointer; }
   <a href="{{ route('borrower.documents.index') }}" class="navbtn {{ request()->routeIs('borrower.documents.*') ? 'active' : '' }}"><i class="bi bi-folder2"></i> Documents</a>
   <a href="{{ route('borrower.referrals.index') }}" class="navbtn {{ request()->routeIs('borrower.referrals.*') ? 'active' : '' }}"><i class="bi bi-gift"></i> Refer & Earn</a>
   <a href="{{ route('borrower.mybill.index') }}" class="navbtn {{ request()->routeIs('borrower.mybill.*') ? 'active' : '' }}"><i class="bi bi-lightning-charge-fill"></i> MyBill</a>
+  <a href="{{ route('borrower.float.index') }}" class="navbtn {{ request()->routeIs('borrower.float.*') ? 'active' : '' }}"><i class="bi bi-lightning-fill" style="color:var(--accent)"></i> MyFloat</a>
 
   <div class="nav-sp"></div>
 
@@ -334,7 +335,7 @@ select.fc { cursor: pointer; }
 <!-- MOBILE BOTTOM NAV -->
 <nav class="bottomnav">
   <a href="{{ route('borrower.dashboard') }}"   class="{{ request()->routeIs('borrower.dashboard') ? 'active' : '' }}"><i class="bi bi-house-fill"></i>Home</a>
-  <a href="{{ route('borrower.loans.index') }}"  class="{{ request()->routeIs('borrower.loans.*') ? 'active' : '' }}"><i class="bi bi-bank"></i>Loans</a>
+  <a href="{{ route('borrower.float.index') }}"    class="{{ request()->routeIs('borrower.float.*') ? 'active' : '' }}"><i class="bi bi-lightning-fill"></i>Float</a>
   <a href="{{ route('borrower.apply.start') }}"  class="apply-tab"><i class="bi bi-plus-circle-fill"></i>Apply</a>
   <a href="{{ route('borrower.payments.index') }}" class="{{ request()->routeIs('borrower.payments.*') ? 'active' : '' }}"><i class="bi bi-credit-card"></i>Pay</a>
   <a href="{{ route('borrower.profile.index') }}"  class="{{ request()->routeIs('borrower.profile.*') ? 'active' : '' }}"><i class="bi bi-person-circle"></i>Me</a>

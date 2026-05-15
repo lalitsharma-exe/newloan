@@ -79,8 +79,14 @@ class DashboardService
         $totalInterestRevenue = Loan::sum(DB::raw('total_amount - principal_amount'));
         $totalFeeRevenue      = Loan::sum('processing_fee');
         $totalRevenue         = $totalInterestRevenue + $totalFeeRevenue;
-        $netProfit            = $totalRevenue - $writtenOffAmt;
-        $profitMargin         = $totalRevenue > 0 ? round(($netProfit / $totalRevenue) * 100, 1) : 0;
+        
+        // ISSUE 1: Net Profit Logic (Revenue - Expenses - Cost of Funds)
+        // We fetch these from SystemSettings or similar, if not yet recorded, they remain 0 but flagged in view
+        $opExpenses = DB::table('system_settings')->where('key', 'operating_expenses')->value('value') ?? 0;
+        $costOfFunds = DB::table('system_settings')->where('key', 'cost_of_funds')->value('value') ?? 0;
+        
+        $netProfit    = $totalRevenue - $writtenOffAmt - $opExpenses - $costOfFunds;
+        $profitMargin = $totalRevenue > 0 ? round(($netProfit / $totalRevenue) * 100, 1) : 0;
 
         // Disbursements this month
         $disbursedMonth = Loan::whereMonth('disbursement_date', $now->month)
@@ -101,9 +107,16 @@ class DashboardService
 
         $netLiquidity = $cashAvailable + $expectedInflows - $expectedOutflows;
         
-        // Runaway (Months)
-        $monthlyNetCashflow = $monthCollected - $disbursedMonth;
-        $runaway = $monthlyNetCashflow < 0 ? round(abs($cashAvailable / $monthlyNetCashflow), 1) : '∞';
+        // ISSUE 3: Runway Logic (Cash Available / Avg Monthly Burn)
+        $monthlyBurn = ($opExpenses / 12) + ($costOfFunds / 12) + $avgMonthlyDisbursement;
+        
+        if ($cashAvailable <= 0) {
+            $runaway = 0; // Insufficient cash
+        } elseif ($monthlyBurn <= 0) {
+            $runaway = '∞';
+        } else {
+            $runaway = round($cashAvailable / $monthlyBurn, 1);
+        }
 
         // Total borrowers
         $totalBorrowers   = User::where('role', 'borrower')->count();
@@ -204,7 +217,12 @@ class DashboardService
             'total_revenue'         => $totalRevenue,
             'total_interest_revenue' => $totalInterestRevenue,
             'total_fee_revenue'     => $totalFeeRevenue,
+            'operating_expenses'    => $opExpenses,
+            'cost_of_funds'         => $costOfFunds,
             'profit_per_loan'       => $profitPerLoan,
+            
+            // ISSUE 7: Accrued Charges (Portfolio yield explanation)
+            'accrued_charges'       => $totalPortfolio - $totalPrincipal,
 
             // Liquidity (compatibility)
             'cash_available'        => max(0, $cashAvailable),

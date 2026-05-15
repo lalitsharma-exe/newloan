@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 @section('title','User Profile')
 @section('page-title','User Profile')
-@section('bc','<a href="'.route('admin.users.index').'">Users</a> / Profile')
+@section('bc') <a href="{{ route('admin.dashboard') }}">Dashboard</a> / <a href="{{ route('admin.users.index') }}">Users</a> / Profile @endsection
 @section('content')
 
 @if(session('success'))<div class="alert a-ok" style="padding:12px 16px;border-radius:11px;font-size:13px;display:flex;align-items:center;gap:9px;margin-bottom:20px"><i class="bi bi-check-circle-fill"></i>{{ session('success') }}</div>@endif
@@ -81,6 +81,22 @@
               <div style="font-size:14px;font-weight:600;margin-top:3px">{{ $v }}</div>
             </div>
             @endforeach
+            <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+              <div style="font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em">MyFloat Eligibility</div>
+              <div style="margin-top:8px">
+                <form method="POST" action="{{ route('admin.users.toggle-float',$user) }}">
+                  @csrf
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <button type="submit" class="btn btn-xs {{ $user->float_eligible?'btn-ok':'btn-o' }}">
+                      {{ $user->float_eligible?'Eligible':'Not Eligible' }}
+                    </button>
+                    @if($user->float_frozen)
+                      <span class="badge be" title="{{ $user->float_freeze_reason }}"><i class="bi bi-snow"></i> FROZEN</span>
+                    @endif
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       </div>

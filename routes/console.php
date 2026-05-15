@@ -22,3 +22,10 @@ Schedule::command('loans:expire-applications')->dailyAt('02:00');
 
 // Capture daily liquidity snapshot & refresh forecasts
 Schedule::command('financial:refresh')->dailyAt('23:30');
+
+// ── MYLOAN FLOAT AUTOMATION ──────────────────────────────────
+// On the 20th: Transition disbursed floats to DUE
+Schedule::command('float:transition-due')->monthlyOn(20, '08:00');
+
+// On the 1st: Apply penalties to overdue floats
+Schedule::command('float:penalties')->monthlyOn(1, '00:01');

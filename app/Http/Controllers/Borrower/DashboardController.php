@@ -17,8 +17,8 @@ class DashboardController extends Controller
             ->with('loanProduct')
             ->latest()->take(5)->get();
 
-        $unread = Notification::where('user_id', $user->id)->where('is_read', false)->count();
+        $activeFloat = $user->activeFloat;
 
-        return view('borrower.dashboard.index', compact('activeLoan','applications','unread'));
+        return view('borrower.dashboard.index', compact('activeLoan','applications','unread','activeFloat'));
     }
 }
