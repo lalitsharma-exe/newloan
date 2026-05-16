@@ -39,7 +39,17 @@ class Loan extends Model
         'business_employee_count',
         'borrower_monthly_income',
         'borrower_total_obligations',
+        'disbursed_from_account_id',
+        'transaction_reference',
+        'payment_method',
+        'funding_source_type',
+        'authorisation_confirmed',
+        'authorisation_at',
+        'disbursement_notes',
+        'proof_of_payment_path',
     ];
+
+    public function disbursedFrom() { return $this->belongsTo(TreasuryAccount::class, 'disbursed_from_account_id'); }
 
     protected $casts = [
         'disbursement_date'  => 'date',

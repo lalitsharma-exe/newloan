@@ -1,52 +1,52 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{AuditLog, Loan, LoanProduct, Payment, User, TreasuryAccount};
+use App\Models\{Loan, User, LoanApplication, Payment, TreasuryAccount, AuditLog};
 use App\Services\Admin\LoanService;
+use App\Services\Admin\FinancialService;
 use App\Services\CPayService;
 use App\Services\MpesaService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Services\Admin\FinancialService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class LoanController extends Controller
 {
-    public function __construct(
-        private LoanService $svc,
-        private CPayService $cpay,
-        private MpesaService $mpesa,
-        private FinancialService $financialSvc
-    ) {}
+    protected $svc;
+    protected $financialSvc;
+    protected $cpay;
+    protected $mpesa;
+
+    public function __construct(LoanService $svc, FinancialService $financialSvc, CPayService $cpay, MpesaService $mpesa)
+    {
+        $this->svc = $svc;
+        $this->financialSvc = $financialSvc;
+        $this->cpay = $cpay;
+        $this->mpesa = $mpesa;
+    }
 
     public function index(Request $request)
     {
-        return view('admin.loans.index', [
-            'loans'   => $this->svc->getPaginated($request->all()),
-            'stats'   => $this->svc->getStats(),
-            'products'=> LoanProduct::all(),
-            'filters' => $request->only(['status','product','search','date_from','date_to']),
-        ]);
+        $filters = $request->only(['status', 'product', 'overdue', 'date_from', 'date_to', 'search']);
+        $loans   = $this->svc->getPaginated($filters);
+        $stats   = $this->svc->getStats();
+        $products = \App\Models\LoanProduct::active()->get();
+
+        return view('admin.loans.index', compact('loans', 'stats', 'products', 'filters'));
     }
 
     public function show(Loan $loan)
     {
-        $loan->load(['user','loanProduct','application.bankDetails','installments','payments.verifiedBy']);
+        $loan->load(['user', 'loanProduct', 'application', 'installments', 'payments.verifiedBy']);
         $accounts = TreasuryAccount::where('is_active', true)->get();
         return view('admin.loans.show', compact('loan', 'accounts'));
     }
 
-    public function schedule(Loan $loan)
-    {
-        $loan->load(['installments','loanProduct','user']);
-        return view('admin.loans.schedule', compact('loan'));
-    }
-
-    // ── Disbursement confirmation page ───────────────────────────────────────
     public function disbursementConfirm(Loan $loan)
     {
-        $loan->load(['user','loanProduct','application.bankDetails','application.documents','application.affordability']);
         $checks         = $this->svc->preDisbursementChecks($loan);
         $reference      = 'DISB-' . $loan->loan_number . '-' . now()->format('Ymd');
         $cpayConfigured = $this->cpay->isConfigured();
@@ -56,139 +56,44 @@ class LoanController extends Controller
         return view('admin.loans.disburse-confirm', compact('loan','checks','reference','cpayConfigured','cpayIsSandbox','mpesaConfigured', 'accounts'));
     }
 
-    // ── DISBURSE — Mobile Money + Bank Transfer + Cash + CPay Wallet ─────────
     public function disburse(Request $request, Loan $loan)
     {
         $request->validate([
-            'disbursement_date'      => 'required|date',
-            'disbursement_reference' => 'required|string|max:80',
-            'disbursement_method'    => 'required|in:bank_transfer,cash,cpay_wallet,mpesa_b2c',
-            'treasury_account_id'    => 'required|exists:treasury_accounts,id',
-            'disbursement_phone'     => 'nullable|string|max:30',
-            'disbursement_provider'  => 'nullable|string|max:50',
-            'confirm'                => 'required|accepted',
+            'treasury_account_id'   => 'required|exists:treasury_accounts,id',
+            'disbursement_date'     => 'required|date|before_or_equal:today',
+            'transaction_reference' => 'required|string|max:100',
+            'notes'                 => 'nullable|string|max:500',
+            'authorisation'         => 'required|accepted',
+            'proof_of_payment'      => 'nullable|file|mimes:pdf,jpg,png|max:5120',
         ]);
 
-        $checks  = $this->svc->preDisbursementChecks($loan);
-        $blocked = collect($checks)->contains(fn($c) => !$c['pass'] && $c['required']);
-        if ($blocked) {
-            return back()->with('error', 'Disbursement blocked — resolve required check failures first.');
+        $proofPath = null;
+        if ($request->hasFile('proof_of_payment')) {
+            $proofPath = $request->file('proof_of_payment')->store('disbursements', 'public');
         }
 
-        $method    = $request->disbursement_method;
-        $phone     = $request->disbursement_phone ?? $loan->user->phone;
-        $provider  = $request->disbursement_provider ?? 'MPESA';
-        $reference = $request->disbursement_reference;
-        $disbDate  = Carbon::parse($request->disbursement_date);
-
-        // ── CPay API Disbursement (auto for non-cash if configured) ───────────
-        $cpayTxnId  = null;
-        $cpayStatus = 'manual';
-        $cpayError  = null;
-
-        // bank_transfer is always recorded manually (EFT/bank processing happens outside system)
-        // cpay_wallet uses the CPay wallet-topup-advance API
-        $cpayApiEnabled = \App\Models\SystemSetting::get('cpay_disbursement_api_enabled', 1);
-        if ($method === 'cpay_wallet' && $this->cpay->isConfigured() && $cpayApiEnabled) {
-            $result = $this->cpay->disburseToWallet($loan, $phone, $reference);
-
-            if ($result['success']) {
-                $cpayTxnId  = $result['cpay_txn_id'];
-                $cpayStatus = $result['status'];
-            } else {
-                $cpayError = $result['error'];
-                Log::warning('CPay disbursement failed — recorded manually', [
-                    'loan' => $loan->loan_number, 'error' => $cpayError,
-                ]);
-            }
-        }
-
-        // ── M-Pesa B2C Disbursement ───────────────────────────────────────────
-        $mpesaApiEnabled = \App\Models\SystemSetting::get('mpesa_disbursement_api_enabled', 0);
-        if ($method === 'mpesa_b2c' && $this->mpesa->isConfigured() && $mpesaApiEnabled) {
-            $result = $this->mpesa->disburseLoan($loan, $phone, $reference);
-
-            if ($result['success']) {
-                $cpayTxnId  = $result['conversation_id']; // Store it in the same field for now or log it
-                $cpayStatus = 'accepted';
-            } else {
-                $cpayError = $result['error'];
-                Log::warning('M-Pesa disbursement failed', [
-                    'loan' => $loan->loan_number, 'error' => $cpayError,
-                ]);
-            }
-        }
-
-        // ── Block if CPay API failed ──────────────────────────────────────────
-        // (Admins can still record manually by selecting 'cash' or turning off API)
-        if ($cpayError && $method !== 'cash') {
-            return back()->with('error', "CPay API Disbursement FAILED: {$cpayError}. The loan status has NOT been updated. Please check the logs or try again.")
-                         ->withInput();
-        }
-
-        // ── Update loan record ────────────────────────────────────────────────
-        $loan->update([
-            'status'                 => 'active',
-            'disbursement_date'      => $disbDate->toDateString(),
-            'disbursement_reference' => $reference,
-            'disbursement_method'    => $method,
-            'disbursement_phone'     => $phone,
-            'disbursement_provider'  => $cpayTxnId 
-                ? ($method === 'mpesa_b2c' ? "M-Pesa:{$cpayTxnId}" : "CPay:{$cpayTxnId}") 
-                : $provider,
-            'first_payment_date'     => $disbDate->copy()->addMonth()->setDay((int)($loan->salary_payday ?? $loan->application?->salary_payday ?? 25))->toDateString(),
-            'maturity_date'          => $disbDate->copy()->addMonths($loan->term_months)->setDay((int)($loan->salary_payday ?? $loan->application?->salary_payday ?? 25))->toDateString(),
-        ]);
-
-        // Record Treasury Transaction
-        $this->financialSvc->recordTransaction(
-            $request->treasury_account_id,
-            'disbursement',
-            $loan->principal_amount,
-            'out',
-            [
-                'description' => "Disbursement for Loan {$loan->loan_number}",
-                'loan_id' => $loan->id,
-                'reference' => $reference
-            ]
-        );
-
-        if ($loan->installments()->count() === 0) {
-            $this->svc->generateInstallments($loan);
-        }
-
-        if ($loan->application) {
-            $loan->application->update(['status' => 'disbursed', 'decided_at' => now()]);
-        }
-
-        // Referral System: Validate referral if it exists
-        $this->svc->validateReferral($loan);
-
-        // Send Disbursement SMS
         try {
-            $loan->user->notify(new \App\Notifications\LoanDisbursedSms($loan));
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("Failed to send disbursement SMS for loan {$loan->id}: " . $e->getMessage());
+            $data = $request->all();
+            $data['proof_path'] = $proofPath;
+
+            $this->svc->finalizeDisbursement($loan, $data, auth('admin')->user());
+
+            AuditLog::record('loan.disburse', "Loan {$loan->loan_number} disbursed. Ref: {$request->transaction_reference}", $loan);
+            
+            // Notify borrower
+            try {
+                $loan->user->notify(new \App\Notifications\LoanDisbursedSms($loan));
+            } catch (\Throwable $e) {
+                Log::error("Failed to send disbursement SMS for loan {$loan->id}: " . $e->getMessage());
+            }
+
+            return redirect()->route('admin.loans.show', $loan)->with('success', "Loan {$loan->loan_number} disbursed successfully.");
+        } catch (\Exception $e) {
+            Log::error("Disbursement failed for loan {$loan->id}: " . $e->getMessage());
+            return back()->with('error', 'Disbursement failed: ' . $e->getMessage())->withInput();
         }
-
-        AuditLog::record(
-            'loan.disburse',
-            "Loan {$loan->loan_number} disbursed via {$method}. Ref: {$reference}" .
-                ($cpayTxnId ? " | CPay TXN: {$cpayTxnId} ({$cpayStatus})" : '') .
-                ($cpayError  ? " | CPay Error: {$cpayError}" : ''),
-            $loan, [],
-            ['method' => $method, 'reference' => $reference, 'cpay_txn' => $cpayTxnId]
-        );
-
-        $msg = "Loan {$loan->loan_number} disbursed successfully.";
-        if ($cpayTxnId) $msg .= " CPay TXN: {$cpayTxnId} — status: {$cpayStatus}.";
-        if ($cpayError) $msg .= " ⚠️ CPay API error: {$cpayError} — please verify manually.";
-        if ($method === 'cash') $msg .= ' Cash disbursement recorded.';
-
-        return redirect()->route('admin.loans.show', $loan)->with('success', $msg);
     }
 
-    // ── Manual payment (admin records cash/bank/etc) ──────────────────────────
     public function recordPayment(Request $request, Loan $loan)
     {
         $request->validate([
@@ -196,7 +101,7 @@ class LoanController extends Controller
             'method'    => 'required|in:cash,bank_transfer,mobile_money,card,cheque',
             'treasury_account_id' => 'required|exists:treasury_accounts,id',
             'notes'     => 'nullable|string|max:500',
-            'paid_date' => 'nullable|date',
+            'payment_date' => 'nullable|date',
         ]);
         
         $payment = $this->svc->recordManualPayment($loan, $request->all(), auth('admin')->user());
@@ -244,32 +149,21 @@ class LoanController extends Controller
         $inst->update(['status' => 'waived', 'notes' => $request->reason, 'outstanding_amount' => 0]);
         $loan->decrement('outstanding_balance', $amountWaived);
         AuditLog::record('loan.waive_installment', "Installment #{$inst->installment_number} waived on {$loan->loan_number}", $loan);
-        return back()->with('success', "Installment #{$inst->installment_number} waived.");
+        return redirect()->route('admin.loans.show', $loan)->with('success', 'Installment waived.');
     }
 
-    public function addLateFee(Request $request, Loan $loan)
+    public function adjust(Request $request, Loan $loan)
     {
-        $request->validate(['installment_id' => 'required|exists:loan_installments,id', 'fee' => 'required|numeric|min:0.01']);
-        $inst = $loan->installments()->findOrFail($request->installment_id);
-        $inst->increment('late_fee', $request->fee);
-        $inst->increment('total_amount', $request->fee);
-        $inst->increment('outstanding_amount', $request->fee);
-        $loan->increment('outstanding_balance', $request->fee);
-        AuditLog::record('loan.add_late_fee', "Late fee M{$request->fee} on installment #{$inst->installment_number} of {$loan->loan_number}", $loan);
-        return back()->with('success', "Late fee M{$request->fee} added.");
-    }
-
-    public function adjustSchedule(Request $request, Loan $loan)
-    {
-        $request->validate(['reason' => 'required|string|max:500', 'new_term' => 'nullable|integer|min:1']);
         $this->svc->adjustSchedule($loan, $request->all(), auth('admin')->user());
-        return back()->with('success', 'Repayment schedule adjusted.');
+        AuditLog::record('loan.adjust', "Loan schedule adjusted for {$loan->loan_number}", $loan);
+        return redirect()->route('admin.loans.show', $loan)->with('success', 'Loan schedule updated.');
     }
 
     public function close(Request $request, Loan $loan)
     {
         $request->validate(['reason' => 'required|string|max:500']);
         $this->svc->closeLoan($loan, $request->reason, auth('admin')->user());
+        AuditLog::record('loan.close', "Loan {$loan->loan_number} closed: {$request->reason}", $loan);
         return redirect()->route('admin.loans.show', $loan)->with('success', 'Loan closed.');
     }
 
@@ -281,204 +175,87 @@ class LoanController extends Controller
         return redirect()->route('admin.loans.show', $loan)->with('success', 'Loan written off.');
     }
 
-    public function markDefaulted(Request $request, Loan $loan)
+    public function bulkRepayment(Request $request)
     {
-        $request->validate(['reason' => 'required|string|max:500']);
-        $loan->update(['status' => 'defaulted']);
-        AuditLog::record('loan.mark_defaulted', "Loan {$loan->loan_number} marked defaulted: {$request->reason}", $loan);
-        return back()->with('success', 'Loan marked as defaulted.');
+        return view('admin.loans.bulk-repayment');
     }
 
-    public function restructure(Request $request, Loan $loan)
+    public function processBulkRepayment(Request $request)
     {
-        $request->validate(['new_term' => 'required|integer|min:1|max:120', 'reason' => 'required|string|max:500']);
-        $this->svc->adjustSchedule($loan, $request->all(), auth('admin')->user());
-        AuditLog::record('loan.restructure', "Loan {$loan->loan_number} restructured to {$request->new_term} months", $loan);
-        return back()->with('success', 'Loan restructured.');
+        $request->validate([
+            'method' => 'required',
+            'csv'    => 'required|file|mimes:csv,txt'
+        ]);
+
+        $file = $request->file('csv');
+        $data = array_map('str_getcsv', file($file->getPathname()));
+        $header = array_shift($data);
+        $rows = [];
+        foreach ($data as $row) {
+            if (count($header) == count($row)) {
+                $rows[] = array_combine($header, $row);
+            }
+        }
+
+        $results = $this->svc->recordBulkPayments($rows, $request->method, auth('admin')->user());
+        return back()->with('success', "Processed: {$results['success']} successful, {$results['failed']} failed.")
+                     ->with('bulk_errors', $results['errors']);
     }
 
-    public function statement(Loan $loan)   { $loan->load(['user','loanProduct','installments','payments']); return view('admin.loans.statement', compact('loan')); }
-    public function agreement(Loan $loan)   { $loan->load(['user','loanProduct','application.bankDetails']); return view('admin.loans.agreement-pdf', compact('loan')); }
+    public function export(Request $request)
+    {
+        $filters = $request->only(['status', 'product', 'overdue', 'date_from', 'date_to', 'search']);
+        $loans = Loan::with(['user', 'loanProduct'])->latest()->get();
+
+        $csv = "Loan Number,Borrower,Product,Principal,Outstanding,Status,Disbursement Date,Maturity Date\n";
+        foreach ($loans as $l) {
+            $csv .= implode(',', [$l->loan_number,'"'.($l->user->name??'').'"','"'.($l->loanProduct->name??'').'"',$l->principal_amount,$l->outstanding_balance,$l->status,$l->disbursement_date,$l->maturity_date])."\n";
+        }
+
+        return response($csv)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', 'attachment; filename="loans_export.csv"');
+    }
+
+    public function agreement(Loan $loan)
+    {
+        return view('admin.loans.agreement-pdf', compact('loan'));
+    }
+
+    public function statement(Loan $loan)
+    {
+        $loan->load(['user', 'installments', 'payments']);
+        return view('admin.loans.statement', compact('loan'));
+    }
 
     public function settlementQuotation(Loan $loan)
     {
-        $loan->load(['user','loanProduct','installments']);
-        $outstanding = $loan->installments()->whereNotIn('status',['paid','waived'])->sum('outstanding_amount');
-        $validDate = now()->day > 24 ? now()->addMonth()->day(24) : now()->day(24);
-        $validUntil = $validDate->format('d M Y');
-        return view('admin.loans.settlement-quotation', compact('loan','outstanding','validUntil'));
+        $outstanding = $loan->installments()->whereNotIn('status', ['paid', 'waived'])->sum('outstanding_amount');
+        $validUntil = now()->addHours(48)->format('d M Y');
+        return view('admin.loans.settlement-quotation', compact('loan', 'outstanding', 'validUntil'));
     }
 
-    public function settlementLetter(Loan $loan) { 
-        $loan->load(['user','loanProduct']); 
-        $totalPaid = $loan->payments()->where('status', 'verified')->sum('amount');
-        return view('admin.loans.settlement-letter', compact('loan', 'totalPaid')); 
+    public function settlementLetter(Loan $loan)
+    {
+        $outstanding = $loan->installments()->whereNotIn('status', ['paid', 'waived'])->sum('outstanding_amount');
+        $validUntil = now()->addHours(48)->format('d M Y');
+        return view('admin.loans.settlement-letter', compact('loan', 'outstanding', 'validUntil'));
     }
 
     public function consolidatedSettlementQuotation(User $user)
     {
-        $loans = $user->loans()
-            ->whereIn('status', ['active', 'overdue'])
-            ->with(['loanProduct', 'installments'])
-            ->get();
-
-        if ($loans->isEmpty()) {
-            return back()->with('error', 'This borrower has no active loans to settle.');
-        }
-
-        $totalOutstanding = 0;
-        foreach ($loans as $loan) {
-            $totalOutstanding += $loan->installments()
-                ->whereNotIn('status', ['paid', 'waived'])
-                ->sum('outstanding_amount');
-        }
-
-        $validDate = now()->day > 24 ? now()->addMonth()->day(24) : now()->day(24);
-        $validUntil = $validDate->format('d M Y');
-
+        $loans = $user->loans()->whereIn('status', ['active', 'overdue'])->with('installments')->get();
+        $totalOutstanding = $loans->sum(function($loan) {
+            return $loan->installments()->whereNotIn('status', ['paid', 'waived'])->sum('outstanding_amount');
+        });
+        $validUntil = now()->addHours(48)->format('d M Y');
+        
         return view('admin.loans.consolidated-settlement', compact('user', 'loans', 'totalOutstanding', 'validUntil'));
     }
 
     public function consolidatedSettlementLetter(User $user)
     {
-        $loans = $user->loans()
-            ->whereIn('status', ['paid_off', 'closed'])
-            ->with(['loanProduct'])
-            ->latest()
-            ->get();
-
+        $loans = $user->loans()->whereIn('status', ['active', 'overdue'])->get();
         return view('admin.loans.consolidated-settlement-letter', compact('user', 'loans'));
     }
-
-    public function export(Request $request)
-    {
-        $loans = $this->svc->getPaginated($request->all(), 9999);
-        $csv = "Loan #,Borrower,Product,Principal,Outstanding,Status,Disbursed,Maturity\n";
-        foreach ($loans as $l) {
-            $csv .= implode(',', [$l->loan_number,'"'.($l->user->name??'').'"','"'.($l->loanProduct->name??'').'"',$l->principal_amount,$l->outstanding_balance,$l->status,$l->disbursement_date,$l->maturity_date])."\n";
-        }
-        return response($csv,200,['Content-Type'=>'text/csv','Content-Disposition'=>'attachment; filename="loans-'.now()->format('Y-m-d').'.csv"']);
-    }
-
-    public function overdue(Request $request) { return $this->index($request->merge(['status'=>'overdue'])); }
-
-    public function lookup(Request $request)
-    {
-        $s = $request->input('q','');
-        return response()->json(
-            Loan::with('user')->where(fn($q)=>$q->where('loan_number','like',"%{$s}%")->orWhereHas('user',fn($u)=>$u->where('name','like',"%{$s}%")->orWhere('phone','like',"%{$s}%")))->limit(10)->get(['id','loan_number','user_id','status','outstanding_balance'])
-        );
-    }
-
-    public function bulkRepayment(Request $request)
-    {
-        if ($request->isMethod('get')) return view('admin.loans.bulk-repayment');
-        $request->validate(['method'=>'required|string','rows'=>'required|array|min:1|max:30','rows.*.loan_number'=>'required|string','rows.*.amount'=>'required|numeric|min:0.01']);
-        $result = $this->svc->recordBulkPayments($request->rows, $request->method, auth('admin')->user());
-        return back()->with('success', "{$result['success']} payments recorded. {$result['failed']} failed.");
-    }
-
-    public function importLoans(Request $request)
-    {
-        if ($request->isMethod('get')) return view('admin.loans.import');
-        $request->validate(['file'=>'required|file|mimes:csv,txt|max:10240']);
-        $rows   = array_map('str_getcsv', file($request->file('file')->path()));
-        $header = array_map('trim', array_shift($rows));
-        $data   = array_map(fn($r)=>array_combine($header,array_map('trim',$r)), $rows);
-        $result = $this->svc->importLoansFromCsv($data, auth('admin')->user());
-        return back()->with('success', "{$result['imported']} loans imported. {$result['skipped']} skipped.");
-    }
-
-    public function collectionSheet(Request $request)
-    {
-        $date      = $request->input('date', today()->format('Y-m-d'));
-        $officerId = $request->input('officer_id');
-
-        $officers = \App\Models\User::loanOfficers()
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        $data = $this->svc->getCollectionSheet($date, $officerId);
-
-        return view('admin.loans.collection-sheet', compact('data', 'date', 'officers', 'officerId'));
-    }
-
-    public function repaymentChart(Request $request)
-    {
-        return view('admin.loans.repayment-chart', ['data' => $this->svc->getRepaymentChartData()]);
-    }
-
-    // ── Edit loan details (payday, payout, collection) ────────────────────────
-    public function updateDetails(Request $request, Loan $loan)
-    {
-        $request->validate([
-            'salary_payday'    => 'required|integer|min:1|max:31',
-            'payout_method'    => 'required|string',
-            'collection_method'=> 'required|string',
-            'term_months'      => 'required|integer|min:1|max:120',
-            'edit_reason'      => 'required|string|max:500',
-        ]);
-
-        $oldPayday = $loan->salary_payday;
-        $oldTerm   = $loan->term_months;
-
-        $loan->update([
-            'salary_payday'     => $request->salary_payday,
-            'payout_method'     => $request->payout_method,
-            'collection_method' => $request->collection_method,
-        ]);
-
-        // Sync application too
-        if ($loan->application) {
-            $loan->application->update([
-                'salary_payday'     => $request->salary_payday,
-                'payout_method'     => $request->payout_method,
-                'collection_method' => $request->collection_method,
-                'term_months'       => $request->term_months,
-            ]);
-        }
-
-        // If payday changed, update future (unpaid) instalment due dates
-        if ($oldPayday != $request->salary_payday) {
-            $lastDate = null;
-            $loan->installments()
-                ->whereNotIn('status', ['paid', 'waived'])
-                ->get()
-                ->each(function ($inst) use ($request, &$lastDate) {
-                    $newDate = $inst->due_date->setDay(
-                        min((int) $request->salary_payday, $inst->due_date->daysInMonth)
-                    );
-                    $inst->update(['due_date' => $newDate]);
-                    $lastDate = $newDate;
-                });
-            
-            if ($lastDate) {
-                $loan->update(['maturity_date' => $lastDate]);
-            }
-        }
-
-        // If term changed, trigger a restructure based on remaining installments
-        if ($oldTerm != $request->term_months) {
-            $paidCount = $loan->installments()->whereIn('status', ['paid', 'waived'])->count();
-            $newRemainingTerm = max(1, (int)$request->term_months - $paidCount);
-            
-            $this->svc->adjustSchedule($loan, [
-                'new_term' => $newRemainingTerm,
-                'reason'   => $request->edit_reason
-            ], auth('admin')->user());
-            
-            // Re-fetch to ensure we have the updated term count
-            $loan->refresh();
-        }
-
-        AuditLog::record(
-            'loan.edit_details',
-            "Loan {$loan->loan_number} details edited. Reason: {$request->edit_reason}",
-            $loan, [],
-            ['payday' => $request->salary_payday, 'payout' => $request->payout_method, 'collection' => $request->collection_method, 'term' => $request->term_months]
-        );
-
-        return redirect()->route('admin.loans.show', $loan)->with('success', 'Loan details updated successfully.');
-    }
-
 }

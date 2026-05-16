@@ -10,6 +10,7 @@ class OperatingExpense extends Model
 {
     protected $fillable = [
         'uuid',
+        'taxonomy_item_id',
         'category',
         'title',
         'description',
@@ -21,6 +22,7 @@ class OperatingExpense extends Model
         'is_recurring',
         'recurring_period',
         'approved_by',
+        'recorded_by',
         'treasury_account_id'
     ];
 
@@ -38,7 +40,15 @@ class OperatingExpense extends Model
             if (empty($model->uuid)) {
                 $model->uuid = (string) Str::uuid();
             }
+            if (empty($model->recorded_by)) {
+                $model->recorded_by = auth()->id();
+            }
         });
+    }
+
+    public function taxonomyItem(): BelongsTo
+    {
+        return $this->belongsTo(ExpenseTaxonomyItem::class, 'taxonomy_item_id');
     }
 
     public function account(): BelongsTo
@@ -49,5 +59,10 @@ class OperatingExpense extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function recorder(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'recorded_by');
     }
 }

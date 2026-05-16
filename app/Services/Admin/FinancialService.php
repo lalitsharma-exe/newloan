@@ -123,4 +123,46 @@ class FinancialService
             ]);
         }
     }
+
+    /**
+     * Record an internal transfer between treasury accounts.
+     */
+    public function recordInternalTransfer(\App\Models\InternalTransfer $transfer, $adminId)
+    {
+        return DB::transaction(function () use ($transfer, $adminId) {
+            $from = $transfer->fromAccount;
+            $to   = $transfer->toAccount;
+
+            // 1. Create DEBIT transaction for source
+            TreasuryTransaction::create([
+                'treasury_account_id' => $from->id,
+                'type' => 'transfer_out',
+                'amount' => $transfer->amount,
+                'direction' => 'out',
+                'reference' => $transfer->bank_reference,
+                'description' => "Internal transfer to {$to->name}",
+                'recorded_by' => $adminId
+            ]);
+            $from->decrement('balance', $transfer->amount);
+
+            // 2. Create CREDIT transaction for destination
+            TreasuryTransaction::create([
+                'treasury_account_id' => $to->id,
+                'type' => 'transfer_in',
+                'amount' => $transfer->amount,
+                'direction' => 'in',
+                'reference' => $transfer->mpesa_confirmation,
+                'description' => "Internal transfer from {$from->name}",
+                'recorded_by' => $adminId
+            ]);
+            $to->increment('balance', $transfer->amount);
+
+            $transfer->update([
+                'status' => 'confirmed',
+                'confirmed_by_user_id' => $adminId
+            ]);
+
+            return true;
+        });
+    }
 }

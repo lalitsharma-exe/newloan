@@ -1,0 +1,80 @@
+<USER_REQUEST>
+
+MYLOAN LIMITED
+Expense Taxonomy
+Complete Data Entry Reference for the Developer
+
+
+Document
+Expense Taxonomy — Full List
+Purpose
+Exact data to be entered into the system taxonomy database
+Categories
+10
+Subcategories
+108
+Total descriptions
+486
+Date
+14 May 2026
+Prepared by
+Myloan Limited Management
+For
+Development Team
+
+IMPORTANT INSTRUCTION TO DEVELOPER
+Enter every category, subcategory, and description into the system exactly as written in this document.
+Do not abbreviate, rename, reorder, or skip any item. Spelling and capitalisation must match this list precisely.
+
+Summary — Categories at a Glance
+#
+Category
+Subcategories
+Total descriptions
+1
+Staff Expenses
+14
+61
+2
+Technology Expenses
+13
+77
+3
+Operational Expenses
+9
+40
+4
+Marketing Expenses
+10
+55
+5
+Collection Expenses
+10
+43
+6
+Finance Expenses
+12
+50
+7
+Compliance Expenses
+12
+55
+8
+Credit & Risk Expenses
+12
+47
+9
+Bad Debt Expenses
+8
+30
+10
+Cost of Funds
+8
+28
+
+TOTAL
+108
+486
+
+Full Taxonomy — All Categories, Subcategories & Descriptions
+<truncated 18616 bytes>

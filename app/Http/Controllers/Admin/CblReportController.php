@@ -134,6 +134,9 @@ class CblReportController extends Controller
                       ->orWhere('phone', 'LIKE', "%$q%")
                       ->orWhere('email', 'LIKE', "%$q%");
             })
+            ->with(['loans' => function($query) {
+                $query->select('id', 'user_id', 'loan_number');
+            }])
             ->limit(10)
             ->get(['id', 'name', 'phone']);
         

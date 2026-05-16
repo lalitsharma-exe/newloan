@@ -56,7 +56,7 @@
                         <th>Institution / Account</th>
                         <th>Type</th>
                         <th>Ledger Entries</th>
-                        <th style="text-align:right">Current Balance</th>
+                        <th style="text-align:right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -83,11 +83,14 @@
                                 L {{ number_format($acc->balance, 2) }}
                             </div>
                         </td>
+                        <td style="text-align:right">
+                            <button onclick="openEditModal({{ json_encode($acc) }})" class="btn btn-sm btn-o"><i class="bi bi-pencil"></i> Edit</button>
+                        </td>
                     </tr>
                     @endforeach
                     @if($accounts->isEmpty())
                     <tr>
-                        <td colspan="4" class="empty" style="padding: 60px">
+                        <td colspan="5" class="empty" style="padding: 60px">
                             <i class="bi bi-safe2"></i>
                             <p>No treasury accounts registered yet.</p>
                         </td>
@@ -98,4 +101,61 @@
         </div>
     </div>
 </div>
+
+{{-- EDIT MODAL --}}
+<div id="editModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#fff; width:100%; max-width:450px; border-radius:16px; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)">
+        <div style="padding:20px; background:var(--navy); color:#fff; display:flex; justify-content:space-between; align-items:center">
+            <h3 style="font-size:18px; font-weight:700">Update Treasury Account</h3>
+            <button onclick="closeModal()" style="background:transparent; border:none; color:#fff; font-size:24px; cursor:pointer">&times;</button>
+        </div>
+        <form id="editForm" method="POST" style="padding:25px">
+            @csrf
+            <div class="fg">
+                <label class="fl">Account Name *</label>
+                <input type="text" name="name" id="e_name" class="fc" required>
+            </div>
+            <div class="fg">
+                <label class="fl">Institution</label>
+                <input type="text" name="institution" id="e_institution" class="fc">
+            </div>
+            <div class="fg">
+                <label class="fl">Account Type *</label>
+                <select name="type" id="e_type" class="fc" required>
+                    <option value="bank">Commercial Bank Account</option>
+                    <option value="mobile_wallet">Mobile Money (MPesa/EcoCash)</option>
+                    <option value="cash_float">Office Petty Cash</option>
+                    <option value="investment">Investment / Funding</option>
+                </select>
+            </div>
+            <div class="fg">
+                <label class="fl">Account Number</label>
+                <input type="text" name="account_number" id="e_account_number" class="fc">
+            </div>
+            <div class="fg">
+                <label class="fl">Current Balance *</label>
+                <div style="display:flex; align-items:center; position:relative">
+                    <span style="position:absolute; left:12px; font-weight:700; color:var(--muted)">L</span>
+                    <input type="number" step="0.01" name="balance" id="e_balance" class="fc" style="padding-left:30px" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-p" style="width:100%; justify-content:center; height:48px; font-weight: 800;">Update Account</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditModal(acc) {
+        document.getElementById('e_name').value = acc.name;
+        document.getElementById('e_institution').value = acc.institution || '';
+        document.getElementById('e_type').value = acc.type;
+        document.getElementById('e_account_number').value = acc.account_number || '';
+        document.getElementById('e_balance').value = acc.balance;
+        document.getElementById('editForm').action = `{{ url('/admin/financial/accounts') }}/${acc.id}/update`;
+        document.getElementById('editModal').style.display = 'flex';
+    }
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+</script>
 @endsection

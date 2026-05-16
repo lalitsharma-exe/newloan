@@ -8,6 +8,7 @@ class Payment extends Model {
         "amount","method","gateway_reference","reference",
         "status","notes","is_manual",
         "verified_by","verified_at",
+        "principal_portion","interest_portion","initiation_fee_portion","admin_fee_portion","penalty_portion","repayment_components"
     ];
 
     protected $casts = [

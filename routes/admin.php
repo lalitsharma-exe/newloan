@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Admin\BankController;
 use App\Http\Controllers\Admin\FinancialController;
 use App\Http\Controllers\Admin\FloatController;
+use App\Http\Controllers\Admin\ExpenseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -220,15 +221,24 @@ Route::prefix('admin')->name('admin.')->group(function () {
         */
         Route::prefix('financial')->name('financial.')->group(function () {
             Route::get('/dashboard', [FinancialController::class, 'dashboard'])->name('dashboard');
-            
-            // Treasury Accounts
             Route::get('/accounts', [FinancialController::class, 'accounts'])->name('accounts');
             Route::post('/accounts', [FinancialController::class, 'storeAccount'])->name('accounts.store');
+            Route::post('/accounts/{account}/update', [FinancialController::class, 'updateAccount'])->name('accounts.update');
+            
+            // Internal Transfers
+            Route::get('/transfers', [FinancialController::class, 'transfers'])->name('transfers');
+            Route::post('/transfers/initiate', [FinancialController::class, 'initiateTransfer'])->name('transfers.initiate');
+            Route::post('/transfers/{transfer}/confirm', [FinancialController::class, 'confirmTransfer'])->name('transfers.confirm');
             
             // Expense Management
-            Route::get('/expenses', [FinancialController::class, 'expenses'])->name('expenses');
-            Route::post('/expenses', [FinancialController::class, 'storeExpense'])->name('expenses.store');
-            Route::post('/expenses/{expense}/pay', [FinancialController::class, 'payExpense'])->name('expenses.pay');
+            Route::prefix('expenses')->name('expenses.')->group(function () {
+                Route::get('/', [ExpenseController::class, 'index'])->name('index');
+                Route::post('/', [ExpenseController::class, 'store'])->name('store');
+                Route::get('/subcategories', [ExpenseController::class, 'getSubcategories'])->name('subcategories');
+                Route::get('/taxonomy-items', [ExpenseController::class, 'getTaxonomyItems'])->name('taxonomy-items');
+                Route::get('/export', [ExpenseController::class, 'export'])->name('export');
+                Route::post('/{expense}/pay', [ExpenseController::class, 'pay'])->name('pay');
+            });
             
             // Forecasting
             Route::post('/forecasts/refresh', [FinancialController::class, 'refreshForecasts'])->name('forecasts.refresh');

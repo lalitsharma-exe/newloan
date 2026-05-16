@@ -193,56 +193,59 @@ class LoanService
             'notes'             => $data['notes'] ?? 'Manual payment recorded by admin',
             'is_manual'         => true,
             'verified_by'       => $admin->id,
-            'verified_at'       => now(),
+            'verified_at'       => $data['payment_date'] ?? now(),
+            'created_at'        => $data['payment_date'] ?? now(),
         ]);
 
         // ── Payment allocation order: Penalty → Admin Fee → Interest → Principal ──
-        // Per client spec: overdue instalments first, then by allocation priority within each
         $remaining = (float) $data['amount'];
+        $portions = [
+            'penalty'   => 0,
+            'admin'     => 0,
+            'interest'  => 0,
+            'principal' => 0,
+            'initiation'=> 0
+        ];
+
         $installments = $loan->installments()
             ->whereIn('status', ['pending','overdue','partial'])
-            ->orderBy('due_date')   // oldest first
+            ->orderBy('due_date')
             ->get();
 
         foreach ($installments as $inst) {
             if ($remaining <= 0) break;
 
-            // Amounts already paid per component (tracked proportionally from paid_amount)
             $totalComp   = (float) $inst->total_amount;
             $alreadyPaid = (float) $inst->paid_amount;
             $stillOwed   = max(0, round($totalComp - $alreadyPaid, 2));
             if ($stillOwed <= 0) continue;
 
-            // Component breakdown of what's still owed, in allocation order:
-            // 1. Penalty Fee   2. Admin Fee   3. Interest   4. Principal
             $components = [
-                'late_fee'              => (float) $inst->late_fee,
-                'admin_fee_amount'      => (float) ($inst->admin_fee_amount ?? 0),
-                'interest_amount'       => (float) $inst->interest_amount,
-                'principal_amount'      => (float) $inst->principal_amount,
-                'initiation_fee_amount' => (float) ($inst->initiation_fee_amount ?? 0),
+                'penalty'    => (float) $inst->late_fee,
+                'admin'      => (float) ($inst->admin_fee_amount ?? 0),
+                'interest'   => (float) $inst->interest_amount,
+                'initiation' => (float) ($inst->initiation_fee_amount ?? 0),
+                'principal'  => (float) $inst->principal_amount,
             ];
 
-            // Calculate how much of each component has been paid proportionally
-            // (simple approach: payment fills components in order until exhausted)
+            // How much of each component is still owed for this installment?
+            // (Simplified: we track what was already paid overall and fill in order)
             $paidSoFar = $alreadyPaid;
-            $componentPaid = [];
-            foreach ($components as $comp => $compTotal) {
-                if ($paidSoFar <= 0) { $componentPaid[$comp] = 0; continue; }
-                $compPaid = min($paidSoFar, $compTotal);
-                $componentPaid[$comp] = $compPaid;
-                $paidSoFar -= $compPaid;
-            }
-
-            // Now apply remaining payment to components in order
             $appliedToInst = 0;
-            foreach ($components as $comp => $compTotal) {
-                if ($remaining <= 0) break;
-                $compOwed = max(0, $compTotal - ($componentPaid[$comp] ?? 0));
-                if ($compOwed <= 0) continue;
-                $pay = min($remaining, $compOwed);
-                $remaining      -= $pay;
-                $appliedToInst  += $pay;
+
+            foreach ($components as $key => $total) {
+                if ($paidSoFar > 0) {
+                    $deduct = min($paidSoFar, $total);
+                    $total -= $deduct;
+                    $paidSoFar -= $deduct;
+                }
+
+                if ($total > 0 && $remaining > 0) {
+                    $pay = min($remaining, $total);
+                    $remaining -= $pay;
+                    $appliedToInst += $pay;
+                    $portions[$key] += $pay;
+                }
             }
 
             $newPaid        = round($alreadyPaid + $appliedToInst, 2);
@@ -259,6 +262,16 @@ class LoanService
                 $payment->update(['installment_id' => $inst->id]);
             }
         }
+
+        // Update payment with portions
+        $payment->update([
+            'principal_portion'      => $portions['principal'],
+            'interest_portion'       => $portions['interest'],
+            'initiation_fee_portion' => $portions['initiation'],
+            'admin_fee_portion'      => $portions['admin'],
+            'penalty_portion'        => $portions['penalty'],
+            'repayment_components'   => json_encode($portions),
+        ]);
 
         // Update loan outstanding balance
         $actualApplied = (float) $data['amount'] - $remaining;
@@ -633,5 +646,52 @@ class LoanService
             ]);
             $payDate->addMonth();
         }
+    }
+
+    public function finalizeDisbursement(\App\Models\Loan $loan, array $data, \App\Models\User $admin): void
+    {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($loan, $data, $admin) {
+            $account = \App\Models\TreasuryAccount::findOrFail($data['treasury_account_id']);
+            $isMD = $account->is_director_owned;
+
+            $loan->update([
+                'status'                    => 'active',
+                'disbursement_date'         => $data['disbursement_date'],
+                'disbursed_from_account_id' => $account->id,
+                'transaction_reference'     => $data['transaction_reference'],
+                'payment_method'            => $isMD ? 'Mobile Wallet' : ($account->type === 'bank' ? 'Bank Transfer' : 'Mobile Wallet'),
+                'funding_source_type'       => $isMD ? 'Director' : 'Company',
+                'authorisation_confirmed'   => true,
+                'authorisation_at'          => now(),
+                'disbursement_notes'        => $data['notes'] ?? null,
+                'proof_of_payment_path'     => $data['proof_path'] ?? null,
+            ]);
+
+            if ($isMD) {
+                \App\Models\DirectorInvestment::create([
+                    'amount_invested' => $loan->principal_amount,
+                    'investment_date' => $data['disbursement_date'],
+                    'monthly_rate'    => 0.05,
+                    'status'          => 'active',
+                    'notes'           => "Funded Loan: {$loan->loan_number}",
+                ]);
+            } else {
+                \App\Models\TreasuryTransaction::create([
+                    'treasury_account_id' => $account->id,
+                    'type'                => 'DISBURSEMENT',
+                    'direction'           => 'out',
+                    'amount'              => $loan->principal_amount,
+                    'reference'           => $data['transaction_reference'],
+                    'description'         => "Disbursement for Loan {$loan->loan_number}",
+                    'loan_id'             => $loan->id,
+                    'recorded_by'         => $admin->id,
+                ]);
+                $account->decrement('balance', $loan->principal_amount);
+            }
+
+            if ($loan->installments()->count() === 0) {
+                $this->generateInstallments($loan);
+            }
+        });
     }
 }

@@ -83,11 +83,12 @@
     </div>
 @elseif($user->float_eligible)
     {{-- ELIGIBLE: PROMO BANNER --}}
-    <div class="card" style="border: none; border-radius: 24px; overflow: hidden; background: #000; position: relative; min-height: 400px; display: flex; align-items: center;">
-        <img src="{{ asset('emergency_float_banner_1778866066374.png') }}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
+    <div class="card" style="border: none; border-radius: 24px; overflow: hidden; background: #0f172a; position: relative; min-height: 400px; display: flex; align-items: center;">
+        <img src="{{ asset('myfloat_promo.png') }}" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.8; mix-blend-mode: overlay;">
+        <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.8) 40%, rgba(15,23,42,0.2) 100%);"></div>
         
         <div style="position: relative; z-index: 2; padding: 60px; max-width: 600px;">
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; padding: 6px 14px; border-radius: 30px; font-size: 12px; font-weight: 700; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(140, 198, 63, 0.4);">
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(74, 222, 128, 0.2); color: #4ade80; padding: 6px 14px; border-radius: 30px; font-size: 12px; font-weight: 800; margin-bottom: 24px; border: 1px solid rgba(74, 222, 128, 0.3);">
                 <i class="bi bi-lightning-fill"></i> INSTANT ELIGIBILITY
             </div>
             <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 52px; font-weight: 700; color: #fff; line-height: 1; margin-bottom: 16px;">M500 in your wallet, <span style="color: var(--accent);">instantly.</span></h2>

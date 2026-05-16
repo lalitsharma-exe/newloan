@@ -57,7 +57,18 @@
                         <div class="fg"><label class="fl">Surname <span style="color:red">*</span></label><input type="text" name="customer_surname" id="s_name" class="fc" required maxlength="100"></div>
                     </div>
                     <div class="g2">
-                        <div class="fg"><label class="fl">Account Number <span style="color:red">*</span></label><input type="text" name="account_number" id="acc_num" class="fc" required></div>
+                        <div class="fg">
+                            <label class="fl">Account / Loan Number <span style="color:red">*</span></label>
+                            <div id="acc_num_wrap">
+                                <select name="account_number" id="acc_num" class="fc" required onchange="handleAccountChange(this)">
+                                    <option value="">Search borrower first...</option>
+                                </select>
+                            </div>
+                            <div id="acc_num_other_wrap" style="display:none; margin-top:10px">
+                                <input type="text" id="acc_num_other" class="fc" placeholder="Enter custom account or reference...">
+                            </div>
+                            <input type="hidden" name="loan_id" id="selected_loan_id">
+                        </div>
                         <div class="fg">
                             <label class="fl">Customer Type <span style="color:red">*</span></label>
                             <select name="customer_type" class="fc" onchange="toggleOther(this, 'cust_type_other_wrap')" required>
@@ -278,6 +289,59 @@
         document.getElementById(targetId).style.display = (sel.value === 'Others') ? 'block' : 'none';
     }
 
+    function handleAccountChange(sel) {
+        const otherWrap = document.getElementById('acc_num_other_wrap');
+        const otherInput = document.getElementById('acc_num_other');
+        const loanIdInput = document.getElementById('selected_loan_id');
+        
+        if (sel.value === 'Other') {
+            otherWrap.style.display = 'block';
+            otherInput.required = true;
+            loanIdInput.value = '';
+        } else {
+            otherWrap.style.display = 'none';
+            otherInput.required = false;
+            // Get data-loan-id from selected option
+            const selectedOpt = sel.options[sel.selectedIndex];
+            loanIdInput.value = selectedOpt.getAttribute('data-loan-id') || '';
+        }
+    }
+
+    // Intercept form submission to handle 'Other' account number
+    document.getElementById('complaintForm').addEventListener('submit', function(e) {
+        const accSelect = document.getElementById('acc_num');
+        const accOther = document.getElementById('acc_num_other');
+        
+        if (accSelect.value === 'Other') {
+            // Temporarily change select value or use a hidden field if needed. 
+            // Here we'll just ensure the custom value is what gets sent.
+            // Actually, simpler to just have a hidden input that gets populated.
+            // But let's just make the 'Other' input have the name if it's visible.
+        }
+    });
+
+    // Modified handleAccountChange to handle the hidden submission logic
+    function handleAccountChange(sel) {
+        const otherWrap = document.getElementById('acc_num_other_wrap');
+        const otherInput = document.getElementById('acc_num_other');
+        const loanIdInput = document.getElementById('selected_loan_id');
+        
+        if (sel.value === 'Other') {
+            otherWrap.style.display = 'block';
+            otherInput.required = true;
+            otherInput.name = 'account_number'; // Give it the name
+            sel.name = 'account_number_placeholder'; // Take name away from select
+            loanIdInput.value = '';
+        } else {
+            otherWrap.style.display = 'none';
+            otherInput.required = false;
+            otherInput.name = 'account_number_other_val'; // Take name away
+            sel.name = 'account_number'; // Give name to select
+            const selectedOpt = sel.options[sel.selectedIndex];
+            loanIdInput.value = selectedOpt.getAttribute('data-loan-id') || '';
+        }
+    }
+
     function openManageModal(id, ref) {
         document.getElementById('m_ref').innerText = ref;
         document.getElementById('updateForm').action = `/admin/reports/complaints/${id}/update`;
@@ -292,6 +356,7 @@
     const searchInput = document.getElementById('user_search');
     const resultsDiv = document.getElementById('search_results');
     const selectedUserId = document.getElementById('selected_user_id');
+    const accSelect = document.getElementById('acc_num');
 
     searchInput.addEventListener('input', function() {
         const query = this.value;
@@ -308,10 +373,28 @@
                         div.onclick = () => {
                             searchInput.value = user.name;
                             selectedUserId.value = user.id;
+                            
                             // Auto-fill Section 3 fields
                             document.getElementById('f_name').value = user.name.split(' ')[0] || '';
                             document.getElementById('s_name').value = user.name.split(' ').slice(1).join(' ') || '';
                             document.getElementById('phone').value = user.phone;
+                            
+                            // Populate Account Dropdown
+                            accSelect.innerHTML = '<option value="">Select Account / Loan...</option>';
+                            if (user.loans && user.loans.length > 0) {
+                                user.loans.forEach(loan => {
+                                    const opt = document.createElement('option');
+                                    opt.value = loan.loan_number;
+                                    opt.innerText = `Loan: ${loan.loan_number}`;
+                                    opt.setAttribute('data-loan-id', loan.id);
+                                    accSelect.appendChild(opt);
+                                });
+                            }
+                            const otherOpt = document.createElement('option');
+                            otherOpt.value = 'Other';
+                            otherOpt.innerText = 'Other (Custom Reference)';
+                            accSelect.appendChild(otherOpt);
+                            
                             resultsDiv.style.display = 'none';
                         };
                         div.onmouseover = () => div.style.background = 'var(--bg)';

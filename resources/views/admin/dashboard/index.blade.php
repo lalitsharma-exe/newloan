@@ -238,41 +238,58 @@
 
             <div class="body-right">
                 <div class="card" style="height: 100%;">
-                    <div class="card-head">
-                        <div class="card-title">PAR & Arrears Profile</div>
+                    <div class="card-head" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px 5px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="card-title" style="font-size: 16px; font-weight: 700;">Collections</div>
+                            <span style="background: #f1f5f9; color: #64748b; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">MTD</span>
+                        </div>
+                        <a href="{{ route('admin.reports.index') }}" style="color: #3b82f6; font-size: 12px; font-weight: 600; text-decoration: none;">Report →</a>
                     </div>
-                    <div style="padding: 20px;">
-                        <div class="par-row"><span>PAR 1 (Early)</span><strong
-                                style="color:#10b981">{{ $stats['par1_pct'] }}%</strong></div>
-                        <div class="par-row"><span>PAR 7 (Critical)</span><strong
-                                style="color:#f59e0b">{{ $stats['par7_pct'] }}%</strong></div>
-                        <div class="par-row"><span>PAR 30 (Default)</span><strong
-                                style="color:#ef4444">{{ $stats['par30_pct'] }}%</strong></div>
-                        <div style="height:150px; margin-top:20px"><canvas id="chartPAR"></canvas></div>
-                    </div>
-                    <div class="aging-block" style="padding: 20px; border-top: 1px solid #f1f5f9;">
-                        <div style="font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 15px;">OVERDUE AGING
-                            (M{{ number_format($stats['overdue_total'], 2) }})</div>
-                        @php
-                            $overdueTotal = $stats['overdue_total'] ?: 1;
-                            $aging = [
-                                ['label' => '1–7 days', 'val' => $stats['overdue_1_7'], 'pct' => round($stats['overdue_1_7'] / $overdueTotal * 100)],
-                                ['label' => '8–30 days', 'val' => $stats['overdue_8_30'], 'pct' => round($stats['overdue_8_30'] / $overdueTotal * 100)],
-                                ['label' => '31–60 days', 'val' => $stats['overdue_31_60'], 'pct' => round($stats['overdue_31_60'] / $overdueTotal * 100)],
-                                ['label' => '60+ days', 'val' => $stats['overdue_60p'], 'pct' => round($stats['overdue_60p'] / $overdueTotal * 100)],
-                            ];
-                        @endphp
-                        @foreach($aging as $a)
-                            <div class="aging-row" style="margin-bottom:10px">
-                                <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px">
-                                    <span>{{ $a['label'] }}</span>
-                                    <span style="font-weight:700">M{{ number_format($a['val'], 2) }}</span>
-                                </div>
-                                <div class="kpi-progress">
-                                    <div class="progress-bar" style="width:{{ $a['pct'] }}%; background: #ef4444;"></div>
-                                </div>
+
+                    <div style="padding: 10px 20px 20px;">
+                        <div style="display: grid; grid-template-columns: 1.2fr 1fr 0.8fr; gap: 10px; margin-bottom: 25px;">
+                            <div>
+                                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">Total Due</div>
+                                <div style="font-size: 18px; font-weight: 800; color: #1e293b;">M{{ number_format($stats['month_expected'], 2) }}</div>
                             </div>
-                        @endforeach
+                            <div>
+                                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">Collected</div>
+                                <div style="font-size: 18px; font-weight: 800; color: #10b981;">M{{ number_format($stats['month_collected'], 2) }}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">Rate</div>
+                                <div style="font-size: 18px; font-weight: 800; color: #10b981;">{{ $stats['collection_pct'] }}%</div>
+                            </div>
+                        </div>
+
+                        <div style="border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <div style="font-size: 12px; font-weight: 700; color: #475569;">Overdue Aging</div>
+                                <div style="font-size: 12px; font-weight: 700; color: #ef4444;">M{{ number_format($stats['overdue_total'], 2) }}</div>
+                            </div>
+
+                            @php
+                                $overdueTotal = $stats['overdue_total'] ?: 1;
+                                $aging = [
+                                    ['label' => '1–7 days', 'val' => $stats['overdue_1_7'], 'pct' => round($stats['overdue_1_7'] / $overdueTotal * 100)],
+                                    ['label' => '8–30 days', 'val' => $stats['overdue_8_30'], 'pct' => round($stats['overdue_8_30'] / $overdueTotal * 100)],
+                                    ['label' => '31–60 days', 'val' => $stats['overdue_31_60'], 'pct' => round($stats['overdue_31_60'] / $overdueTotal * 100)],
+                                    ['label' => '60+ days', 'val' => $stats['overdue_60p'], 'pct' => round($stats['overdue_60p'] / $overdueTotal * 100)],
+                                ];
+                            @endphp
+
+                            @foreach($aging as $a)
+                                <div style="margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; margin-bottom: 5px;">
+                                        <span style="color: #64748b;">{{ $a['label'] }}</span>
+                                        <span style="font-weight: 700; color: #1e293b;">M{{ number_format($a['val'], 2) }}</span>
+                                    </div>
+                                    <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+                                        <div style="width: {{ $a['pct'] }}%; height: 100%; background: #ef4444; border-radius: 3px;"></div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>

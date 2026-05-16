@@ -57,7 +57,10 @@
             <div class="card">
                 <div class="card-hdr">
                     <span class="card-title">Treasury Accounts</span>
-                    <a href="{{ route('admin.financial.accounts') }}" class="btn btn-sm btn-o">Manage</a>
+                    <div class="flex gap2">
+                        <a href="{{ route('admin.financial.transfers') }}" class="btn btn-sm btn-ok"><i class="bi bi-arrow-left-right"></i> New Transfer</a>
+                        <a href="{{ route('admin.financial.accounts') }}" class="btn btn-sm btn-o">Manage</a>
+                    </div>
                 </div>
                 <div style="overflow-x:auto">
                     <table class="dt">
@@ -140,7 +143,7 @@
             <div class="card">
                 <div class="card-hdr"><span class="card-title">Quick Actions</span></div>
                 <div style="padding: 16px; display:flex; flex-direction:column; gap:10px">
-                    <a href="{{ route('admin.financial.expenses') }}" class="btn btn-p" style="justify-content:center; padding:12px">
+                    <a href="{{ route('admin.financial.expenses.index') }}" class="btn btn-p" style="justify-content:center; padding:12px">
                         <i class="bi bi-plus-circle"></i> New Expense
                     </a>
                     <form action="{{ route('admin.financial.forecasts.refresh') }}" method="POST" style="width:100%">

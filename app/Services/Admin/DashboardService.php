@@ -81,9 +81,16 @@ class DashboardService
         $totalRevenue         = $totalInterestRevenue + $totalFeeRevenue;
         
         // ISSUE 1: Net Profit Logic (Revenue - Expenses - Cost of Funds)
-        // We fetch these from SystemSettings or similar, if not yet recorded, they remain 0 but flagged in view
-        $opExpenses = DB::table('system_settings')->where('key', 'operating_expenses')->value('value') ?? 0;
-        $costOfFunds = DB::table('system_settings')->where('key', 'cost_of_funds')->value('value') ?? 0;
+        // Now pulling from real taxonomy-linked expenses
+        $cofCategoryId = DB::table('expense_categories')->where('ref_code', '10')->value('id');
+        
+        $opExpenses = \App\Models\OperatingExpense::whereHas('taxonomyItem.subcategory', function($q) use ($cofCategoryId) {
+            $q->where('category_id', '!=', $cofCategoryId);
+        })->orWhereNull('taxonomy_item_id')->sum('amount');
+
+        $costOfFunds = \App\Models\OperatingExpense::whereHas('taxonomyItem.subcategory', function($q) use ($cofCategoryId) {
+            $q->where('category_id', $cofCategoryId);
+        })->sum('amount');
         
         $netProfit    = $totalRevenue - $writtenOffAmt - $opExpenses - $costOfFunds;
         $profitMargin = $totalRevenue > 0 ? round(($netProfit / $totalRevenue) * 100, 1) : 0;

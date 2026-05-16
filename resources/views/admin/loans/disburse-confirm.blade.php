@@ -307,40 +307,61 @@ Disburse
             This action will activate the loan, create the repayment schedule, and cannot be undone.
           </div>
 
-          <form method="POST" action="{{ route('admin.loans.disburse', $loan) }}" id="disburseForm">
+          <form method="POST" action="{{ route('admin.loans.disburse', $loan) }}" id="disburseForm" enctype="multipart/form-data">
             @csrf
-            <input type="hidden" name="disbursement_reference" id="finalRef" value="{{ $reference }}">
-            <input type="hidden" name="disbursement_method" id="finalMethod" value="{{ $loan->payout_method ?? 'bank_transfer' }}">
-            <input type="hidden" name="disbursement_phone" id="finalPhone" value="">
-            <input type="hidden" name="disbursement_provider" id="finalProvider" value="">
 
             <div class="fg">
               <label class="fl">Disbursement Date *</label>
-              <input type="date" name="disbursement_date" class="fc" value="{{ today()->format('Y-m-d') }}" required>
+              <input type="date" name="disbursement_date" class="fc" value="{{ today()->format('Y-m-d') }}" max="{{ today()->format('Y-m-d') }}" required>
+              <div class="ft">The official date the funds were sent</div>
             </div>
 
             <div class="fg">
               <label class="fl">Disburse From Account *</label>
-              <select name="treasury_account_id" class="fc" required>
+              <select name="treasury_account_id" class="fc" id="accountSelect" required onchange="updateAccountInfo()">
+                <option value="" disabled selected>— Select Account —</option>
                 @foreach($accounts as $acc)
-                  <option value="{{ $acc->id }}">{{ $acc->name }} (Balance: L {{ number_format($acc->balance, 2) }})</option>
+                  <option value="{{ $acc->id }}" data-type="{{ $acc->type }}" data-director="{{ $acc->is_director_owned ? '1' : '0' }}">
+                    {{ $acc->name }} ({{ $acc->is_director_owned ? 'Director' : 'Company' }}) 
+                    @if(!$acc->is_director_owned) — Balance: L {{ number_format($acc->balance, 2) }} @endif
+                  </option>
                 @endforeach
               </select>
-              <div class="ft">Select the source of funds for this disbursement</div>
+              <div class="ft" id="accountInfo">Select the source of funds</div>
             </div>
 
             <div class="fg">
-              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;background:#f8fafc">
-                <input type="checkbox" name="confirm" value="1" id="confirmCheck" required style="width:18px;height:18px;cursor:pointer;accent-color:var(--p)">
-                <span style="font-size:13px;font-weight:600;color:var(--dark)">I confirm this disbursement is correct and authorised</span>
+              <label class="fl">Transaction Reference *</label>
+              <input type="text" name="transaction_reference" class="fc" placeholder="e.g. M-Pesa Code or EFT Ref" required value="{{ old('transaction_reference') }}">
+              <div class="ft">Mandatory. The actual proof code from the provider</div>
+            </div>
+
+            <div class="fg">
+              <label class="fl">Notes</label>
+              <textarea name="notes" class="fc" rows="2" placeholder="Internal disbursement notes (optional)">{{ old('notes') }}</textarea>
+            </div>
+
+            <div class="fg">
+              <label class="fl">Proof of Payment (Optional)</label>
+              <input type="file" name="proof_of_payment" class="fc" accept=".pdf,.jpg,.png">
+              <div class="ft">Upload a screenshot or PDF receipt (max 5MB)</div>
+            </div>
+
+            <div class="fg" style="margin-top:20px">
+              <label style="display:flex;align-items:start;gap:12px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:12px;background:#f8fafc;transition:all .2s" id="authBox">
+                <input type="checkbox" name="authorisation" value="1" id="confirmCheck" required style="width:20px;height:20px;cursor:pointer;accent-color:#10b981;margin-top:2px">
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:700;color:var(--dark)">Authorisation Confirmation</div>
+                  <div style="font-size:12px;color:var(--muted);line-height:1.4;margin-top:2px">I confirm this disbursement is correct, authorised, and the funds have been successfully transferred to the borrower.</div>
+                </div>
               </label>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <a href="{{ route('admin.loans.show', $loan) }}" class="btn btn-o" style="justify-content:center">
-                <i class="bi bi-x-lg"></i> Cancel
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+              <a href="{{ route('admin.loans.show', $loan) }}" class="btn btn-o" style="justify-content:center;height:48px">
+                Cancel
               </a>
-              <button type="submit" class="btn btn-ok" id="disburseBtn" style="justify-content:center" {{ $blocked ? 'disabled' : '' }}>
+              <button type="submit" class="btn btn-ok" id="disburseBtn" style="justify-content:center;height:48px;font-weight:700" disabled>
                 <i class="bi bi-send-fill"></i> Confirm Disbursement
               </button>
             </div>
@@ -354,49 +375,45 @@ Disburse
 
 @push('scripts')
 <script>
+function updateAccountInfo() {
+    const sel = document.getElementById('accountSelect');
+    const opt = sel.options[sel.selectedIndex];
+    const info = document.getElementById('accountInfo');
+    const isDirector = opt.getAttribute('data-director') === '1';
+    
+    if (isDirector) {
+        info.innerHTML = '<span style="color:#7c3aed;font-weight:700"><i class="bi bi-person-check-fill"></i> Director Funded:</span> No company cash affected. Recorded as capital investment.';
+    } else {
+        info.innerHTML = '<span style="color:#10b981;font-weight:700"><i class="bi bi-wallet2"></i> Company Funded:</span> Will reduce company cash balance immediately.';
+    }
+}
+
+document.getElementById('confirmCheck')?.addEventListener('change', function() {
+    const btn = document.getElementById('disburseBtn');
+    const box = document.getElementById('authBox');
+    if (this.checked) {
+        btn.disabled = false;
+        box.style.borderColor = '#10b981';
+        box.style.background = '#f0fdf4';
+    } else {
+        btn.disabled = true;
+        box.style.borderColor = 'var(--border)';
+        box.style.background = '#f8fafc';
+    }
+});
+
 function switchMethod(val) {
     document.querySelectorAll('.method-card').forEach(c => {
         c.style.borderColor = 'var(--border)';
         c.style.background  = '';
     });
-    const colors = { bank_transfer: '#4f46e5', cpay_wallet: '#7c3aed', cash: '#10b981' };
+    const colors = { bank_transfer: '#4f46e5', cpay_wallet: '#7c3aed', cash: '#10b981', mpesa_b2c: '#10b981' };
     const card = document.querySelector(`.method-card[data-m="${val}"]`);
-    if (card && colors[val]) { card.style.borderColor = colors[val]; card.style.background = colors[val]+'18'; }
-    // Show/hide extra fields
-    const cpayF = document.getElementById('cpayWalletFields');
-    if (cpayF) cpayF.style.display = val === 'cpay_wallet' ? '' : 'none';
-
-    const mpesaF = document.getElementById('mpesaFields');
-    if (mpesaF) mpesaF.style.display = val === 'mpesa_b2c' ? '' : 'none';
-
-    document.getElementById('finalMethod').value = val;
-    // Update provider hint
-    const prov = document.getElementById('finalProvider');
-    if (prov) {
-        if (val === 'bank_transfer') prov.value = 'EFT';
-        else if (val === 'cpay_wallet') prov.value = 'CPAY';
-        else if (val === 'mpesa_b2c') prov.value = 'M-PESA';
-        else prov.value = 'CASH';
+    if (card && colors[val]) { 
+        card.style.borderColor = colors[val]; 
+        card.style.background = colors[val]+'18'; 
     }
 }
-
-document.getElementById('disburseForm')?.addEventListener('submit', function(e) {
-    const method = document.getElementById('finalMethod').value;
-    const phoneEl = document.getElementById('cpayWalletPhone');
-    const mpesaPhoneEl = document.getElementById('mpesaPhone');
-    
-    if (method === 'cpay_wallet' && phoneEl) {
-        document.getElementById('finalPhone').value = phoneEl.value;
-    } else if (method === 'mpesa_b2c' && mpesaPhoneEl) {
-        document.getElementById('finalPhone').value = mpesaPhoneEl.value;
-    } else {
-        document.getElementById('finalPhone').value = '{{ $loan->user->phone ?? '' }}';
-    }
-});
-
-// Init — default to bank_transfer unless loan.payout_method says cpay_wallet
-const initMethod = '{{ ($loan->payout_method ?? 'bank_transfer') }}';
-switchMethod(['bank_transfer','cpay_wallet','cash'].includes(initMethod) ? initMethod : 'bank_transfer');
 </script>
 @endpush
 @endsection

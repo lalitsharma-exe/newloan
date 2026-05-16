@@ -45,75 +45,85 @@ class FinancialController extends Controller
             'type' => 'required|in:bank,mobile_wallet,cash_float,investment',
             'institution' => 'nullable|string',
             'account_number' => 'nullable|string',
-            'balance' => 'required|numeric|min:0'
+            'balance' => 'required|numeric'
         ]);
 
         TreasuryAccount::create($request->all());
         return back()->with('success', 'Treasury account created successfully.');
     }
 
-    public function expenses()
-    {
-        $expenses = OperatingExpense::with(['account', 'approver'])->latest()->paginate(20);
-        $accounts = TreasuryAccount::where('is_active', true)->get();
-        return view('admin.financial.expenses', compact('expenses', 'accounts'));
-    }
-
-    public function storeExpense(Request $request)
+    public function updateAccount(Request $request, TreasuryAccount $account)
     {
         $request->validate([
-            'category' => 'required|string',
-            'title' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0.01',
-            'due_date' => 'required|date',
-            'is_recurring' => 'boolean',
-            'receipt' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048'
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:bank,mobile_wallet,cash_float,investment',
+            'institution' => 'nullable|string',
+            'account_number' => 'nullable|string',
+            'balance' => 'required|numeric'
         ]);
 
-        $data = $request->all();
-        
-        if ($request->hasFile('receipt')) {
-            $data['receipt_path'] = $request->file('receipt')->store('expenses/receipts', 'public');
-        }
-
-        OperatingExpense::create($data);
-        return back()->with('success', 'Expense recorded successfully.');
-    }
-
-    public function payExpense(Request $request, OperatingExpense $expense)
-    {
-        $request->validate([
-            'treasury_account_id' => 'required|exists:treasury_accounts,id',
-            'payment_date' => 'required|date'
-        ]);
-
-        \DB::transaction(function () use ($request, $expense) {
-            $expense->update([
-                'status' => 'paid',
-                'payment_date' => $request->payment_date,
-                'treasury_account_id' => $request->treasury_account_id,
-                'approved_by' => auth()->id()
-            ]);
-
-            $this->svc->recordTransaction(
-                $request->treasury_account_id,
-                'expense',
-                $expense->amount,
-                'out',
-                [
-                    'description' => "Payment for: {$expense->title}",
-                    'expense_id' => $expense->id,
-                    'reference' => "EXP-{$expense->uuid}"
-                ]
-            );
-        });
-
-        return back()->with('success', 'Expense paid and ledger updated.');
+        $account->update($request->all());
+        return back()->with('success', 'Treasury account updated successfully.');
     }
 
     public function refreshForecasts()
     {
         $this->svc->refreshForecasts();
         return back()->with('success', 'Repayment forecasts refreshed based on current borrower behavior.');
+    }
+
+    public function transfers()
+    {
+        $transfers = \App\Models\InternalTransfer::with(['fromAccount', 'toAccount', 'initiator', 'confirmer'])->latest()->paginate(20);
+        $accounts = TreasuryAccount::where('is_active', true)->get();
+        return view('admin.financial.transfers', compact('transfers', 'accounts'));
+    }
+
+    public function initiateTransfer(Request $request)
+    {
+        $request->validate([
+            'from_account_id' => 'required|exists:treasury_accounts,id',
+            'to_account_id' => 'required|exists:treasury_accounts,id',
+            'amount' => 'required|numeric|min:1',
+            'transfer_date' => 'required|date',
+            'bank_reference' => 'required|string|max:100',
+        ]);
+
+        if ($request->from_account_id == $request->to_account_id) {
+            return back()->with('error', 'Source and destination accounts must be different.');
+        }
+
+        \App\Models\InternalTransfer::create([
+            'from_account_id' => $request->from_account_id,
+            'to_account_id' => $request->to_account_id,
+            'amount' => $request->amount,
+            'transfer_date' => $request->transfer_date,
+            'bank_reference' => $request->bank_reference,
+            'initiated_by_user_id' => auth()->id(),
+            'status' => 'pending'
+        ]);
+
+        return back()->with('success', 'Transfer initiated. Awaiting M-Pesa confirmation.');
+    }
+
+    public function confirmTransfer(Request $request, \App\Models\InternalTransfer $transfer)
+    {
+        $request->validate([
+            'mpesa_confirmation' => 'required|string|max:100'
+        ]);
+
+        if ($transfer->status !== 'pending') {
+            return back()->with('error', 'Transfer is already processed.');
+        }
+
+        // Dual auth check for > 10,000
+        if ($transfer->amount > 10000 && $transfer->initiated_by_user_id == auth()->id()) {
+            return back()->with('error', 'Dual authorization required. Another admin must confirm this transfer.');
+        }
+
+        $transfer->update(['mpesa_confirmation' => $request->mpesa_confirmation]);
+        $this->svc->recordInternalTransfer($transfer, auth()->id());
+
+        return back()->with('success', 'Transfer confirmed and balances updated.');
     }
 }

@@ -163,14 +163,20 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     <div class="nav-item"><a href="{{ route('admin.payments.index') }}" class="{{ request()->routeIs('admin.payments.*')?'active':'' }}"><i class="bi bi-credit-card-fill"></i> Payments</a></div>
     @endif
     <div class="nav-item">
-      <a href="{{ route('admin.financial.dashboard') }}" class="{{ request()->routeIs('admin.financial.*')?'active':'' }}">
-        <i class="bi bi-shield-check-fill" style="color:var(--accent)"></i> 
+      <a href="{{ route('admin.financial.dashboard') }}" class="{{ request()->routeIs('admin.financial.dashboard')?'active':'' }}">
+        <i class="bi bi-bank"></i> 
         Financial Intelligence
         <span class="badge bok" style="font-size:8px;margin-left:auto;background:rgba(255,255,255,.1);color:#fff">Phase 2</span>
       </a>
     </div>
+    <div class="nav-item">
+      <a href="{{ route('admin.financial.transfers') }}" class="{{ request()->routeIs('admin.financial.transfers')?'active':'' }}">
+        <i class="bi bi-arrow-left-right"></i> 
+        Internal Transfers
+      </a>
+    </div>
     @if($u->hasAdminPermission('credit_bureau'))
-    <div class="nav-item"><a href="{{ route('admin.credit.index') }}" class="{{ request()->routeIs('admin.credit.*')?'active':'' }}"><i class="bi bi-shield-check-fill"></i> Credit Bureau</a></div>
+    <div class="nav-item"><a href="{{ route('admin.credit.index') }}" class="{{ request()->routeIs('admin.credit.*')?'active':'' }}"><i class="bi bi-database-fill-check"></i> Credit Bureau</a></div>
     @endif
     @if($u->hasAdminPermission('compuscan'))
     <div class="nav-item"><a href="{{ route('admin.compuscan.index') }}" class="{{ request()->routeIs('admin.compuscan.*')?'active':'' }}"><i class="bi bi-cloud-arrow-up-fill"></i> Compuscan (CCI)</a></div>
@@ -191,7 +197,7 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     <div class="nav-item"><a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.index')?'active':'' }}"><i class="bi bi-bar-chart-fill"></i> Standard Reports</a></div>
     <div class="nav-item">
       <a href="{{ route('admin.reports.cbl.index') }}" class="{{ request()->routeIs('admin.reports.cbl.*')?'active':'' }}">
-        <i class="bi bi-shield-check-fill" style="color:var(--accent)"></i> 
+        <i class="bi bi-safe2" style="color:var(--accent)"></i> 
         CBL Compliance
       </a>
     </div>
