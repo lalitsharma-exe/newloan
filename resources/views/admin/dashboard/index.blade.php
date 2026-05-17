@@ -33,7 +33,7 @@
                         @endif
                     </div>
                 </div>
-                <a href="{{ route('admin.applications.index', ['status' => 'overdue']) }}" class="card-link"
+                <a href="{{ route('admin.loans.index', ['status' => 'overdue']) }}" class="card-link"
                     style="color: #92400e;">Take Action →</a>
             </div>
         @endif
