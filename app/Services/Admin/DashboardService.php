@@ -14,15 +14,16 @@ class DashboardService
     {
         $now = now();
         $totalPortfolio = Loan::whereIn('status', ['active', 'overdue'])->sum('outstanding_balance');
+        $grossLoanPortfolio = Loan::whereIn('status', ['active', 'overdue'])->sum('principal_amount');
         $totalPrincipal = Loan::sum('principal_amount');
 
-        // PAR buckets
+        // PAR buckets (based on principal only as per BUG-011)
         $par1Amount  = $this->parAmount(1);
         $par7Amount  = $this->parAmount(7);
         $par30Amount = $this->parAmount(30);
-        $par1Pct     = $totalPortfolio > 0 ? round($par1Amount / $totalPortfolio * 100, 1) : 0;
-        $par7Pct     = $totalPortfolio > 0 ? round($par7Amount / $totalPortfolio * 100, 1) : 0;
-        $par30Pct    = $totalPortfolio > 0 ? round($par30Amount / $totalPortfolio * 100, 1) : 0;
+        $par1Pct     = $grossLoanPortfolio > 0 ? round($par1Amount / $grossLoanPortfolio * 100, 2) : 0;
+        $par7Pct     = $grossLoanPortfolio > 0 ? round($par7Amount / $grossLoanPortfolio * 100, 2) : 0;
+        $par30Pct    = $grossLoanPortfolio > 0 ? round($par30Amount / $grossLoanPortfolio * 100, 2) : 0;
 
         // Default & write-offs
         $defaultAmount = Loan::whereIn('status', ['defaulted', 'written_off'])->sum('outstanding_balance');
@@ -80,17 +81,20 @@ class DashboardService
         $totalFeeRevenue      = Loan::sum('processing_fee');
         $totalRevenue         = $totalInterestRevenue + $totalFeeRevenue;
         
-        // ISSUE 1: Net Profit Logic (Revenue - Expenses - Cost of Funds)
-        // Now pulling from real taxonomy-linked expenses
+        // Check for expenses based on taxonomy
         $cofCategoryId = DB::table('expense_categories')->where('ref_code', '10')->value('id');
         
-        $opExpenses = \App\Models\OperatingExpense::whereHas('taxonomyItem.subcategory', function($q) use ($cofCategoryId) {
-            $q->where('category_id', '!=', $cofCategoryId);
-        })->orWhereNull('taxonomy_item_id')->sum('amount');
-
-        $costOfFunds = \App\Models\OperatingExpense::whereHas('taxonomyItem.subcategory', function($q) use ($cofCategoryId) {
-            $q->where('category_id', $cofCategoryId);
+        $opExpenses = \App\Models\OperatingExpense::where(function($query) use ($cofCategoryId) {
+            if ($cofCategoryId) {
+                $query->whereHas('taxonomyItem.subcategory', function($q) use ($cofCategoryId) {
+                    $q->where('category_id', '!=', $cofCategoryId);
+                })->orWhereNull('taxonomy_item_id');
+            }
         })->sum('amount');
+        
+        $costOfFunds = $cofCategoryId ? \App\Models\OperatingExpense::whereHas('taxonomyItem.subcategory', function($q) use ($cofCategoryId) {
+            $q->where('category_id', $cofCategoryId);
+        })->sum('amount') : 0;
         
         $netProfit    = $totalRevenue - $writtenOffAmt - $opExpenses - $costOfFunds;
         $profitMargin = $totalRevenue > 0 ? round(($netProfit / $totalRevenue) * 100, 1) : 0;
@@ -112,7 +116,7 @@ class DashboardService
             ->sum('principal_amount') / 3;
         $expectedOutflows = $undisbursedFunds + ($avgMonthlyDisbursement * 0.2); // current approved + 20% buffer
 
-        $netLiquidity = $cashAvailable + $expectedInflows - $expectedOutflows;
+        $netLiquidity = $cashAvailable + $expectedInflows - $expectedOutflows; // Net Liquidity = Cash + Inflows - Outflows (outflows includes undisbursed already)
         
         // ISSUE 3: Runway Logic (Cash Available / Avg Monthly Burn)
         $monthlyBurn = ($opExpenses / 12) + ($costOfFunds / 12) + $avgMonthlyDisbursement;
@@ -167,7 +171,8 @@ class DashboardService
             'exec_revenue'          => $totalRevenue,
             'exec_net_profit'       => $netProfit,
             'exec_profit_margin'    => $profitMargin,
-            'exec_portfolio'        => $totalPortfolio,
+            'exec_portfolio'        => $grossLoanPortfolio,
+            'accrued_charges'       => max(0, $totalPortfolio - $grossLoanPortfolio),
             'exec_par30'            => $par30Pct,
             'exec_collection_rate'  => $collectionPct,
 
@@ -264,7 +269,7 @@ class DashboardService
                 ->where('status', 'overdue')
                 ->whereDate('due_date', '<=', now()->subDays($days))
             )
-            ->sum('outstanding_balance');
+            ->sum('principal_amount');
     }
 
     // =========================================================================
@@ -348,14 +353,29 @@ class DashboardService
     // =========================================================================
     public function getSegmentBreakdown(): array
     {
-        return DB::table('loans')
-            ->join('loan_applications', 'loans.application_id', '=', 'loan_applications.id')
-            ->join('employments', 'loan_applications.id', '=', 'employments.application_id')
-            ->select('employments.employer_type', DB::raw('COUNT(*) as count'), DB::raw('SUM(loans.outstanding_balance) as portfolio'))
-            ->whereIn('loans.status', ['active', 'overdue'])
-            ->groupBy('employments.employer_type')
-            ->get()
-            ->toArray();
+        $loans = Loan::with('application.employment')->whereIn('status', ['active', 'overdue'])->get();
+        $breakdown = [];
+        
+        foreach ($loans as $loan) {
+            // Unify taxonomy: Capitalize and standardize names
+            $rawType = $loan->application->employment->employer_type ?? 'Unknown';
+            $type = ucfirst($rawType);
+            
+            // Map to standard taxonomy (BUG-002, BUG-003)
+            if (stripos($type, 'gov') !== false) $type = 'Government';
+            elseif (stripos($type, 'priv') !== false) $type = 'Private Sector';
+            elseif (stripos($type, 'sme') !== false) $type = 'SMEs';
+            elseif (stripos($type, 'student') !== false) $type = 'Students';
+            elseif (stripos($type, 'pension') !== false) $type = 'Pensioners';
+            
+            if (!isset($breakdown[$type])) {
+                $breakdown[$type] = ['employer_type' => $type, 'count' => 0, 'portfolio' => 0];
+            }
+            $breakdown[$type]['count']++;
+            $breakdown[$type]['portfolio'] += $loan->outstanding_balance; // Use outstanding balance for Portfolio by Segment
+        }
+        
+        return array_values($breakdown);
     }
 
     // =========================================================================
@@ -501,5 +521,24 @@ class DashboardService
             $changes[$k] = $p > 0 ? round(($v - $p) / $p * 100, 1) : ($v > 0 ? 100 : 0);
         }
         return $changes;
+    }
+
+    public function getVintageAnalysis(): array
+    {
+        return DB::select("
+            SELECT 
+                DATE_FORMAT(disbursement_date, '%b %Y') as cohort,
+                SUM(principal_amount) as disbursed,
+                SUM(CASE WHEN status IN ('defaulted', 'written_off') THEN principal_amount ELSE 0 END) as defaulted,
+                CASE WHEN SUM(principal_amount) > 0 
+                     THEN (SUM(CASE WHEN status IN ('defaulted', 'written_off') THEN principal_amount ELSE 0 END) / SUM(principal_amount)) * 100 
+                     ELSE 0 
+                END as default_rate
+            FROM loans
+            WHERE disbursement_date IS NOT NULL
+            GROUP BY DATE_FORMAT(disbursement_date, '%Y-%m'), DATE_FORMAT(disbursement_date, '%b %Y')
+            ORDER BY DATE_FORMAT(disbursement_date, '%Y-%m') DESC
+            LIMIT 5
+        ");
     }
 }

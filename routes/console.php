@@ -29,3 +29,7 @@ Schedule::command('float:transition-due')->monthlyOn(20, '08:00');
 
 // On the 1st: Apply penalties to overdue floats
 Schedule::command('float:penalties')->monthlyOn(1, '00:01');
+
+// ── DIRECTOR INVESTMENT AUTOMATION ────────────────────────────
+// On the 1st: Accrue 5% flat interest on MD investments
+Schedule::command('md:accrue-interest')->monthlyOn(1, '00:05');

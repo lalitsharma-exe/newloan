@@ -90,8 +90,8 @@
                 <div class="kpi-trend trend-up">↑ Yielding</div>
                 <div class="kpi-val">M{{ number_format($stats['exec_portfolio'], 2) }}</div>
                 <div class="kpi-sub-val"
-                    title="Includes M{{ number_format($stats['accrued_charges'], 2) }} in accrued interest and fees">
-                    Incl. M{{ number_format($stats['accrued_charges'] / 1000, 0) }}k Accrued Fees ⓘ
+                    title="Plus M{{ number_format($stats['accrued_charges'], 2) }} in accrued interest and fees">
+                    + M{{ number_format($stats['accrued_charges'] / 1000, 0) }}k Accrued Fees ⓘ
                 </div>
             </div>
             <div class="kpi-card" style="border-top: 3px solid {{ $stats['exec_par30'] > 0 ? '#f59e0b' : '#84cc16' }};">
@@ -303,8 +303,8 @@
                     <div class="kpi-icon" style="background:#f0fdfa; color:#0d9488"><i class="bi bi-person"></i></div>
                 </div>
                 <div class="kpi-label">TOTAL BORROWERS</div>
-                @if(isset($chg['total_borrowers']))
-                <div class="kpi-trend trend-up">↑ {{ abs($chg['total_borrowers']) }}%</div> @endif
+                @if(isset($chg['total_borrowers']) && $chg['total_borrowers'] != 0)
+                <div class="kpi-trend {{ $chg['total_borrowers'] >= 0 ? 'trend-up' : 'trend-down' }}">{{ $chg['total_borrowers'] >= 0 ? '↑' : '↓' }} {{ abs($chg['total_borrowers']) }}%</div> @else <div class="kpi-trend trend-neutral">—</div> @endif
                 <div class="kpi-val">{{ number_format($stats['total_borrowers']) }}</div>
                 <div class="kpi-sub-val">Registered users</div>
             </div>
@@ -313,8 +313,8 @@
                     <div class="kpi-icon" style="background:#f0fdf4; color:#10b981"><i class="bi bi-person-check"></i></div>
                 </div>
                 <div class="kpi-label">ACTIVE BORROWERS</div>
-                @if(isset($chg['active_borrowers']))
-                <div class="kpi-trend trend-up">↑ {{ abs($chg['active_borrowers']) }}%</div> @endif
+                @if(isset($chg['active_borrowers']) && $chg['active_borrowers'] != 0)
+                <div class="kpi-trend {{ $chg['active_borrowers'] >= 0 ? 'trend-up' : 'trend-down' }}">{{ $chg['active_borrowers'] >= 0 ? '↑' : '↓' }} {{ abs($chg['active_borrowers']) }}%</div> @else <div class="kpi-trend trend-neutral">—</div> @endif
                 <div class="kpi-val">{{ number_format($stats['active_borrowers']) }}</div>
                 <div class="kpi-sub-val">With live loans</div>
             </div>
@@ -323,7 +323,8 @@
                     <div class="kpi-icon" style="background:#fef2f2; color:#ef4444"><i class="bi bi-person-plus"></i></div>
                 </div>
                 <div class="kpi-label">NEW BORROWERS</div>
-                <div class="kpi-trend trend-down">↓ 99.5%</div>
+                @if(isset($chg['new_borrowers']) && $chg['new_borrowers'] != 0)
+                <div class="kpi-trend {{ $chg['new_borrowers'] >= 0 ? 'trend-up' : 'trend-down' }}">{{ $chg['new_borrowers'] >= 0 ? '↑' : '↓' }} {{ abs($chg['new_borrowers']) }}%</div> @else <div class="kpi-trend trend-neutral">—</div> @endif
                 <div class="kpi-val">{{ number_format($stats['new_borrowers']) }}</div>
                 <div class="kpi-sub-val">Joined this period</div>
             </div>
@@ -466,20 +467,35 @@
                 <div class="card" style="margin-top:20px">
                     <div class="card-head">
                         <div class="card-title">Vintage Analysis</div>
+                        <div class="card-sub">Latest 5 Cohorts</div>
                     </div>
-                    <div style="padding:20px; text-align:center">
-                        <div style="display: flex; align-items: flex-end; gap: 4px; height: 80px; justify-content: center;">
-                            <div
-                                style="width:15px; height: 40%; background: #eff6ff; border: 1px solid #3b82f6; border-radius: 2px;">
-                            </div>
-                            <div
-                                style="width:15px; height: 60%; background: #eff6ff; border: 1px solid #3b82f6; border-radius: 2px;">
-                            </div>
-                            <div style="width:15px; height: 85%; background: #3b82f6; border-radius: 2px;"></div>
-                            <div style="width:15px; height: 75%; background: #3b82f6; border-radius: 2px;"></div>
-                            <div style="width:15px; height: 95%; background: #3b82f6; border-radius: 2px;"></div>
-                        </div>
-                        <div style="font-size: 10px; margin-top: 10px; color:#94a3b8">Latest 5 Cohorts Performance</div>
+                    <div style="overflow-x:auto">
+                        <table class="dtbl">
+                            <thead>
+                                <tr>
+                                    <th>Cohort</th>
+                                    <th>Disbursed</th>
+                                    <th>Defaulted</th>
+                                    <th>Default Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if(isset($vintage) && count($vintage) > 0)
+                                    @foreach($vintage as $v)
+                                        <tr>
+                                            <td class="td-name">{{ $v->cohort }}</td>
+                                            <td class="td-amount">M{{ number_format($v->disbursed, 2) }}</td>
+                                            <td style="color: #ef4444; font-weight: 700;">M{{ number_format($v->defaulted, 2) }}</td>
+                                            <td><span class="status-pill {{ $v->default_rate > 5 ? 'sp-declined' : ($v->default_rate > 0 ? 'sp-under_review' : 'sp-approved') }}">{{ number_format($v->default_rate, 2) }}%</span></td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="4" style="text-align:center; padding:20px; color:#94a3b8">No vintage data available yet.</td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -967,10 +983,14 @@
                     },
                     options: {
                         responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
+                        plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } },
                         scales: {
                             y: { border: { display: false }, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11, weight: '600' } } },
                             x: { grid: { display: false }, ticks: { font: { size: 11, weight: '600' } } }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
                         }
                     }
                 });
@@ -986,7 +1006,7 @@
                             borderWidth: 4, borderColor: '#fff', hoverOffset: 4
                         }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '75%' }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 10 } } }, cutout: '65%' }
                 });
 
                 // 3. Segment Risk
@@ -1000,7 +1020,7 @@
                             borderWidth: 4, borderColor: '#fff'
                         }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '75%' }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { boxWidth: 10 } } }, cutout: '65%' }
                 });
 
                 // 4. PAR Chart

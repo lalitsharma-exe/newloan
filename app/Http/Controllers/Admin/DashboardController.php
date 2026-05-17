@@ -25,6 +25,8 @@ class DashboardController extends Controller {
             "activePeriod"        => $period,
             "periodLabel"         => $this->svc->getPeriodLabel($period),
             "prevPeriodLabel"     => $this->svc->getPreviousPeriodLabel($period),
+            "chg"                 => $periodStats['changes'] ?? [],
+            "vintage"             => $this->svc->getVintageAnalysis(),
         ]);
     }
 
