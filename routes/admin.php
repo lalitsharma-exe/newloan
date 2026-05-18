@@ -298,6 +298,28 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/scheduled',            [ReportController::class, 'scheduledIndex'])->name('scheduled.index');
             Route::post('/scheduled',           [ReportController::class, 'scheduledStore'])->name('scheduled.store');
             Route::delete('/scheduled/{id}',    [ReportController::class, 'scheduledDestroy'])->name('scheduled.destroy');
+
+            // ── 3-Tier Financial Reporting Dashboard & APIs ───────────
+            Route::get('/financial-dashboard', [\App\Http\Controllers\Admin\FinancialReportController::class, 'dashboard'])->name('financial-dashboard');
+            Route::prefix('financial-cycle')->name('financial-cycle.')->group(function () {
+                // Monthly
+                Route::get('/monthly/summary', [\App\Http\Controllers\Admin\FinancialReportController::class, 'monthlySummary'])->name('monthly.summary');
+                Route::get('/monthly/arrears-provision', [\App\Http\Controllers\Admin\FinancialReportController::class, 'monthlyArrearsProvision'])->name('monthly.arrears-provision');
+                
+                // Quarterly
+                Route::get('/quarterly/income-statement', [\App\Http\Controllers\Admin\FinancialReportController::class, 'quarterlyIncomeStatement'])->name('quarterly.income-statement');
+                Route::get('/quarterly/portfolio', [\App\Http\Controllers\Admin\FinancialReportController::class, 'quarterlyPortfolio'])->name('quarterly.portfolio');
+                Route::get('/quarterly/kpis', [\App\Http\Controllers\Admin\FinancialReportController::class, 'quarterlyKpis'])->name('quarterly.kpis');
+                
+                // Annual
+                Route::get('/annual/{year}/balance-sheet', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualBalanceSheet'])->name('annual.balance-sheet');
+                Route::get('/annual/{year}/cash-flow', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualCashFlow'])->name('annual.cash-flow');
+                Route::get('/annual/trend', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualTrend'])->name('annual.trend');
+                
+                // Action locks & manual consolidation trigger
+                Route::post('/annual/{year}/consolidate', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualConsolidate'])->name('annual.consolidate');
+                Route::post('/{period}/lock', [\App\Http\Controllers\Admin\FinancialReportController::class, 'lockPeriod'])->name('period.lock');
+            });
         });
 
         /*

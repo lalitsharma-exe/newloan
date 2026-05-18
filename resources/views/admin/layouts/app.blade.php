@@ -208,6 +208,12 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     @if($u->hasAdminPermission('reports'))
     <div class="nav-item"><a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.index')?'active':'' }}"><i class="bi bi-bar-chart-fill"></i> Standard Reports</a></div>
     <div class="nav-item">
+      <a href="{{ route('admin.reports.financial-dashboard') }}" class="{{ request()->routeIs('admin.reports.financial-dashboard')?'active':'' }}">
+        <i class="bi bi-pie-chart-fill" style="color:#06b6d4"></i> 
+        3-Tier Financials
+      </a>
+    </div>
+    <div class="nav-item">
       <a href="{{ route('admin.reports.cbl.index') }}" class="{{ request()->routeIs('admin.reports.cbl.*')?'active':'' }}">
         <i class="bi bi-safe2" style="color:var(--accent)"></i> 
         CBL Compliance
