@@ -898,9 +898,16 @@
             padding: 10px;
         }
 
+        .donut-wrap canvas {
+            position: relative;
+            z-index: 10;
+        }
+
         .donut-center {
             position: absolute;
             text-align: center;
+            z-index: 1;
+            pointer-events: none;
         }
 
         .dc-val {
