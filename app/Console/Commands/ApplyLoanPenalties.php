@@ -15,15 +15,15 @@ class ApplyLoanPenalties extends Command
         $today   = now();
         $applied = 0;
 
-        // Find all overdue installments
+        // Find all overdue and partial past-due installments
         /** @var \App\Models\LoanInstallment[] $overdue */
-        $overdue = LoanInstallment::where('status', 'overdue')
+        $overdue = LoanInstallment::whereIn('status', ['overdue', 'partial'])
             ->where('due_date', '<', $today)
             ->with('loan')
             ->get();
 
         foreach ($overdue as $inst) {
-            $daysOverdue = (int) $today->diffInDays($inst->due_date);
+            $daysOverdue = abs((int) $today->diffInDays($inst->due_date));
             // M20 for every complete 10-day period overdue
             $penalty = (int) floor($daysOverdue / 10) * 20;
 
