@@ -175,6 +175,18 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
         Internal Transfers
       </a>
     </div>
+    <div class="nav-item">
+      <a href="{{ route('admin.investments.investors.index') }}" class="{{ request()->routeIs('admin.investments.investors.*')?'active':'' }}">
+        <i class="bi bi-people-fill"></i> 
+        Investor Partners
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="{{ route('admin.investments.index') }}" class="{{ request()->routeIs('admin.investments.index') || request()->routeIs('admin.investments.show') ?'active':'' }}">
+        <i class="bi bi-wallet2"></i> 
+        Investment Tranches
+      </a>
+    </div>
     @if($u->hasAdminPermission('credit_bureau'))
     <div class="nav-item"><a href="{{ route('admin.credit.index') }}" class="{{ request()->routeIs('admin.credit.*')?'active':'' }}"><i class="bi bi-database-fill-check"></i> Credit Bureau</a></div>
     @endif

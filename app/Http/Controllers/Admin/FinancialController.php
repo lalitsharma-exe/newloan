@@ -15,6 +15,30 @@ class FinancialController extends Controller
     public function dashboard()
     {
         $stats = $this->svc->getLiquidityStats();
+        
+        // 1. Calculate MD Liabilities (Active Principal + Posted Interest)
+        $mdPrincipal = \App\Models\Investment::where('status', 'active')
+            ->whereHas('investor', fn($q) => $q->where('investor_type', 'MD'))
+            ->sum('principal_cents') / 100;
+        $mdAccrued = \App\Models\InvestmentAccrual::where('status', 'posted')
+            ->whereHas('investment.investor', fn($q) => $q->where('investor_type', 'MD'))
+            ->sum('interest_cents') / 100;
+        $stats['md_liabilities'] = $mdPrincipal + $mdAccrued;
+
+        // 2. Calculate Public Liabilities (Active Principal + Posted Interest)
+        $pubPrincipal = \App\Models\Investment::where('status', 'active')
+            ->whereHas('investor', fn($q) => $q->where('investor_type', 'PUBLIC'))
+            ->sum('principal_cents') / 100;
+        $pubAccrued = \App\Models\InvestmentAccrual::where('status', 'posted')
+            ->whereHas('investment.investor', fn($q) => $q->where('investor_type', 'PUBLIC'))
+            ->sum('interest_cents') / 100;
+        $stats['public_liabilities'] = $pubPrincipal + $pubAccrued;
+
+        // 3. Calculate Corporate Net Free Cash
+        $stats['net_available_cash'] = $stats['cash_available'] - $stats['md_liabilities'] - $stats['public_liabilities'];
+
+        $mdInvestor = \App\Models\Investor::where('investor_type', 'MD')->first();
+
         $accounts = TreasuryAccount::where('is_active', true)->get();
         $recentTransactions = TreasuryTransaction::with(['account', 'recorder'])->latest()->limit(10)->get();
         
@@ -29,7 +53,7 @@ class FinancialController extends Controller
             ->get()
             ->reverse();
 
-        return view('admin.financial.dashboard', compact('stats', 'accounts', 'recentTransactions', 'expenseCategories', 'snapshots'));
+        return view('admin.financial.dashboard', compact('stats', 'accounts', 'recentTransactions', 'expenseCategories', 'snapshots', 'mdInvestor'));
     }
 
     public function accounts()

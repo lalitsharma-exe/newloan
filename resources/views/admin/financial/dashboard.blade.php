@@ -5,38 +5,77 @@
 
 @section('content')
 <div style="display:flex; flex-direction:column; gap:20px">
+    
+    {{-- Liquidity Alert Banner --}}
+    @if($stats['liquidity_status'] !== 'healthy')
+        <div style="background: linear-gradient(90deg, #7f1d1d 0%, #b91c1c 100%); border-radius: 16px; padding: 18px 24px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(220, 38, 38, 0.15);">
+            <div style="display:flex; align-items:center; gap:15px">
+                <div style="font-size:24px;"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <div>
+                    <div style="font-size: 13.5px; font-weight: 800;">
+                        @if($stats['liquidity_status'] === 'critical')
+                            🚨 CRITICAL LIQUIDITY ALERT: Capital Injection Immediately Required!
+                        @else
+                            ⚠️ LIQUIDITY WARNING: Net Reserves runway has fallen below 90 days.
+                        @endif
+                    </div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top:2px;">
+                        Current net runway: <strong>{{ $stats['runway_days'] ?? 0 }} days</strong> &middot; Managing Director capital injection recommended to maintain loan disbursement capacity.
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button type="button" class="btn btn-sm btn-light" id="btnTakeAction" style="font-weight:800; background:#fff; color:#b91c1c; border:none; padding:8px 16px; border-radius:8px; cursor:pointer">Take Action</button>
+            </div>
+        </div>
+    @endif
     <!-- Survival Metrics -->
-    <div class="g4">
-        <div class="sc" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color: white; border: none; flex-direction: column; align-items: flex-start; justify-content: center; position: relative; overflow: hidden;">
-            <div style="position: absolute; right: -10px; top: -10px; opacity: 0.1; font-size: 80px;"><i class="bi bi-bank"></i></div>
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 5px;">Cash Available</div>
-            <div style="font-size: 26px; font-weight: 800;">L {{ number_format($stats['cash_available'], 2) }}</div>
-            <div style="font-size: 11px; margin-top: 10px; color: rgba(255,255,255,0.5);">Across {{ $accounts->count() }} accounts</div>
+    <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:20px;">
+        {{-- Card 1: Gross Cash --}}
+        <div class="sc" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; border: none; flex-direction: column; align-items: flex-start; justify-content: center; position: relative; overflow: hidden; height: 140px;">
+            <div style="position: absolute; right: -10px; top: -10px; opacity: 0.05; font-size: 70px;"><i class="bi bi-bank"></i></div>
+            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 3px;">Gross Cash Pool</div>
+            <div style="font-size: 22px; font-weight: 800;">L {{ number_format($stats['cash_available'], 2) }}</div>
+            <div style="font-size: 9.5px; margin-top: 8px; color: rgba(255,255,255,0.5); width: 100%; display:flex; flex-direction:column; gap:2px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px;">
+                <div style="display:flex; justify-content:space-between"><span>MD Liab:</span><strong>L {{ number_format($stats['md_liabilities'], 2) }}</strong></div>
+                <div style="display:flex; justify-content:space-between"><span>Pub Liab:</span><strong>L {{ number_format($stats['public_liabilities'], 2) }}</strong></div>
+            </div>
         </div>
 
-        <div class="sc" style="flex-direction: column; align-items: flex-start; justify-content: center;">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 5px;">Expected Inflows (30d)</div>
-            <div style="font-size: 26px; font-weight: 800; color: var(--ok);">L {{ number_format($stats['expected_inflows'], 2) }}</div>
-            <div style="font-size: 11px; margin-top: 10px; color: var(--ok); font-weight: 600;"><i class="bi bi-graph-up-arrow"></i> Weighted Probability</div>
+        {{-- Card 2: Net Own Cash --}}
+        <div class="sc" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; border: none; flex-direction: column; align-items: flex-start; justify-content: center; position: relative; overflow: hidden; height: 140px;">
+            <div style="position: absolute; right: -10px; top: -10px; opacity: 0.1; font-size: 70px;"><i class="bi bi-safe-fill"></i></div>
+            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 5px;">Own Free Capital</div>
+            <div style="font-size: 22px; font-weight: 800;">L {{ number_format($stats['net_available_cash'], 2) }}</div>
+            <div style="font-size: 10px; margin-top: 15px; color: rgba(255,255,255,0.6);">Net of all liabilities</div>
         </div>
 
-        <div class="sc" style="flex-direction: column; align-items: flex-start; justify-content: center;">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 5px;">Expected Outflows (30d)</div>
-            <div style="font-size: 26px; font-weight: 800; color: var(--err);">L {{ number_format($stats['expected_outflows'], 2) }}</div>
-            <div style="font-size: 11px; margin-top: 10px; color: var(--muted);">Obligations & Disbursements</div>
+        {{-- Card 3: Expected Inflows --}}
+        <div class="sc" style="flex-direction: column; align-items: flex-start; justify-content: center; height: 140px;">
+            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 5px;">Expected Inflows (30d)</div>
+            <div style="font-size: 22px; font-weight: 800; color: var(--ok);">L {{ number_format($stats['expected_inflows'], 2) }}</div>
+            <div style="font-size: 10px; margin-top: 15px; color: var(--ok); font-weight: 600;"><i class="bi bi-graph-up-arrow"></i> Weighted Probability</div>
         </div>
 
+        {{-- Card 4: Expected Outflows --}}
+        <div class="sc" style="flex-direction: column; align-items: flex-start; justify-content: center; height: 140px;">
+            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 5px;">Expected Outflows (30d)</div>
+            <div style="font-size: 22px; font-weight: 800; color: var(--err);">L {{ number_format($stats['expected_outflows'], 2) }}</div>
+            <div style="font-size: 10px; margin-top: 15px; color: var(--muted);">Obligations & Outflows</div>
+        </div>
+
+        {{-- Card 5: Net Liquidity Runway --}}
         @php
             $statusColor = $stats['liquidity_status'] === 'healthy' ? 'var(--ok)' : ($stats['liquidity_status'] === 'warning' ? 'var(--warn)' : 'var(--err)');
             $statusBg = $stats['liquidity_status'] === 'healthy' ? 'rgba(16,185,129,0.1)' : ($stats['liquidity_status'] === 'warning' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)');
         @endphp
-        <div class="sc" style="background: {{ $statusBg }}; border-color: {{ $statusColor }}; flex-direction: column; align-items: flex-start; justify-content: center;">
+        <div class="sc" style="background: {{ $statusBg }}; border-color: {{ $statusColor }}; flex-direction: column; align-items: flex-start; justify-content: center; height: 140px;">
             <div style="display:flex; width:100%; justify-content:space-between; align-items:center; margin-bottom:5px">
-                <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: {{ $statusColor }};">Net Liquidity</div>
-                <span class="badge" style="background:{{ $statusColor }}; color:#fff; font-size:9px">{{ strtoupper($stats['liquidity_status']) }}</span>
+                <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: {{ $statusColor }};">Net Liquidity</div>
+                <span class="badge" style="background:{{ $statusColor }}; color:#fff; font-size:8px">{{ strtoupper($stats['liquidity_status']) }}</span>
             </div>
-            <div style="font-size: 26px; font-weight: 800; color: {{ $statusColor }};">L {{ number_format($stats['net_liquidity'], 2) }}</div>
-            <div style="font-size: 11px; margin-top: 10px; font-weight: 700; color: {{ $statusColor }};">{{ $stats['runway_days'] ?? '0' }} Days Runway</div>
+            <div style="font-size: 22px; font-weight: 800; color: {{ $statusColor }};">L {{ number_format($stats['net_liquidity'], 2) }}</div>
+            <div style="font-size: 10px; margin-top: 15px; font-weight: 700; color: {{ $statusColor }};">{{ $stats['runway_days'] ?? '0' }} Days Runway</div>
         </div>
     </div>
 
@@ -240,4 +279,80 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+
+{{-- Take Action Modal --}}
+@if($stats['liquidity_status'] !== 'healthy')
+<div id="liquidityModal" style="display:none; position:fixed; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(4px);">
+    <div class="card" style="width:480px; border:none; border-radius:20px; box-shadow:0 15px 50px rgba(0,0,0,0.25); background:#fff; overflow:hidden;">
+        <div style="background:#1e3a8a; padding:20px 24px; color:white; display:flex; justify-content:space-between; align-items:center">
+            <h3 style="font-size:16px; font-weight:800; margin:0; color:#fff"><i class="bi bi-lightning-charge-fill"></i> Inject Capital Pool</h3>
+            <button type="button" id="btnOverlayClose" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;"><i class="bi bi-x"></i></button>
+        </div>
+        <div style="padding:24px;">
+            @if($mdInvestor)
+                <form action="{{ route('admin.investments.store') }}" method="POST" style="display:flex; flex-direction:column; gap:16px">
+                    @csrf
+                    <input type="hidden" name="investor_id" value="{{ $mdInvestor->id }}">
+
+                    <div style="font-size:12px; color:#64748b; background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:8px; line-height:1.5">
+                        Inject capital directly into the lending pool as <strong>{{ $mdInvestor->full_name }}</strong> (Managing Director). Earns a fixed monthly return of <strong>5.0% flat</strong> with maturity on 31 December.
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:10px; font-weight:800; color:#64748b; margin-bottom:5px">FUNDING DESTINATION POOL</label>
+                        <select name="treasury_account_id" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; background:#fff">
+                            <option value="">-- Choose Account --</option>
+                            @foreach($accounts as $acc)
+                                <option value="{{ $acc->id }}">{{ $acc->name }} (Balance: L {{ number_format($acc->balance, 2) }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:10px; font-weight:800; color:#64748b; margin-bottom:5px">INJECTION PRINCIPAL (LSL)</label>
+                        <input type="number" step="0.01" name="principal" placeholder="0.00" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; font-weight:700">
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:10px; font-weight:800; color:#64748b; margin-bottom:5px">INJECTION VALUE DATE</label>
+                        <input type="date" name="investment_date" value="{{ date('Y-m-d') }}" required style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                    </div>
+
+                    <button type="submit" class="btn btn-success" style="width:100%; padding:12px; font-weight:800; border-radius:8px; margin-top:10px; background:#10b981; border:none; color:white">
+                        <i class="bi bi-shield-lock-fill"></i> Execute Capital Injection
+                    </button>
+                </form>
+            @else
+                <div style="text-align:center; padding:20px; color:#ef4444">
+                    <i class="bi bi-exclamation-triangle" style="font-size:32px"></i>
+                    <p style="font-size:13px; font-weight:700; margin-top:10px">No MD Investor Profile Registered!</p>
+                    <p style="font-size:11.5px; color:#64748b">Please register a Managing Director investor profile first to enable quick capital injection.</p>
+                    <a href="{{ route('admin.investments.investors.index') }}" class="btn btn-primary btn-sm" style="margin-top:10px">Go to Onboarding</a>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnAction = document.getElementById('btnTakeAction');
+    const btnClose = document.getElementById('btnOverlayClose');
+    const modal = document.getElementById('liquidityModal');
+    
+    if (btnAction && modal) {
+        btnAction.addEventListener('click', function() {
+            modal.style.display = 'flex';
+        });
+    }
+    
+    if (btnClose && modal) {
+        btnClose.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+    }
+});
+</script>
+@endif
+
 @endsection

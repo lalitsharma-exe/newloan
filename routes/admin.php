@@ -493,6 +493,25 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/photo',               [AuthController::class, 'updatePhoto'])->name('photo');
         });
 
+        /*
+        | ── INVESTOR CAPITAL MANAGEMENT ──────────────────────────
+        */
+        Route::prefix('investments')->name('investments.')->group(function () {
+            Route::get('/investors', [\App\Http\Controllers\Admin\InvestorController::class, 'listInvestors'])->name('investors.index');
+            Route::post('/investors', [\App\Http\Controllers\Admin\InvestorController::class, 'storeInvestor'])->name('investors.store');
+            Route::get('/investors/{id}', [\App\Http\Controllers\Admin\InvestorController::class, 'showInvestor'])->name('investors.show');
+
+            Route::get('/', [\App\Http\Controllers\Admin\InvestorController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Admin\InvestorController::class, 'storeInvestment'])->name('store');
+            Route::get('/{id}', [\App\Http\Controllers\Admin\InvestorController::class, 'show'])->name('show');
+            Route::post('/{id}/repay', [\App\Http\Controllers\Admin\InvestorController::class, 'repay'])->name('repay');
+            Route::post('/{id}/terminate', [\App\Http\Controllers\Admin\InvestorController::class, 'requestTermination'])->name('terminate');
+            Route::get('/{id}/termination-preview', [\App\Http\Controllers\Admin\InvestorController::class, 'previewTermination'])->name('terminate.preview');
+            Route::post('/{id}/terminate/approve', [\App\Http\Controllers\Admin\InvestorController::class, 'approveTermination'])->name('terminate.approve');
+            Route::post('/{id}/terminate/decline', [\App\Http\Controllers\Admin\InvestorController::class, 'declineTermination'])->name('terminate.decline');
+            Route::get('/{id}/contract', [\App\Http\Controllers\Admin\InvestorController::class, 'downloadContract'])->name('contract.download');
+        });
+
     }); // end auth:admin
 
 }); // end prefix admin
