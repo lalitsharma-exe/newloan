@@ -258,4 +258,46 @@ class LoanController extends Controller
         $loans = $user->loans()->whereIn('status', ['active', 'overdue'])->get();
         return view('admin.loans.consolidated-settlement-letter', compact('user', 'loans'));
     }
+
+    public function importLoans(Request $request)
+    {
+        if ($request->isMethod('GET')) {
+            return view('admin.loans.import');
+        }
+        $request->validate(['file' => 'required|file|mimes:csv,txt|max:4096']);
+
+        $path = $request->file('file')->path();
+        $rows = array_map('str_getcsv', file($path));
+        if (count($rows) < 2) return back()->with('error', 'CSV is empty or has no data rows.');
+
+        $header = array_map('trim', array_shift($rows));
+        $data   = array_map(fn($r) => count($r) === count($header) ? array_combine($header, array_map('trim', $r)) : null, $rows);
+        $data   = array_filter($data);
+
+        $results = $this->svc->importLoansFromCsv(array_values($data), auth('admin')->user());
+
+        AuditLog::record('loan.import',
+            "CSV loan import: {$results['success']} imported, {$results['failed']} failed"
+        );
+
+        return redirect()->route('admin.loans.import')
+            ->with('import_results', $results)
+            ->with('success', "{$results['success']} loan(s) imported." .
+                ($results['failed'] ? " {$results['failed']} failed." : ''));
+    }
+
+    public function collectionSheet(Request $request)
+    {
+        $date      = $request->input('date', now()->format('Y-m-d'));
+        $officerId = $request->input('officer_id');
+        $data      = $this->svc->getCollectionSheet($date, $officerId);
+        $officers  = \App\Models\User::where('role', 'loan_officer')->orderBy('name')->get();
+        return view('admin.loans.collection-sheet', compact('data', 'officers', 'date', 'officerId'));
+    }
+
+    public function repaymentChart(Request $request)
+    {
+        $data = $this->svc->getRepaymentChartData();
+        return view('admin.loans.repayment-chart', compact('data'));
+    }
 }

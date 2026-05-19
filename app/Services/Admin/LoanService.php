@@ -667,6 +667,10 @@ class LoanService
                 'proof_of_payment_path'     => $data['proof_path'] ?? null,
             ]);
 
+            if ($loan->application) {
+                $loan->application->update(['status' => 'disbursed']);
+            }
+
             if ($isMD) {
                 \App\Models\DirectorInvestment::create([
                     'amount_invested' => $loan->principal_amount,
