@@ -60,7 +60,7 @@ class DashboardService
         // Liquidity
         $totalCashIn   = Payment::where('status', 'verified')->sum('amount');
         $totalDisbursed = Loan::sum('principal_amount');
-        $cashAvailable = $totalCashIn - $totalDisbursed;
+        $cashAvailable = (float) \App\Models\TreasuryAccount::where('is_active', true)->sum('balance');
 
         // Applications funnel (all-time)
         $appsSubmitted = LoanApplication::where('status', '!=', 'draft')->count();
