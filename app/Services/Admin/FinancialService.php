@@ -65,6 +65,43 @@ class FinancialService
         return DB::transaction(function () use ($accountId, $type, $amount, $direction, $data) {
             $account = TreasuryAccount::findOrFail($accountId);
             
+            // Check for duplicate payment transaction to make it idempotent
+            if (!empty($data['payment_id'])) {
+                $existing = TreasuryTransaction::where('payment_id', $data['payment_id'])
+                    ->where('direction', $direction)
+                    ->first();
+                if ($existing) {
+                    if ($existing->treasury_account_id != $accountId) {
+                        // Revert balance on the old account
+                        $oldAccount = TreasuryAccount::find($existing->treasury_account_id);
+                        if ($oldAccount) {
+                            if ($direction === 'in') {
+                                $oldAccount->decrement('balance', $existing->amount);
+                            } else {
+                                $oldAccount->increment('balance', $existing->amount);
+                            }
+                        }
+                        
+                        // Increment/Decrement on the new account
+                        if ($direction === 'in') {
+                            $account->increment('balance', $amount);
+                        } else {
+                            $account->decrement('balance', $amount);
+                        }
+                        
+                        // Update the transaction with the new account selection
+                        $existing->update([
+                            'treasury_account_id' => $accountId,
+                            'type'                => $type,
+                            'amount'              => $amount,
+                            'reference'           => $data['reference'] ?? $existing->reference,
+                            'description'         => $data['description'] ?? $existing->description,
+                        ]);
+                    }
+                    return $existing;
+                }
+            }
+
             // Create transaction
             $transaction = TreasuryTransaction::create([
                 'treasury_account_id' => $accountId,
