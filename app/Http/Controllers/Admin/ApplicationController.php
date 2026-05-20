@@ -18,6 +18,16 @@ class ApplicationController extends Controller
 
     public function index(Request $request)
     {
+        // Heal mismatched 'approved' application statuses when they have active/overdue/closed/defaulted loans
+        \DB::table('loan_applications')
+            ->where('status', 'approved')
+            ->whereIn('id', function($q) {
+                $q->select('application_id')
+                  ->from('loans')
+                  ->whereIn('status', ['active', 'overdue', 'closed', 'defaulted']);
+            })
+            ->update(['status' => 'disbursed']);
+
         $filters = $request->only(['status','product','date_from','date_to','search']);
         return view('admin.applications.index', [
             'applications' => $this->svc->getPaginated($filters),

@@ -353,29 +353,39 @@ class DashboardService
     // =========================================================================
     public function getSegmentBreakdown(): array
     {
-        $loans = Loan::with('application.employment')->whereIn('status', ['active', 'overdue'])->get();
-        $breakdown = [];
+        $loans = Loan::with(['loanProduct', 'application.employment'])->whereIn('status', ['active', 'overdue'])->get();
         
+        $products = [
+            'Government Loan'     => ['employer_type' => 'Government Loan', 'count' => 0, 'portfolio' => 0],
+            'Private sector loan' => ['employer_type' => 'Private sector loan', 'count' => 0, 'portfolio' => 0],
+            'Pensioner loan'      => ['employer_type' => 'Pensioner loan', 'count' => 0, 'portfolio' => 0],
+            'Student Loan'        => ['employer_type' => 'Student Loan', 'count' => 0, 'portfolio' => 0],
+            'SMEs Loan'           => ['employer_type' => 'SMEs Loan', 'count' => 0, 'portfolio' => 0],
+        ];
+
         foreach ($loans as $loan) {
-            // Unify taxonomy: Capitalize and standardize names
-            $rawType = $loan->application->employment->employer_type ?? 'Unknown';
-            $type = ucfirst($rawType);
-            
-            // Map to standard taxonomy (BUG-002, BUG-003)
-            if (stripos($type, 'gov') !== false) $type = 'Government';
-            elseif (stripos($type, 'priv') !== false) $type = 'Private Sector';
-            elseif (stripos($type, 'sme') !== false) $type = 'SMEs';
-            elseif (stripos($type, 'student') !== false) $type = 'Students';
-            elseif (stripos($type, 'pension') !== false) $type = 'Pensioners';
-            
-            if (!isset($breakdown[$type])) {
-                $breakdown[$type] = ['employer_type' => $type, 'count' => 0, 'portfolio' => 0];
+            $catName = strtolower($loan->application?->employment?->employer_category ?? '');
+            $prodName = strtolower($loan->loanProduct?->name ?? $loan->application?->loanProduct?->name ?? '');
+            $prodSlug = strtolower($loan->loanProduct?->slug ?? $loan->application?->loanProduct?->slug ?? '');
+            $segment = strtolower($loan->segment ?? '');
+
+            if ($catName === 'smes' || $segment === 'sme' || str_contains($prodName, 'sme') || str_contains($prodSlug, 'sme')) {
+                $key = 'SMEs Loan';
+            } elseif ($catName === 'pensioner' || str_contains($prodName, 'pensioner') || str_contains($prodSlug, 'pensioner')) {
+                $key = 'Pensioner loan';
+            } elseif ($catName === 'student' || str_contains($prodName, 'student') || str_contains($prodSlug, 'student')) {
+                $key = 'Student Loan';
+            } elseif ($catName === 'private sector' || $catName === 'private' || str_contains($prodName, 'private') || str_contains($prodSlug, 'private')) {
+                $key = 'Private sector loan';
+            } else {
+                $key = 'Government Loan';
             }
-            $breakdown[$type]['count']++;
-            $breakdown[$type]['portfolio'] += $loan->outstanding_balance; // Use outstanding balance for Portfolio by Segment
+
+            $products[$key]['count']++;
+            $products[$key]['portfolio'] += (float)$loan->outstanding_balance;
         }
-        
-        return array_values($breakdown);
+
+        return array_values($products);
     }
 
     // =========================================================================
@@ -499,13 +509,35 @@ class DashboardService
 
     private function statsForRange(Carbon $start, Carbon $end): array
     {
+        $cofCategoryId = DB::table('expense_categories')->where('ref_code', '10')->value('id');
+
+        $opExpenses = (float) \App\Models\OperatingExpense::whereBetween('created_at', [$start, $end])
+            ->where(function($query) use ($cofCategoryId) {
+                if ($cofCategoryId) {
+                    $query->whereHas('taxonomyItem.subcategory', function($q) use ($cofCategoryId) {
+                        $q->where('category_id', '!=', $cofCategoryId);
+                    })->orWhereNull('taxonomy_item_id');
+                }
+            })->sum('amount');
+
+        $costOfFunds = $cofCategoryId ? (float) \App\Models\OperatingExpense::whereBetween('created_at', [$start, $end])
+            ->whereHas('taxonomyItem.subcategory', function($q) use ($cofCategoryId) {
+                $q->where('category_id', $cofCategoryId);
+            })->sum('amount') : 0.0;
+
+        $revenue = (float) (Loan::whereBetween('created_at', [$start, $end])->sum(DB::raw('total_amount - principal_amount')) + Loan::whereBetween('created_at', [$start, $end])->sum('processing_fee'));
+        
+        $writtenOff = (float) Loan::where('status', 'written_off')->whereBetween('updated_at', [$start, $end])->sum('outstanding_balance');
+
+        $profit = $revenue - $writtenOff - $opExpenses - $costOfFunds;
+
         return [
             'disbursed'    => (float) Loan::whereBetween('disbursement_date', [$start, $end])->sum('principal_amount'),
             'collected'    => (float) Payment::whereBetween('created_at', [$start, $end])->where('status', 'verified')->sum('amount'),
             'applications' => (int) \App\Models\LoanApplication::whereBetween('created_at', [$start, $end])->where('status', '!=', 'draft')->count(),
             'approved'     => (int) \App\Models\LoanApplication::whereBetween('decided_at', [$start, $end])->whereIn('status', ['approved', 'disbursed'])->count(),
-            'revenue'      => (float) (Loan::whereBetween('created_at', [$start, $end])->sum(DB::raw('total_amount - principal_amount')) + Loan::whereBetween('created_at', [$start, $end])->sum('processing_fee')),
-            'profit'       => (float) (Loan::whereBetween('created_at', [$start, $end])->sum(DB::raw('total_amount - principal_amount')) + Loan::whereBetween('created_at', [$start, $end])->sum('processing_fee')) - Loan::where('status', 'written_off')->whereBetween('updated_at', [$start, $end])->sum('outstanding_balance'),
+            'revenue'      => $revenue,
+            'profit'       => $profit,
             'new_borrowers' => (int) User::where('role', 'borrower')->whereBetween('created_at', [$start, $end])->count(),
             'total_borrowers' => (int) User::where('role', 'borrower')->where('created_at', '<=', $end)->count(),
             'active_borrowers' => (int) Loan::whereIn('status', ['active', 'overdue'])->where('created_at', '<=', $end)->distinct('user_id')->count('user_id'),

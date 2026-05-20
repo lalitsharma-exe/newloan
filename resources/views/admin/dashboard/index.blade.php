@@ -227,7 +227,7 @@
                     </div>
                     <div class="card">
                         <div class="card-head">
-                            <div class="card-title">Segment Risk (PAR 30)</div>
+                            <div class="card-title">Product Distribution</div>
                         </div>
                         <div class="donut-wrap" style="height: 180px;">
                             <canvas id="chartSeg"></canvas>

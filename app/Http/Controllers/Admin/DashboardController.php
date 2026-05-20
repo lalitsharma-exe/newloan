@@ -9,6 +9,16 @@ class DashboardController extends Controller {
     public function __construct(private DashboardService $svc) {}
 
     public function index(Request $request) {
+        // Heal mismatched 'approved' application statuses when they have active/overdue/closed/defaulted loans
+        \DB::table('loan_applications')
+            ->where('status', 'approved')
+            ->whereIn('id', function($q) {
+                $q->select('application_id')
+                  ->from('loans')
+                  ->whereIn('status', ['active', 'overdue', 'closed', 'defaulted']);
+            })
+            ->update(['status' => 'disbursed']);
+
         $period = $request->get('period', 'month');
         $periodStats = $this->svc->getPeriodStats($period);
 

@@ -142,7 +142,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         // Decline Tracker
-        Route::prefix('declines')->name('declines.')->middleware('admin.permission:applications.view')->group(function () {
+        Route::prefix('declines')->name('declines.')->middleware('admin.permission:decline.tracker')->group(function () {
             Route::get('/',             [\App\Http\Controllers\Admin\DeclineController::class, 'index'])->name('index');
             Route::get('/report',       [\App\Http\Controllers\Admin\DeclineController::class, 'report'])->name('report');
             Route::get('/taxonomy',     [\App\Http\Controllers\Admin\DeclineController::class, 'taxonomy'])->name('taxonomy');
@@ -220,15 +220,22 @@ Route::prefix('admin')->name('admin.')->group(function () {
         | ── Added as per Phase 2 Implementation Guide ───────────
         */
         Route::prefix('financial')->name('financial.')->group(function () {
-            Route::get('/dashboard', [FinancialController::class, 'dashboard'])->name('dashboard');
-            Route::get('/accounts', [FinancialController::class, 'accounts'])->name('accounts');
-            Route::post('/accounts', [FinancialController::class, 'storeAccount'])->name('accounts.store');
-            Route::post('/accounts/{account}/update', [FinancialController::class, 'updateAccount'])->name('accounts.update');
+            // Financial Intelligence
+            Route::middleware('admin.permission:financial.intelligence')->group(function () {
+                Route::get('/dashboard', [FinancialController::class, 'dashboard'])->name('dashboard');
+                Route::get('/accounts', [FinancialController::class, 'accounts'])->name('accounts');
+                Route::post('/accounts', [FinancialController::class, 'storeAccount'])->name('accounts.store');
+                Route::post('/accounts/{account}/update', [FinancialController::class, 'updateAccount'])->name('accounts.update');
+                // Forecasting
+                Route::post('/forecasts/refresh', [FinancialController::class, 'refreshForecasts'])->name('forecasts.refresh');
+            });
             
             // Internal Transfers
-            Route::get('/transfers', [FinancialController::class, 'transfers'])->name('transfers');
-            Route::post('/transfers/initiate', [FinancialController::class, 'initiateTransfer'])->name('transfers.initiate');
-            Route::post('/transfers/{transfer}/confirm', [FinancialController::class, 'confirmTransfer'])->name('transfers.confirm');
+            Route::middleware('admin.permission:financial.transfers')->group(function () {
+                Route::get('/transfers', [FinancialController::class, 'transfers'])->name('transfers');
+                Route::post('/transfers/initiate', [FinancialController::class, 'initiateTransfer'])->name('transfers.initiate');
+                Route::post('/transfers/{transfer}/confirm', [FinancialController::class, 'confirmTransfer'])->name('transfers.confirm');
+            });
             
             // Expense Management
             Route::prefix('expenses')->name('expenses.')->group(function () {
@@ -239,15 +246,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('/export', [ExpenseController::class, 'export'])->name('export');
                 Route::post('/{expense}/pay', [ExpenseController::class, 'pay'])->name('pay');
             });
-            
-            // Forecasting
-            Route::post('/forecasts/refresh', [FinancialController::class, 'refreshForecasts'])->name('forecasts.refresh');
         });
 
         /*
         | ── MYLOAN FLOAT (Emergency Cash) ──────────────────────────
         */
-        Route::prefix('float')->name('float.')->group(function () {
+        Route::prefix('float')->name('float.')->middleware('admin.permission:myfloat')->group(function () {
             Route::get('/', [FloatController::class, 'index'])->name('index');
             Route::get('/{float}', [FloatController::class, 'show'])->name('show');
             Route::post('/{float}/approve', [FloatController::class, 'approve'])->name('approve');
@@ -259,26 +263,36 @@ Route::prefix('admin')->name('admin.')->group(function () {
         /*
         | ── REPORTS ────────────────────────────────────────────────
         */
-        Route::prefix('reports')->name('reports.')->middleware('admin.permission:reports')->group(function () {
+        Route::prefix('reports')->name('reports.')->middleware('admin.permission:reports,reports.three_tier,cbl.complaints')->group(function () {
 
-            Route::get('/', [ReportController::class, 'index'])->name('index');
+            Route::middleware('admin.permission:reports')->group(function () {
+                Route::get('/', [ReportController::class, 'index'])->name('index');
 
-            Route::get('/portfolio',            [ReportController::class, 'portfolio'])->name('portfolio');
-            Route::get('/disbursement',         [ReportController::class, 'disbursement'])->name('disbursement');
-            Route::get('/repayment',            [ReportController::class, 'repayment'])->name('repayment');
-            Route::get('/arrears',              [ReportController::class, 'arrears'])->name('arrears');
-            Route::get('/collections',          [ReportController::class, 'collections'])->name('collections');
-            Route::get('/outstanding',          [ReportController::class, 'outstanding'])->name('outstanding');
-            Route::get('/par',                  [ReportController::class, 'par'])->name('par');
-            Route::get('/default',              [ReportController::class, 'default'])->name('default');
-            Route::get('/applications',         [ReportController::class, 'applications'])->name('applications');
-            Route::get('/payment-failures',     [ReportController::class, 'paymentFailures'])->name('payment-failures');
-            Route::get('/product-performance',  [ReportController::class, 'productPerformance'])->name('product-performance');
-            Route::get('/officer-performance',  [ReportController::class, 'officerPerformance'])->name('officer-performance');
-            Route::get('/income-statement',     [ReportController::class, 'incomeStatement'])->name('income-statement');
+                Route::get('/portfolio',            [ReportController::class, 'portfolio'])->name('portfolio');
+                Route::get('/disbursement',         [ReportController::class, 'disbursement'])->name('disbursement');
+                Route::get('/repayment',            [ReportController::class, 'repayment'])->name('repayment');
+                Route::get('/arrears',              [ReportController::class, 'arrears'])->name('arrears');
+                Route::get('/collections',          [ReportController::class, 'collections'])->name('collections');
+                Route::get('/outstanding',          [ReportController::class, 'outstanding'])->name('outstanding');
+                Route::get('/par',                  [ReportController::class, 'par'])->name('par');
+                Route::get('/default',              [ReportController::class, 'default'])->name('default');
+                Route::get('/applications',         [ReportController::class, 'applications'])->name('applications');
+                Route::get('/payment-failures',     [ReportController::class, 'paymentFailures'])->name('payment-failures');
+                Route::get('/product-performance',  [ReportController::class, 'productPerformance'])->name('product-performance');
+                Route::get('/officer-performance',  [ReportController::class, 'officerPerformance'])->name('officer-performance');
+                Route::get('/income-statement',     [ReportController::class, 'incomeStatement'])->name('income-statement');
+                Route::get('/borrower-demographics',[ReportController::class, 'borrowerDemographics'])->name('borrower-demographics');
+                Route::get('/collection-sheet',     [ReportController::class, 'collectionSheet'])->name('collection-sheet');
+                Route::get('/collection-sheet/export', [ReportController::class, 'exportCollectionSheet'])->name('collection-sheet.export');
+
+                Route::post('/export',              [ReportController::class, 'export'])->name('export');
+                Route::get('/scheduled',            [ReportController::class, 'scheduledIndex'])->name('scheduled.index');
+                Route::post('/scheduled',           [ReportController::class, 'scheduledStore'])->name('scheduled.store');
+                Route::delete('/scheduled/{id}',    [ReportController::class, 'scheduledDestroy'])->name('scheduled.destroy');
+            });
 
             // CBL Regulatory Report
-            Route::prefix('cbl')->name('cbl.')->group(function () {
+            Route::middleware('admin.permission:cbl.complaints')->prefix('cbl')->name('cbl.')->group(function () {
                 Route::get('/',                 [\App\Http\Controllers\Admin\CblReportController::class, 'index'])->name('index');
                 Route::get('/generate',         [\App\Http\Controllers\Admin\CblReportController::class, 'generate'])->name('generate');
                 Route::post('/archive',         [\App\Http\Controllers\Admin\CblReportController::class, 'archive'])->name('archive');
@@ -290,35 +304,29 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::post('/complaints/{complaint}/update', [\App\Http\Controllers\Admin\CblReportController::class, 'updateComplaint'])->name('complaints.update');
                 Route::get('/search-users',     [\App\Http\Controllers\Admin\CblReportController::class, 'searchUsers'])->name('search-users');
             });
-            Route::get('/borrower-demographics',[ReportController::class, 'borrowerDemographics'])->name('borrower-demographics');
-            Route::get('/collection-sheet',     [ReportController::class, 'collectionSheet'])->name('collection-sheet');
-            Route::get('/collection-sheet/export', [ReportController::class, 'exportCollectionSheet'])->name('collection-sheet.export');
-
-            Route::post('/export',              [ReportController::class, 'export'])->name('export');
-            Route::get('/scheduled',            [ReportController::class, 'scheduledIndex'])->name('scheduled.index');
-            Route::post('/scheduled',           [ReportController::class, 'scheduledStore'])->name('scheduled.store');
-            Route::delete('/scheduled/{id}',    [ReportController::class, 'scheduledDestroy'])->name('scheduled.destroy');
 
             // ── 3-Tier Financial Reporting Dashboard & APIs ───────────
-            Route::get('/financial-dashboard', [\App\Http\Controllers\Admin\FinancialReportController::class, 'dashboard'])->name('financial-dashboard');
-            Route::prefix('financial-cycle')->name('financial-cycle.')->group(function () {
-                // Monthly
-                Route::get('/monthly/summary', [\App\Http\Controllers\Admin\FinancialReportController::class, 'monthlySummary'])->name('monthly.summary');
-                Route::get('/monthly/arrears-provision', [\App\Http\Controllers\Admin\FinancialReportController::class, 'monthlyArrearsProvision'])->name('monthly.arrears-provision');
-                
-                // Quarterly
-                Route::get('/quarterly/income-statement', [\App\Http\Controllers\Admin\FinancialReportController::class, 'quarterlyIncomeStatement'])->name('quarterly.income-statement');
-                Route::get('/quarterly/portfolio', [\App\Http\Controllers\Admin\FinancialReportController::class, 'quarterlyPortfolio'])->name('quarterly.portfolio');
-                Route::get('/quarterly/kpis', [\App\Http\Controllers\Admin\FinancialReportController::class, 'quarterlyKpis'])->name('quarterly.kpis');
-                
-                // Annual
-                Route::get('/annual/{year}/balance-sheet', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualBalanceSheet'])->name('annual.balance-sheet');
-                Route::get('/annual/{year}/cash-flow', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualCashFlow'])->name('annual.cash-flow');
-                Route::get('/annual/trend', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualTrend'])->name('annual.trend');
-                
-                // Action locks & manual consolidation trigger
-                Route::post('/annual/{year}/consolidate', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualConsolidate'])->name('annual.consolidate');
-                Route::post('/{period}/lock', [\App\Http\Controllers\Admin\FinancialReportController::class, 'lockPeriod'])->name('period.lock');
+            Route::middleware('admin.permission:reports.three_tier')->group(function () {
+                Route::get('/financial-dashboard', [\App\Http\Controllers\Admin\FinancialReportController::class, 'dashboard'])->name('financial-dashboard');
+                Route::prefix('financial-cycle')->name('financial-cycle.')->group(function () {
+                    // Monthly
+                    Route::get('/monthly/summary', [\App\Http\Controllers\Admin\FinancialReportController::class, 'monthlySummary'])->name('monthly.summary');
+                    Route::get('/monthly/arrears-provision', [\App\Http\Controllers\Admin\FinancialReportController::class, 'monthlyArrearsProvision'])->name('monthly.arrears-provision');
+                    
+                    // Quarterly
+                    Route::get('/quarterly/income-statement', [\App\Http\Controllers\Admin\FinancialReportController::class, 'quarterlyIncomeStatement'])->name('quarterly.income-statement');
+                    Route::get('/quarterly/portfolio', [\App\Http\Controllers\Admin\FinancialReportController::class, 'quarterlyPortfolio'])->name('quarterly.portfolio');
+                    Route::get('/quarterly/kpis', [\App\Http\Controllers\Admin\FinancialReportController::class, 'quarterlyKpis'])->name('quarterly.kpis');
+                    
+                    // Annual
+                    Route::get('/annual/{year}/balance-sheet', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualBalanceSheet'])->name('annual.balance-sheet');
+                    Route::get('/annual/{year}/cash-flow', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualCashFlow'])->name('annual.cash-flow');
+                    Route::get('/annual/trend', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualTrend'])->name('annual.trend');
+                    
+                    // Action locks & manual consolidation trigger
+                    Route::post('/annual/{year}/consolidate', [\App\Http\Controllers\Admin\FinancialReportController::class, 'annualConsolidate'])->name('annual.consolidate');
+                    Route::post('/{period}/lock', [\App\Http\Controllers\Admin\FinancialReportController::class, 'lockPeriod'])->name('period.lock');
+                });
             });
         });
 
@@ -519,19 +527,25 @@ Route::prefix('admin')->name('admin.')->group(function () {
         | ── INVESTOR CAPITAL MANAGEMENT ──────────────────────────
         */
         Route::prefix('investments')->name('investments.')->group(function () {
-            Route::get('/investors', [\App\Http\Controllers\Admin\InvestorController::class, 'listInvestors'])->name('investors.index');
-            Route::post('/investors', [\App\Http\Controllers\Admin\InvestorController::class, 'storeInvestor'])->name('investors.store');
-            Route::get('/investors/{id}', [\App\Http\Controllers\Admin\InvestorController::class, 'showInvestor'])->name('investors.show');
+            // Investor Partners
+            Route::middleware('admin.permission:investors.partners')->group(function () {
+                Route::get('/investors', [\App\Http\Controllers\Admin\InvestorController::class, 'listInvestors'])->name('investors.index');
+                Route::post('/investors', [\App\Http\Controllers\Admin\InvestorController::class, 'storeInvestor'])->name('investors.store');
+                Route::get('/investors/{id}', [\App\Http\Controllers\Admin\InvestorController::class, 'showInvestor'])->name('investors.show');
+            });
 
-            Route::get('/', [\App\Http\Controllers\Admin\InvestorController::class, 'index'])->name('index');
-            Route::post('/', [\App\Http\Controllers\Admin\InvestorController::class, 'storeInvestment'])->name('store');
-            Route::get('/{id}', [\App\Http\Controllers\Admin\InvestorController::class, 'show'])->name('show');
-            Route::post('/{id}/repay', [\App\Http\Controllers\Admin\InvestorController::class, 'repay'])->name('repay');
-            Route::post('/{id}/terminate', [\App\Http\Controllers\Admin\InvestorController::class, 'requestTermination'])->name('terminate');
-            Route::get('/{id}/termination-preview', [\App\Http\Controllers\Admin\InvestorController::class, 'previewTermination'])->name('terminate.preview');
-            Route::post('/{id}/terminate/approve', [\App\Http\Controllers\Admin\InvestorController::class, 'approveTermination'])->name('terminate.approve');
-            Route::post('/{id}/terminate/decline', [\App\Http\Controllers\Admin\InvestorController::class, 'declineTermination'])->name('terminate.decline');
-            Route::get('/{id}/contract', [\App\Http\Controllers\Admin\InvestorController::class, 'downloadContract'])->name('contract.download');
+            // Investment Tranches
+            Route::middleware('admin.permission:investments.tranches')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Admin\InvestorController::class, 'index'])->name('index');
+                Route::post('/', [\App\Http\Controllers\Admin\InvestorController::class, 'storeInvestment'])->name('store');
+                Route::get('/{id}', [\App\Http\Controllers\Admin\InvestorController::class, 'show'])->name('show');
+                Route::post('/{id}/repay', [\App\Http\Controllers\Admin\InvestorController::class, 'repay'])->name('repay');
+                Route::post('/{id}/terminate', [\App\Http\Controllers\Admin\InvestorController::class, 'requestTermination'])->name('terminate');
+                Route::get('/{id}/termination-preview', [\App\Http\Controllers\Admin\InvestorController::class, 'previewTermination'])->name('terminate.preview');
+                Route::post('/{id}/terminate/approve', [\App\Http\Controllers\Admin\InvestorController::class, 'approveTermination'])->name('terminate.approve');
+                Route::post('/{id}/terminate/decline', [\App\Http\Controllers\Admin\InvestorController::class, 'declineTermination'])->name('terminate.decline');
+                Route::get('/{id}/contract', [\App\Http\Controllers\Admin\InvestorController::class, 'downloadContract'])->name('contract.download');
+            });
         });
 
     }); // end auth:admin

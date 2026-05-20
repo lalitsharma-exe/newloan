@@ -20,14 +20,22 @@ return [
         'payments.manage'      => 'Record / Verify Payments',
         'credit_bureau'        => 'Credit Bureau Access',
         'compuscan'            => 'Compuscan (CCI) Access',
+        'financial.intelligence' => 'Financial Intelligence Access',
+        'financial.transfers'    => 'Internal Transfers Access',
+        'investors.partners'     => 'Investor Partners Access',
+        'investments.tranches'   => 'Investment Tranches Access',
     ],
 
     'Bill Payments' => [
         'mybill'               => 'MyBill Management',
+        'myfloat'              => 'MyFloat Access',
     ],
 
     'Reports & Marketing' => [
         'reports'              => 'View Reports',
+        'reports.three_tier'   => '3-Tier Financials Access',
+        'cbl.complaints'       => 'CBL Complaints Access',
+        'decline.tracker'      => 'Decline Tracker Access',
         'referrals.view'       => 'View Referrals',
         'referrals.manage'     => 'Pay Out Referral Commissions',
         'bulk_sms'             => 'Bulk SMS Campaigns',

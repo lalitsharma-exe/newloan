@@ -388,8 +388,9 @@ class ReportService {
     {
         $month = $f['month'] ?? now()->format('Y-m');
         $category = $f['category'] ?? null;
+        $district = $f['district'] ?? null;
 
-        $q = LoanInstallment::with(['loan.user', 'loan.application.bankDetails', 'loan.application.employment'])
+        $q = LoanInstallment::with(['loan.user', 'loan.application.bankDetails', 'loan.application.employment', 'loan.loanProduct'])
             ->whereHas('loan', function($l) {
                 $l->whereIn('status', ['active', 'overdue']);
             })
@@ -409,8 +410,55 @@ class ReportService {
             });
         }
 
+        if ($district) {
+            $q->whereHas('loan.application', function($a) use ($district) {
+                $a->where('district', $district);
+            });
+        }
+
         $installments = $q->get();
 
-        return compact('installments', 'month', 'category');
+        $totalCollection = 0;
+        $govCollection = 0;
+        $privateCollection = 0;
+        $pensionerCollection = 0;
+        $studentsCollection = 0;
+        $smesCollection = 0;
+
+        foreach ($installments as $i) {
+            $amt = $i->total_amount;
+            $totalCollection += $amt;
+
+            $catName = strtolower($i->loan?->application?->employment?->employer_category ?? '');
+            $prodName = strtolower($i->loan?->loanProduct?->name ?? $i->loan?->application?->loanProduct?->name ?? '');
+            $prodSlug = strtolower($i->loan?->loanProduct?->slug ?? $i->loan?->application?->loanProduct?->slug ?? '');
+            $segment = strtolower($i->loan?->segment ?? '');
+
+            if ($catName === 'smes' || $segment === 'sme' || str_contains($prodName, 'sme') || str_contains($prodSlug, 'sme')) {
+                $smesCollection += $amt;
+            } elseif ($catName === 'pensioner' || str_contains($prodName, 'pensioner') || str_contains($prodSlug, 'pensioner')) {
+                $pensionerCollection += $amt;
+            } elseif ($catName === 'student' || str_contains($prodName, 'student') || str_contains($prodSlug, 'student')) {
+                $studentsCollection += $amt;
+            } elseif ($catName === 'private sector' || $catName === 'private' || str_contains($prodName, 'private') || str_contains($prodSlug, 'private')) {
+                $privateCollection += $amt;
+            } else {
+                // Default to Government or check government-related categories
+                $govCollection += $amt;
+            }
+        }
+
+        return compact(
+            'installments',
+            'month',
+            'category',
+            'district',
+            'totalCollection',
+            'govCollection',
+            'privateCollection',
+            'pensionerCollection',
+            'studentsCollection',
+            'smesCollection'
+        );
     }
 }

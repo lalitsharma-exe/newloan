@@ -162,6 +162,7 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     @if($u->hasAdminPermission('payments.view'))
     <div class="nav-item"><a href="{{ route('admin.payments.index') }}" class="{{ request()->routeIs('admin.payments.*')?'active':'' }}"><i class="bi bi-credit-card-fill"></i> Payments</a></div>
     @endif
+    @if($u->hasAdminPermission('financial.intelligence'))
     <div class="nav-item">
       <a href="{{ route('admin.financial.dashboard') }}" class="{{ request()->routeIs('admin.financial.dashboard')?'active':'' }}">
         <i class="bi bi-bank"></i> 
@@ -169,34 +170,43 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
         <span class="badge bok" style="font-size:8px;margin-left:auto;background:rgba(255,255,255,.1);color:#fff">Phase 2</span>
       </a>
     </div>
+    @endif
+    @if($u->hasAdminPermission('financial.transfers'))
     <div class="nav-item">
       <a href="{{ route('admin.financial.transfers') }}" class="{{ request()->routeIs('admin.financial.transfers')?'active':'' }}">
         <i class="bi bi-arrow-left-right"></i> 
         Internal Transfers
       </a>
     </div>
+    @endif
+    @if($u->hasAdminPermission('investors.partners'))
     <div class="nav-item">
       <a href="{{ route('admin.investments.investors.index') }}" class="{{ request()->routeIs('admin.investments.investors.*')?'active':'' }}">
         <i class="bi bi-people-fill"></i> 
         Investor Partners
       </a>
     </div>
+    @endif
+    @if($u->hasAdminPermission('investments.tranches'))
     <div class="nav-item">
       <a href="{{ route('admin.investments.index') }}" class="{{ request()->routeIs('admin.investments.index') || request()->routeIs('admin.investments.show') ?'active':'' }}">
         <i class="bi bi-wallet2"></i> 
         Investment Tranches
       </a>
     </div>
+    @endif
     @if($u->hasAdminPermission('credit_bureau'))
     <div class="nav-item"><a href="{{ route('admin.credit.index') }}" class="{{ request()->routeIs('admin.credit.*')?'active':'' }}"><i class="bi bi-database-fill-check"></i> Credit Bureau</a></div>
     @endif
     @if($u->hasAdminPermission('compuscan'))
     <div class="nav-item"><a href="{{ route('admin.compuscan.index') }}" class="{{ request()->routeIs('admin.compuscan.*')?'active':'' }}"><i class="bi bi-cloud-arrow-up-fill"></i> Compuscan (CCI)</a></div>
     @endif
+    @if($u->hasAdminPermission('mybill') || $u->hasAdminPermission('myfloat'))
     <div class="nav-lbl">Bill Payments</div>
     @if($u->hasAdminPermission('mybill'))
     <div class="nav-item"><a href="{{ route('admin.mybill.dashboard') }}" class="{{ request()->routeIs('admin.mybill.*')?'active':'' }}"><i class="bi bi-lightning-charge-fill"></i> MyBill</a></div>
     @endif
+    @if($u->hasAdminPermission('myfloat'))
     <div class="nav-item">
       <a href="{{ route('admin.float.index') }}" class="{{ request()->routeIs('admin.float.*')?'active':'' }}">
         <i class="bi bi-lightning-fill" style="color:#e0c06a"></i> 
@@ -204,15 +214,22 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
         <span class="badge" style="font-size:8px;margin-left:auto;background:var(--accent);color:#0d1b3e">HOT</span>
       </a>
     </div>
+    @endif
+    @endif
+    @if($u->hasAdminPermission('reports') || $u->hasAdminPermission('reports.three_tier') || $u->hasAdminPermission('cbl.complaints'))
     <div class="nav-lbl">Reports</div>
     @if($u->hasAdminPermission('reports'))
     <div class="nav-item"><a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.index')?'active':'' }}"><i class="bi bi-bar-chart-fill"></i> Standard Reports</a></div>
+    @endif
+    @if($u->hasAdminPermission('reports.three_tier'))
     <div class="nav-item">
       <a href="{{ route('admin.reports.financial-dashboard') }}" class="{{ request()->routeIs('admin.reports.financial-dashboard')?'active':'' }}">
         <i class="bi bi-pie-chart-fill" style="color:#06b6d4"></i> 
         3-Tier Financials
       </a>
     </div>
+    @endif
+    @if($u->hasAdminPermission('cbl.complaints'))
     <div class="nav-item">
       <a href="{{ route('admin.reports.cbl.index') }}" class="{{ request()->routeIs('admin.reports.cbl.*')?'active':'' }}">
         <i class="bi bi-safe2" style="color:var(--accent)"></i> 
@@ -220,10 +237,11 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
       </a>
     </div>
     @endif
+    @endif
     @if($u->hasAdminPermission('referrals.view'))
     <div class="nav-item"><a href="{{ route('admin.referrals.index') }}" class="{{ request()->routeIs('admin.referrals.*')?'active':'' }}"><i class="bi bi-gift-fill"></i> Referrals</a></div>
     @endif
-    @if($u->hasAdminPermission('applications.view'))
+    @if($u->hasAdminPermission('decline.tracker'))
     <div class="nav-item"><a href="{{ route('admin.declines.index') }}" class="{{ request()->routeIs('admin.declines.*')?'active':'' }}"><i class="bi bi-x-circle-fill"></i> Decline Tracker</a></div>
     @endif
     @if($u->hasAdminPermission('bulk_sms'))
