@@ -300,4 +300,59 @@ class LoanController extends Controller
         $data = $this->svc->getRepaymentChartData();
         return view('admin.loans.repayment-chart', compact('data'));
     }
+
+    public function updateDetails(Request $request, Loan $loan)
+    {
+        $request->validate([
+            'salary_payday'     => 'required|integer|min:1|max:31',
+            'term_months'       => 'required|integer|min:1|max:120',
+            'payout_method'     => 'required|string|max:50',
+            'collection_method' => 'required|string|max:50',
+            'edit_reason'       => 'required|string|max:500',
+        ]);
+
+        $frozenCount = $loan->installments()->whereIn('status', ['paid', 'waived'])->count();
+        if ($request->term_months < $frozenCount) {
+            return back()->with('error', "New loan term cannot be less than the number of paid/waived installments ({$frozenCount}).");
+        }
+
+        try {
+            DB::transaction(function() use ($loan, $request, $frozenCount) {
+                $loanData = [
+                    'salary_payday'     => $request->salary_payday,
+                    'payout_method'     => $request->payout_method,
+                    'collection_method' => $request->collection_method,
+                ];
+
+                if ($loan->installments()->count() === 0) {
+                    $loanData['term_months'] = $request->term_months;
+                    $loan->update($loanData);
+                } else {
+                    $loan->update($loanData);
+
+                    // Update all installments due dates to the new payday
+                    if ($loan->disbursement_date) {
+                        $payday = (int) $request->salary_payday;
+                        $disbDate = \Carbon\Carbon::parse($loan->disbursement_date);
+                        
+                        $installments = $loan->installments()->orderBy('installment_number')->get();
+                        foreach ($installments as $inst) {
+                            $dueDate = $disbDate->copy()->addMonths($inst->installment_number)->setDay($payday);
+                            $inst->update(['due_date' => $dueDate->toDateString()]);
+                        }
+                    }
+
+                    // Call the service to adjust the remaining term
+                    $newRemainingTerm = $request->term_months - $frozenCount;
+                    $this->svc->adjustSchedule($loan, ['new_term' => $newRemainingTerm], auth('admin')->user());
+                }
+            });
+
+            AuditLog::record('loan.update_details', "Loan {$loan->loan_number} details updated. Reason: {$request->edit_reason}", $loan);
+            return redirect()->route('admin.loans.show', $loan)->with('success', 'Loan details and schedule updated successfully.');
+        } catch (\Exception $e) {
+            Log::error("Failed to update details for loan {$loan->id}: " . $e->getMessage());
+            return back()->with('error', 'Failed to update loan details: ' . $e->getMessage())->withInput();
+        }
+    }
 }

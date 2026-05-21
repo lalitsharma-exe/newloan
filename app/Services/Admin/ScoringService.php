@@ -41,12 +41,15 @@ class ScoringService
         // B. Affordability (20 pts)
         $affordPoints = 0;
         $affordability = $app->affordability;
-        if ($affordability) {
+        $requestedTerm = (int)$app->requested_term;
+        if ($affordability && $requestedTerm > 0) {
+            $product = $app->loanProduct;
+            $interestRate = $product ? (float)$product->interest_rate : 15.0;
             $monthlyInst = app(ApplicationService::class)->calcMonthly(
                 $app->requested_amount, 
-                $app->loanProduct->interest_rate, 
-                $app->requested_term, 
-                $app->loanProduct
+                $interestRate, 
+                $requestedTerm, 
+                $product
             );
             $netSalary = (float)$affordability->net_salary;
             if ($netSalary > 0) {
