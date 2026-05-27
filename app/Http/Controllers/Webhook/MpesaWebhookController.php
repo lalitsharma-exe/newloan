@@ -152,6 +152,9 @@ class MpesaWebhookController extends Controller
         // Referral System: Check if this payment qualifies a referral
         $this->loanService->checkReferralQualification($loan);
 
+        // Agent System: Check if this payment qualifies an agent commission payout
+        app(\App\Services\AgentCommissionService::class)->handlePayment($loan);
+
         AuditLog::record(
             'payment.mpesa_verified',
             "M-Pesa payment LSL{$payment->amount} verified for loan {$loan->loan_number}. TXN: {$gatewayRef}",

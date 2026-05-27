@@ -173,6 +173,9 @@ class PaymentWebhookController extends Controller
         // Referral System: Check if this payment qualifies a referral
         $this->loanService->checkReferralQualification($loan);
 
+        // Agent System: Check if this payment qualifies an agent commission payout
+        app(\App\Services\AgentCommissionService::class)->handlePayment($loan);
+
         AuditLog::record(
             'payment.gateway_verified',
             "CPay payment M{$payment->amount} verified for loan {$loan->loan_number}. TXN: {$parsed['cpay_txn_id']}",

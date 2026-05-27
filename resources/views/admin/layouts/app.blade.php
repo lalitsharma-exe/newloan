@@ -247,6 +247,22 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     @if($u->hasAdminPermission('bulk_sms'))
     <div class="nav-item"><a href="{{ route('admin.bulk-sms.index') }}" class="{{ request()->routeIs('admin.bulk-sms.*')?'active':'' }}"><i class="bi bi-chat-dots-fill"></i> Bulk SMS</a></div>
     @endif
+    <div class="nav-lbl">Agent Network</div>
+    <div class="nav-item">
+      <a href="{{ route('admin.agents.applications') }}" class="{{ request()->routeIs('admin.agents.applications*') ? 'active' : '' }}">
+        <i class="bi bi-person-plus-fill" style="color:#2dd4bf"></i>
+        Agent Applications
+        @php try { $pendingAgents = \App\Models\AgentApplication::where('status', 'pending')->count(); } catch(\Exception $e) { $pendingAgents = 0; } @endphp
+        @if($pendingAgents > 0)
+        <span style="margin-left:auto;background:#2dd4bf;color:#0f172a;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;line-height:1.8">{{ $pendingAgents }}</span>
+        @endif
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="{{ route('admin.agents.index') }}" class="{{ request()->routeIs('admin.agents.index') || request()->routeIs('admin.agents.show') ? 'active' : '' }}">
+        <i class="bi bi-shop" style="color:#14b8a6"></i> Active Agents
+      </a>
+    </div>
     <div class="nav-lbl">Config</div>
     @if($u->hasAdminPermission('users.view'))
     <div class="nav-item"><a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.index')?'active':'' }}"><i class="bi bi-people-fill"></i> Users</a></div>

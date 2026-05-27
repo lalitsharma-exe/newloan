@@ -713,6 +713,7 @@
 
       <nav class="header-nav-links">
         <a href="{{ route('home') }}" class="header-home {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
+        <a href="{{ route('agent.login') }}" class="header-home {{ request()->routeIs('agent.*') ? 'active' : '' }}" style="color:var(--accent);font-weight:600"><i class="bi bi-shop"></i> Agent Portal</a>
       </nav>
 
       <div class="header-sp"></div>
@@ -741,6 +742,7 @@
       <i class="bi bi-x"></i>
     </button>
     <a href="{{ route('home') }}" onclick="toggleMobileNav()">Home</a>
+    <a href="{{ route('agent.login') }}" onclick="toggleMobileNav()" style="color:var(--accent)"><i class="bi bi-shop"></i> Agent Portal</a>
     <div class="mobile-cta">
       <a href="{{ route('borrower.login') }}" class="btn btn-outline-white"
         style="justify-content:center;border-radius:99px" onclick="toggleMobileNav()">

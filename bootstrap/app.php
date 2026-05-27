@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->group(base_path('routes/officer.php'));
             \Illuminate\Support\Facades\Route::middleware('web')
                 ->group(base_path('routes/borrower.php'));
+            \Illuminate\Support\Facades\Route::middleware('web')
+                ->group(base_path('routes/agent.php'));
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -24,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin/logout',
             'borrower/logout',
             'officer/logout',
+            'agent/logout',
             'portal/apply/*/fee-success',
             'portal/payments/callback/*',
         ]);
@@ -39,6 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'officer.active'    => \App\Http\Middleware\OfficerActive::class,
             'borrower.active'   => \App\Http\Middleware\BorrowerActive::class,
             'borrower.verified' => \App\Http\Middleware\BorrowerVerified::class,
+            'agent.active'      => \App\Http\Middleware\AgentActive::class,
         ]);
 
         $middleware->redirectGuestsTo(function ($request) {
@@ -48,6 +52,9 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             if (str_starts_with($path, 'officer')) {
                 return route('officer.login');
+            }
+            if (str_starts_with($path, 'agent')) {
+                return route('agent.login');
             }
             return route('borrower.login');
         });
@@ -61,6 +68,9 @@ return Application::configure(basePath: dirname(__DIR__))
             if (str_starts_with($path, 'officer')) {
                 return redirect()->guest(route('officer.login'));
             }
+            if (str_starts_with($path, 'agent')) {
+                return redirect()->guest(route('agent.login'));
+            }
             return redirect()->guest(route('borrower.login'));
         });
 
@@ -70,9 +80,11 @@ return Application::configure(basePath: dirname(__DIR__))
             if (str_contains($path, 'admin/logout')) return redirect()->route('admin.login');
             if (str_contains($path, 'borrower/logout')) return redirect()->route('borrower.login');
             if (str_contains($path, 'officer/logout')) return redirect()->route('officer.login');
+            if (str_contains($path, 'agent/logout')) return redirect()->route('agent.login');
 
             if (str_starts_with($path, 'admin')) return redirect()->route('admin.login')->with('error', 'Your session has expired. Please log in again.');
             if (str_starts_with($path, 'officer')) return redirect()->route('officer.login')->with('error', 'Your session has expired. Please log in again.');
+            if (str_starts_with($path, 'agent')) return redirect()->route('agent.login')->with('error', 'Your session has expired. Please log in again.');
             if (str_starts_with($path, 'borrower')) return redirect()->route('borrower.login')->with('error', 'Your session has expired. Please log in again.');
 
             return redirect()->route('home')->with('error', 'Your session has expired for security reasons. Please try again.');

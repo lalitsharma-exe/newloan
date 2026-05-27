@@ -2,13 +2,13 @@
 
 return [
     'defaults' => [
-        'guard'     => 'web',
+        'guard' => 'web',
         'passwords' => 'users',
     ],
 
     'guards' => [
         'web' => [
-            'driver'   => 'session',
+            'driver' => 'session',
             'provider' => 'users',
         ],
 
@@ -21,16 +21,21 @@ return [
         | The role column ('admin','loan_officer','borrower') controls access.
         */
         'admin' => [
-            'driver'   => 'session',
+            'driver' => 'session',
             'provider' => 'users',
         ],
 
         'officer' => [
-            'driver'   => 'session',
+            'driver' => 'session',
             'provider' => 'users',
         ],
 
         'borrower' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+
+        'agent' => [
             'driver'   => 'session',
             'provider' => 'users',
         ],
@@ -39,15 +44,15 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model'  => App\Models\User::class,
+            'model' => App\Models\User::class,
         ],
     ],
 
     'passwords' => [
         'users' => [
             'provider' => 'users',
-            'table'    => 'password_reset_tokens',
-            'expire'   => 60,
+            'table' => 'password_reset_tokens',
+            'expire' => 60,
             'throttle' => 60,
         ],
     ],

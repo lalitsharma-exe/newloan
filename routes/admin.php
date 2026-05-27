@@ -548,6 +548,25 @@ Route::prefix('admin')->name('admin.')->group(function () {
             });
         });
 
+        /*
+        | ── AGENT MANAGEMENT ─────────────────────────────────────
+        | Review agent registration applications, approve/reject,
+        | manage active community agents and view their submissions.
+        */
+        Route::prefix('agents')->name('agents.')->group(function () {
+            // Agent Applications Queue
+            Route::get('/applications',                     [\App\Http\Controllers\Admin\AgentManagementController::class, 'applications'])->name('applications');
+            Route::get('/applications/{agentApplication}',  [\App\Http\Controllers\Admin\AgentManagementController::class, 'showApplication'])->name('applications.show');
+            Route::post('/applications/{agentApplication}/approve', [\App\Http\Controllers\Admin\AgentManagementController::class, 'approve'])->name('applications.approve');
+            Route::post('/applications/{agentApplication}/reject',  [\App\Http\Controllers\Admin\AgentManagementController::class, 'reject'])->name('applications.reject');
+            Route::post('/applications/{agentApplication}/request-documents', [\App\Http\Controllers\Admin\AgentManagementController::class, 'requestDocuments'])->name('applications.request-documents');
+
+            // Active Agents
+            Route::get('/',                     [\App\Http\Controllers\Admin\AgentManagementController::class, 'activeAgents'])->name('index');
+            Route::get('/{user}',               [\App\Http\Controllers\Admin\AgentManagementController::class, 'showAgent'])->name('show');
+            Route::post('/{user}/toggle-status',[\App\Http\Controllers\Admin\AgentManagementController::class, 'toggleStatus'])->name('toggle-status');
+        });
+
     }); // end auth:admin
 
 }); // end prefix admin
