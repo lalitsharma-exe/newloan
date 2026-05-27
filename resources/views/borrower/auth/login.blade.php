@@ -271,8 +271,8 @@ html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:ant
         <a href="{{ route('borrower.login') }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600;transition:all .2s;border:1.5px solid #2b4bad;color:#2b4bad;background:rgba(43,75,173,.06)">
           <i class="bi bi-person-fill"></i> Borrower
         </a>
-        <a href="{{ route('officer.login') }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600;transition:all .2s;border:1.5px solid #dde3ef;color:#5a6b85;background:#fff">
-          <i class="bi bi-person-badge-fill"></i> Officer
+        <a href="{{ route('agent.login') }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600;transition:all .2s;border:1.5px solid #dde3ef;color:#5a6b85;background:#fff">
+          <i class="bi bi-people-fill"></i> Agent
         </a>
         <a href="{{ route('admin.login') }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600;transition:all .2s;border:1.5px solid #dde3ef;color:#5a6b85;background:#fff">
           <i class="bi bi-shield-lock-fill"></i> Admin

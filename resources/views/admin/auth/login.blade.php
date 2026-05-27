@@ -255,8 +255,8 @@ html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:ant
         <a href="{{ route('borrower.login') }}" class="portal-link">
           <i class="bi bi-person-fill"></i> Borrower
         </a>
-        <a href="{{ route('officer.login') }}" class="portal-link">
-          <i class="bi bi-person-badge-fill"></i> Officer
+        <a href="{{ route('agent.login') }}" class="portal-link">
+          <i class="bi bi-people-fill"></i> Agent
         </a>
         <a href="{{ route('admin.login') }}" class="portal-link active">
           <i class="bi bi-shield-lock-fill"></i> Admin

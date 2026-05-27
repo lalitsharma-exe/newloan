@@ -77,6 +77,11 @@ class LoanApplication extends Model
         'override_term',
         'override_rate',
 
+        // Agent fields
+        'agent_id',
+        'verification_status',
+        'verification_meta',
+
         // Signature
         'signature_path',
     ];

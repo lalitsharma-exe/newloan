@@ -189,7 +189,7 @@ select.fc{cursor:pointer}
 
         <div style="font-size:13px;font-weight:700;margin-bottom:8px">Agent Agreement</div>
         <div class="agreement-box">
-          <p><strong>1. Appointment</strong> — MyLoan Financial Services appoints you as a community loan origination agent on a non-exclusive basis. This appointment is personal and may not be transferred.</p>
+          <p><strong>1. Appointment</strong> — MyLoan Limited appoints you as a community loan origination agent on a non-exclusive basis. This appointment is personal and may not be transferred.</p>
           <p><strong>2. Nature of Relationship</strong> — You are an independent contractor, not an employee of MyLoan. You bear no financial risk related to any loan originated through you.</p>
           <p><strong>3. Agent Obligations</strong> — You shall: accurately capture client information; submit only genuine applications; never charge clients any fees; maintain client confidentiality; and comply with all applicable laws.</p>
           <p><strong>4. What You Must Not Do</strong> — You must not: make credit decisions; promise loan approval; handle disbursement funds; collect loan repayments; or misrepresent your role.</p>
