@@ -162,7 +162,7 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
     <div class="spacer"></div>
     <div style="display:flex;align-items:center;gap:8px">
       <span class="agent-badge"><i class="bi bi-shop me-1"></i>Agent</span>
-      <button type="button" class="tbtn" title="Logout" onclick="document.getElementById('logoutModal').classList.add('open')">
+      <button type="button" class="tbtn" title="Logout" onclick="document.getElementById('logoutModal').style.display='flex'">
         <i class="bi bi-box-arrow-right"></i>
       </button>
     </div>
