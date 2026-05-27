@@ -74,7 +74,7 @@ select.fc{cursor:pointer}
       <div class="step-tab" data-step="4"><div class="num">4</div><br>Review</div>
     </div>
 
-    <form method="POST" action="{{ route('agent.register.submit') }}" enctype="multipart/form-data" id="regForm">
+    <form method="POST" action="{{ route('agent.register.submit') }}" enctype="multipart/form-data" id="regForm" novalidate>
       @csrf
 
       {{-- STEP 1 --}}
@@ -233,8 +233,111 @@ function showStep(n) {
   if(n === 4) buildReview();
 }
 
-function nextStep() { if(currentStep < totalSteps) { currentStep++; showStep(currentStep); } }
+function nextStep() {
+  if (validateStep(currentStep)) {
+    if(currentStep < totalSteps) { currentStep++; showStep(currentStep); }
+  }
+}
 function prevStep() { if(currentStep > 1) { currentStep--; showStep(currentStep); } }
+
+function validateStep(step) {
+  // Clear previous error styles
+  document.querySelectorAll('.fc').forEach(el => el.classList.remove('err'));
+  
+  if (step === 1) {
+    const agentType = document.getElementById('agentType').value;
+    if (!agentType) {
+      alert('Please select either "Shop Owner" or "Individual" to proceed.');
+      return false;
+    }
+    
+    let valid = true;
+    const reqFields = ['first_name', 'last_name', 'national_id', 'mobile_number', 'shop_location'];
+    if (agentType === 'shop') {
+      reqFields.push('shop_name', 'business_type');
+    }
+    
+    reqFields.forEach(name => {
+      const input = document.querySelector('[name="' + name + '"]');
+      if (!input || !input.value.trim()) {
+        if (input) input.classList.add('err');
+        valid = false;
+      }
+    });
+
+    if (!valid) {
+      alert('Please fill in all required fields marked with *');
+      return false;
+    }
+
+    // Verify national ID format (exactly 13 digits)
+    const natIdInput = document.querySelector('[name="national_id"]');
+    const natIdVal = natIdInput.value.trim();
+    if (!/^\d{13}$/.test(natIdVal)) {
+      natIdInput.classList.add('err');
+      alert('Lesotho National ID must be exactly 13 numeric digits.');
+      return false;
+    }
+  }
+
+  if (step === 2) {
+    const idFile = document.getElementById('f_id').files.length;
+    const selfieFile = document.getElementById('f_selfie').files.length;
+    
+    if (!idFile) {
+      document.getElementById('zone_id').classList.add('err');
+      alert('Please upload a photo of your National ID.');
+      return false;
+    }
+    if (!selfieFile) {
+      document.getElementById('zone_selfie').classList.add('err');
+      alert('Please upload a selfie holding your ID.');
+      return false;
+    }
+  }
+
+  if (step === 3) {
+    const payoutMethod = document.getElementById('payoutMethod').value;
+    if (!payoutMethod) {
+      document.getElementById('payoutMethod').classList.add('err');
+      alert('Please select a preferred payout method.');
+      return false;
+    }
+    
+    const accountName = document.querySelector('[name="payout_account_name"]');
+    if (!accountName || !accountName.value.trim()) {
+      if (accountName) accountName.classList.add('err');
+      alert('Please enter the payout account holder name.');
+      return false;
+    }
+
+    // Dynamic fields depending on selected payout method
+    if (payoutMethod === 'M-Pesa' || payoutMethod === 'EcoCash') {
+      // There are two inputs with name="payout_number_or_details" in the HTML. We must target the visible one
+      const visibleNum = document.querySelector('#mobilePayFields [name="payout_number_or_details"]');
+      if (!visibleNum || !visibleNum.value.trim()) {
+        if (visibleNum) visibleNum.classList.add('err');
+        alert('Please enter your mobile money number.');
+        return false;
+      }
+    } else if (payoutMethod === 'Bank transfer') {
+      const bankName = document.querySelector('[name="payout_bank_name"]');
+      if (!bankName || !bankName.value.trim()) {
+        if (bankName) bankName.classList.add('err');
+        alert('Please select your bank.');
+        return false;
+      }
+      const visibleNum = document.querySelector('#bankPayFields [name="payout_number_or_details"]');
+      if (!visibleNum || !visibleNum.value.trim()) {
+        if (visibleNum) visibleNum.classList.add('err');
+        alert('Please enter your bank account number.');
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
 
 function selectType(type) {
   document.getElementById('agentType').value = type;
