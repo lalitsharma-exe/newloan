@@ -7,15 +7,6 @@ use Illuminate\Http\Request;
 class PublicPortalController extends Controller
 {
     public function index() {
-        if (\Illuminate\Support\Facades\Auth::guard('admin')->check()) {
-            return redirect()->route('admin.dashboard');
-        }
-        if (\Illuminate\Support\Facades\Auth::guard('officer')->check()) {
-            return redirect()->route('officer.dashboard');
-        }
-        if (\Illuminate\Support\Facades\Auth::guard('borrower')->check()) {
-            return redirect()->route('borrower.dashboard');
-        }
         return view('borrower.welcome', ['products' => LoanProduct::active()->get()]);
     }
 

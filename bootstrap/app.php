@@ -58,6 +58,19 @@ return Application::configure(basePath: dirname(__DIR__))
             }
             return route('borrower.login');
         });
+
+        $middleware->redirectUsersTo(function () {
+            if (\Illuminate\Support\Facades\Auth::guard('admin')->check()) {
+                return route('admin.dashboard');
+            }
+            if (\Illuminate\Support\Facades\Auth::guard('officer')->check()) {
+                return route('officer.dashboard');
+            }
+            if (\Illuminate\Support\Facades\Auth::guard('agent')->check()) {
+                return route('agent.dashboard');
+            }
+            return route('borrower.dashboard');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->renderable(function (\Illuminate\Auth\AuthenticationException $e, $request) {

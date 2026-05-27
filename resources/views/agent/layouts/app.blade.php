@@ -92,9 +92,9 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 {{-- SIDEBAR --}}
 <aside class="sb" id="sb">
   <div class="sb-logo">
-    <img style="height:36px;width:auto;object-fit:contain" src="{{ \Illuminate\Support\Facades\Storage::url(\App\Models\SystemSetting::get('app_logo')) }}" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=Agent&bg=0f766e&color=fff'">
+    <img style="height:36px;width:auto;object-fit:contain" src="https://ik.imagekit.io/ygydr1m84/png.webp" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=Agent&bg=0f766e&color=fff'">
     <div>
-      <div style="color:#fff;font-size:14px;font-weight:800;line-height:1.2;letter-spacing:-.02em">{{ \App\Models\SystemSetting::get('app_name', 'MyLoan') }}</div>
+      <div style="color:#fff;font-size:14px;font-weight:800;line-height:1.2;letter-spacing:-.02em">{{ config('app.name', 'MyLoan Limited') }}</div>
       <div class="sub">Agent Portal</div>
     </div>
   </div>
