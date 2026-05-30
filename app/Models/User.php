@@ -109,6 +109,11 @@ class User extends Authenticatable
         return $this->belongsTo(AdminRole::class, 'admin_role_id');
     }
 
+    public function agentProfile()
+    {
+        return $this->hasOne(AgentProfile::class);
+    }
+
     // ── MyBill relationships ──────────────────────────────────────
     public function myBillLimit()
     {

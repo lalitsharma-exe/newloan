@@ -357,6 +357,30 @@
       font-size: 12px;
     }
 
+    /* Transparent header states (when not scrolled) */
+    #header.transparent .header-home {
+      color: rgba(255, 255, 255, 0.85);
+    }
+    #header.transparent .header-home:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.15);
+    }
+    #header.transparent .header-home.active {
+      color: #fff;
+      font-weight: 700;
+    }
+    #header.transparent .header-signin {
+      background: #ffffff;
+      color: #050b1a; /* Dark navy */
+      border-color: #ffffff;
+      font-weight: 600;
+    }
+    #header.transparent .header-signin:hover {
+      background: rgba(255, 255, 255, 0.9);
+      color: #000;
+      border-color: rgba(255, 255, 255, 0.9);
+    }
+
     /* Hamburger — hidden on desktop */
     .nav-mobile-btn {
       display: none;
@@ -713,7 +737,6 @@
 
       <nav class="header-nav-links">
         <a href="{{ route('home') }}" class="header-home {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
-        <a href="{{ route('agent.login') }}" class="header-home {{ request()->routeIs('agent.*') ? 'active' : '' }}" style="color:var(--accent);font-weight:600"><i class="bi bi-shop"></i> Agent Portal</a>
       </nav>
 
       <div class="header-sp"></div>
@@ -742,7 +765,6 @@
       <i class="bi bi-x"></i>
     </button>
     <a href="{{ route('home') }}" onclick="toggleMobileNav()">Home</a>
-    <a href="{{ route('agent.login') }}" onclick="toggleMobileNav()" style="color:var(--accent)"><i class="bi bi-shop"></i> Agent Portal</a>
     <div class="mobile-cta">
       <a href="{{ route('borrower.login') }}" class="btn btn-outline-white"
         style="justify-content:center;border-radius:99px" onclick="toggleMobileNav()">
