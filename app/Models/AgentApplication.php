@@ -48,12 +48,17 @@ class AgentApplication extends Model
 
     public static function generateApplicationReference(): string
     {
-        $latest = self::orderBy('id', 'desc')->first();
+        $latest = self::withTrashed()->orderBy('id', 'desc')->first();
         if (!$latest) {
-            return 'AGT-APP-0001';
+            $num = 1;
+        } else {
+            $num = (int) str_replace('AGT-APP-', '', $latest->application_ref) + 1;
         }
 
-        $num = (int) str_replace('AGT-APP-', '', $latest->application_ref);
-        return 'AGT-APP-' . str_pad($num + 1, 4, '0', STR_PAD_LEFT);
+        while (self::withTrashed()->where('application_ref', 'AGT-APP-' . str_pad($num, 4, '0', STR_PAD_LEFT))->exists()) {
+            $num++;
+        }
+
+        return 'AGT-APP-' . str_pad($num, 4, '0', STR_PAD_LEFT);
     }
 }

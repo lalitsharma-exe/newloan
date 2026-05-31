@@ -40,10 +40,15 @@ class AgentProfile extends Model
     {
         $latest = self::orderBy('id', 'desc')->first();
         if (!$latest) {
-            return 'AGT-0001';
+            $num = 1;
+        } else {
+            $num = (int) str_replace('AGT-', '', $latest->agent_id) + 1;
         }
 
-        $num = (int) str_replace('AGT-', '', $latest->agent_id);
-        return 'AGT-' . str_pad($num + 1, 4, '0', STR_PAD_LEFT);
+        while (self::where('agent_id', 'AGT-' . str_pad($num, 4, '0', STR_PAD_LEFT))->exists()) {
+            $num++;
+        }
+
+        return 'AGT-' . str_pad($num, 4, '0', STR_PAD_LEFT);
     }
 }

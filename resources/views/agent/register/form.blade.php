@@ -38,6 +38,7 @@ select.fc{cursor:pointer}
 .upload-zone{border:2px dashed #d1e7dd;border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .2s}
 .upload-zone:hover{border-color:#0f766e;background:#f0fdf4}
 .upload-zone.has-file{border-color:#10b981;background:rgba(16,185,129,.06)}
+.upload-zone.err{border-color:#ef4444;background:#fef2f2}
 .upload-zone i{font-size:28px;color:#94a3b8;margin-bottom:6px;display:block}
 .upload-zone.has-file i{color:#10b981}
 .upload-zone input[type="file"]{display:none}
@@ -93,19 +94,39 @@ select.fc{cursor:pointer}
         <input type="hidden" name="agent_type" id="agentType" value="{{ old('agent_type', '') }}">
 
         <div class="g2">
-          <div class="fg"><label class="fl">First Name <span class="req">*</span></label><input type="text" name="first_name" class="fc" value="{{ old('first_name') }}" required maxlength="60"></div>
-          <div class="fg"><label class="fl">Last Name <span class="req">*</span></label><input type="text" name="last_name" class="fc" value="{{ old('last_name') }}" required maxlength="60"></div>
+          <div class="fg">
+            <label class="fl">First Name <span class="req">*</span></label>
+            <input type="text" name="first_name" class="fc @error('first_name') err @enderror" value="{{ old('first_name') }}" required maxlength="60">
+            @error('first_name') <span class="iv" style="display:block">{{ $message }}</span> @enderror
+          </div>
+          <div class="fg">
+            <label class="fl">Last Name <span class="req">*</span></label>
+            <input type="text" name="last_name" class="fc @error('last_name') err @enderror" value="{{ old('last_name') }}" required maxlength="60">
+            @error('last_name') <span class="iv" style="display:block">{{ $message }}</span> @enderror
+          </div>
         </div>
         <div class="g2">
-          <div class="fg"><label class="fl">National ID (13 digits) <span class="req">*</span></label><input type="text" name="national_id" class="fc" value="{{ old('national_id') }}" required maxlength="13" pattern="\d{13}"></div>
-          <div class="fg"><label class="fl">Mobile Number <span class="req">*</span></label><input type="tel" name="mobile_number" class="fc" value="{{ old('mobile_number') }}" required placeholder="+266 5X XXX XXXX"></div>
+          <div class="fg">
+            <label class="fl">National ID (13 digits) <span class="req">*</span></label>
+            <input type="text" name="national_id" class="fc @error('national_id') err @enderror" value="{{ old('national_id') }}" required maxlength="13" pattern="\d{13}">
+            @error('national_id') <span class="iv" style="display:block">{{ $message }}</span> @enderror
+          </div>
+          <div class="fg">
+            <label class="fl">Mobile Number <span class="req">*</span></label>
+            <input type="tel" name="mobile_number" class="fc @error('mobile_number') err @enderror" value="{{ old('mobile_number') }}" required placeholder="+266 5X XXX XXXX">
+            @error('mobile_number') <span class="iv" style="display:block">{{ $message }}</span> @enderror
+          </div>
         </div>
 
         <div id="shopFields" class="cond-fields">
-          <div class="fg"><label class="fl">Shop / Business Name <span class="req">*</span></label><input type="text" name="shop_name" class="fc" value="{{ old('shop_name') }}" maxlength="100"></div>
+          <div class="fg">
+            <label class="fl">Shop / Business Name <span class="req">*</span></label>
+            <input type="text" name="shop_name" class="fc @error('shop_name') err @enderror" value="{{ old('shop_name') }}" maxlength="100">
+            @error('shop_name') <span class="iv" style="display:block">{{ $message }}</span> @enderror
+          </div>
           <div class="fg">
             <label class="fl">Type of Business <span class="req">*</span></label>
-            <select name="business_type" class="fc">
+            <select name="business_type" class="fc @error('business_type') err @enderror">
               <option value="">Select…</option>
               <option {{ old('business_type')=='Spaza / General Dealer' ? 'selected' : '' }}>Spaza / General Dealer</option>
               <option {{ old('business_type')=='Tuck Shop' ? 'selected' : '' }}>Tuck Shop</option>
@@ -113,10 +134,15 @@ select.fc{cursor:pointer}
               <option {{ old('business_type')=='Pharmacy / Health Shop' ? 'selected' : '' }}>Pharmacy / Health Shop</option>
               <option {{ old('business_type')=='Other' ? 'selected' : '' }}>Other</option>
             </select>
+            @error('business_type') <span class="iv" style="display:block">{{ $message }}</span> @enderror
           </div>
         </div>
 
-        <div class="fg"><label class="fl">Location / Village <span class="req">*</span></label><input type="text" name="shop_location" class="fc" value="{{ old('shop_location') }}" required maxlength="120" placeholder="e.g. Ha Matala, Maseru"></div>
+        <div class="fg">
+          <label class="fl">Location / Village <span class="req">*</span></label>
+          <input type="text" name="shop_location" class="fc @error('shop_location') err @enderror" value="{{ old('shop_location') }}" required maxlength="120" placeholder="e.g. Ha Matala, Maseru">
+          @error('shop_location') <span class="iv" style="display:block">{{ $message }}</span> @enderror
+        </div>
       </div>
 
       {{-- STEP 2 --}}
@@ -124,30 +150,48 @@ select.fc{cursor:pointer}
         <div style="font-size:16px;font-weight:700;margin-bottom:16px">Document Upload</div>
         <div class="fg">
           <label class="fl">National ID Photo <span class="req">*</span></label>
-          <div class="upload-zone" id="zone_id" onclick="document.getElementById('f_id').click()">
+          <div class="upload-zone @error('national_id_photo') err @enderror" id="zone_id" onclick="document.getElementById('f_id').click()">
             <i class="bi bi-credit-card-2-front"></i>
             <div style="font-size:13px;font-weight:600" id="lbl_id">Tap to upload ID photo</div>
             <div style="font-size:11px;color:#94a3b8">JPG or PNG, max 5 MB</div>
             <input type="file" name="national_id_photo" id="f_id" accept="image/jpeg,image/png" required onchange="fileSelected(this,'zone_id','lbl_id')">
           </div>
+          @error('national_id_photo') <span class="iv" style="display:block">{{ $message }}</span> @enderror
         </div>
         <div class="fg">
           <label class="fl">Selfie Holding ID <span class="req">*</span></label>
-          <div class="upload-zone" id="zone_selfie" onclick="document.getElementById('f_selfie').click()">
+          <div class="upload-zone @error('selfie_holding_id') err @enderror" id="zone_selfie" onclick="startCamera()">
             <i class="bi bi-camera"></i>
             <div style="font-size:13px;font-weight:600" id="lbl_selfie">Tap to take selfie with ID</div>
-            <div style="font-size:11px;color:#94a3b8">JPG or PNG, max 5 MB</div>
-            <input type="file" name="selfie_holding_id" id="f_selfie" accept="image/jpeg,image/png" required onchange="fileSelected(this,'zone_selfie','lbl_selfie')">
+            <div style="font-size:11px;color:#94a3b8">Captured live via camera</div>
+            <input type="file" name="selfie_holding_id" id="f_selfie" style="display:none" required>
+          </div>
+          @error('selfie_holding_id') <span class="iv" style="display:block">{{ $message }}</span> @enderror
+          <!-- Live camera feed element -->
+          <div id="camera_container" style="display:none;margin-top:10px;border-radius:12px;overflow:hidden;border:2px solid #0f766e;position:relative;background:#000;aspect-ratio:4/3">
+            <video id="webcam" autoplay playsinline style="width:100%;height:100%;object-fit:cover"></video>
+            <div style="position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:10">
+              <button type="button" class="btn btn-submit" id="btn_capture" onclick="captureSelfie()" style="padding:8px 16px;font-size:12px"><i class="bi bi-camera-fill"></i> Capture</button>
+              <button type="button" class="btn btn-back" id="btn_close_cam" onclick="closeCamera()" style="padding:8px 16px;font-size:12px">Cancel</button>
+            </div>
+          </div>
+          <!-- Preview captured image -->
+          <div id="selfie_preview_container" style="display:none;margin-top:10px;border-radius:12px;overflow:hidden;border:2px solid #10b981;position:relative;aspect-ratio:4/3">
+            <img id="selfie_preview" style="width:100%;height:100%;object-fit:cover">
+            <div style="position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:10">
+              <button type="button" class="btn btn-back" id="btn_retake" onclick="retakeSelfie()" style="padding:8px 16px;font-size:12px"><i class="bi bi-arrow-clockwise"></i> Retake</button>
+            </div>
           </div>
         </div>
         <div class="fg" id="licenceUpload" class="cond-fields">
           <label class="fl">Business Licence / Permit <span style="color:#94a3b8">(optional)</span></label>
-          <div class="upload-zone" id="zone_lic" onclick="document.getElementById('f_lic').click()">
+          <div class="upload-zone @error('business_licence') err @enderror" id="zone_lic" onclick="document.getElementById('f_lic').click()">
             <i class="bi bi-file-earmark-text"></i>
             <div style="font-size:13px;font-weight:600" id="lbl_lic">Tap to upload licence</div>
             <div style="font-size:11px;color:#94a3b8">JPG, PNG or PDF, max 5 MB</div>
             <input type="file" name="business_licence" id="f_lic" accept="image/jpeg,image/png,application/pdf" onchange="fileSelected(this,'zone_lic','lbl_lic')">
           </div>
+          @error('business_licence') <span class="iv" style="display:block">{{ $message }}</span> @enderror
         </div>
       </div>
 
@@ -156,30 +200,44 @@ select.fc{cursor:pointer}
         <div style="font-size:16px;font-weight:700;margin-bottom:16px">Payout Setup</div>
         <div class="fg">
           <label class="fl">Preferred Payout Method <span class="req">*</span></label>
-          <select name="payout_method" id="payoutMethod" class="fc" required onchange="togglePayout()">
+          <select name="payout_method" id="payoutMethod" class="fc @error('payout_method') err @enderror" required onchange="togglePayout()">
             <option value="">Select…</option>
             <option {{ old('payout_method')=='M-Pesa' ? 'selected' : '' }}>M-Pesa</option>
             <option {{ old('payout_method')=='EcoCash' ? 'selected' : '' }}>EcoCash</option>
             <option {{ old('payout_method')=='Bank transfer' ? 'selected' : '' }}>Bank transfer</option>
           </select>
+          @error('payout_method') <span class="iv" style="display:block">{{ $message }}</span> @enderror
         </div>
         <div id="mobilePayFields" class="cond-fields">
-          <div class="fg"><label class="fl">Mobile Money Number <span class="req">*</span></label><input type="tel" name="payout_number_or_details" class="fc" value="{{ old('payout_number_or_details') }}" placeholder="+266 5X XXX XXXX"></div>
+          <div class="fg">
+            <label class="fl">Mobile Money Number <span class="req">*</span></label>
+            <input type="tel" name="payout_number_or_details" class="fc @error('payout_number_or_details') err @enderror" value="{{ old('payout_number_or_details') }}" placeholder="+266 5X XXX XXXX">
+            @error('payout_number_or_details') <span class="iv" style="display:block">{{ $message }}</span> @enderror
+          </div>
         </div>
         <div id="bankPayFields" class="cond-fields">
           <div class="fg">
             <label class="fl">Bank Name <span class="req">*</span></label>
-            <select name="payout_bank_name" class="fc">
+            <select name="payout_bank_name" class="fc @error('payout_bank_name') err @enderror">
               <option value="">Select…</option>
               <option {{ old('payout_bank_name')=='Standard Lesotho Bank' ? 'selected' : '' }}>Standard Lesotho Bank</option>
               <option {{ old('payout_bank_name')=='FNB Lesotho' ? 'selected' : '' }}>FNB Lesotho</option>
               <option {{ old('payout_bank_name')=='Nedbank Lesotho' ? 'selected' : '' }}>Nedbank Lesotho</option>
               <option {{ old('payout_bank_name')=='PostBank Lesotho' ? 'selected' : '' }}>PostBank Lesotho</option>
             </select>
+            @error('payout_bank_name') <span class="iv" style="display:block">{{ $message }}</span> @enderror
           </div>
-          <div class="fg"><label class="fl">Account Number <span class="req">*</span></label><input type="text" name="payout_number_or_details" class="fc" maxlength="20"></div>
+          <div class="fg">
+            <label class="fl">Account Number <span class="req">*</span></label>
+            <input type="text" name="payout_number_or_details" class="fc @error('payout_number_or_details') err @enderror" value="{{ old('payout_number_or_details') }}" maxlength="20">
+            @error('payout_number_or_details') <span class="iv" style="display:block">{{ $message }}</span> @enderror
+          </div>
         </div>
-        <div class="fg"><label class="fl">Account Holder Name <span class="req">*</span></label><input type="text" name="payout_account_name" class="fc" value="{{ old('payout_account_name') }}" required maxlength="80"></div>
+        <div class="fg">
+          <label class="fl">Account Holder Name <span class="req">*</span></label>
+          <input type="text" name="payout_account_name" class="fc @error('payout_account_name') err @enderror" value="{{ old('payout_account_name') }}" required maxlength="80">
+          @error('payout_account_name') <span class="iv" style="display:block">{{ $message }}</span> @enderror
+        </div>
       </div>
 
       {{-- STEP 4 --}}
@@ -200,9 +258,10 @@ select.fc{cursor:pointer}
         </div>
 
         <div class="check-row">
-          <input type="checkbox" name="agreement" id="agreeCheck" value="1" required>
+          <input type="checkbox" name="agreement" id="agreeCheck" value="1" required class="@error('agreement') err @enderror">
           <label for="agreeCheck">I have read and accept the MyLoan Agent Agreement.</label>
         </div>
+        @error('agreement') <span class="iv" style="display:block;margin-top:-8px;margin-bottom:14px">{{ $message }}</span> @enderror
       </div>
 
       <div class="btn-row">
@@ -348,8 +407,26 @@ function selectType(type) {
 
 function togglePayout() {
   const m = document.getElementById('payoutMethod').value;
-  document.getElementById('mobilePayFields').classList.toggle('show', m === 'M-Pesa' || m === 'EcoCash');
-  document.getElementById('bankPayFields').classList.toggle('show', m === 'Bank transfer');
+  const isMobile = (m === 'M-Pesa' || m === 'EcoCash');
+  const isBank = (m === 'Bank transfer');
+
+  document.getElementById('mobilePayFields').classList.toggle('show', isMobile);
+  document.getElementById('bankPayFields').classList.toggle('show', isBank);
+
+  // Enable/Disable hidden inputs to prevent name collisions in submission
+  const mobileInput = document.querySelector('#mobilePayFields [name="payout_number_or_details"]');
+  const bankBankName = document.querySelector('[name="payout_bank_name"]');
+  const bankAccInput = document.querySelector('#bankPayFields [name="payout_number_or_details"]');
+
+  if (mobileInput) {
+    mobileInput.disabled = !isMobile;
+  }
+  if (bankBankName) {
+    bankBankName.disabled = !isBank;
+  }
+  if (bankAccInput) {
+    bankAccInput.disabled = !isBank;
+  }
 }
 
 function fileSelected(input, zoneId, lblId) {
@@ -379,8 +456,121 @@ function buildReview() {
   document.getElementById('reviewSummary').innerHTML = html;
 }
 
+// Selfie live camera capture logic
+let stream = null;
+
+function startCamera() {
+  const container = document.getElementById('camera_container');
+  const previewContainer = document.getElementById('selfie_preview_container');
+  const zone = document.getElementById('zone_selfie');
+  
+  // Hide preview and zone
+  previewContainer.style.display = 'none';
+  zone.style.display = 'none';
+  container.style.display = 'block';
+
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+    audio: false
+  }).then(s => {
+    stream = s;
+    const video = document.getElementById('webcam');
+    video.srcObject = s;
+  }).catch(err => {
+    alert('Unable to access camera. Please ensure permissions are granted.');
+    zone.style.display = 'block';
+    container.style.display = 'none';
+  });
+}
+
+function captureSelfie() {
+  const video = document.getElementById('webcam');
+  const container = document.getElementById('camera_container');
+  const previewContainer = document.getElementById('selfie_preview_container');
+  const previewImg = document.getElementById('selfie_preview');
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  
+  const ctx = canvas.getContext('2d');
+  // Mirror front camera view
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+  canvas.toBlob(blob => {
+    const file = new File([blob], 'selfie.jpg', { type: 'image/jpeg' });
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('f_selfie').files = dt.files;
+    
+    // Set preview img src
+    previewImg.src = URL.createObjectURL(blob);
+    previewContainer.style.display = 'block';
+    container.style.display = 'none';
+    
+    // Update zone label
+    document.getElementById('lbl_selfie').textContent = 'Selfie Captured ✔';
+    document.getElementById('zone_selfie').classList.add('has-file');
+    document.getElementById('zone_selfie').style.display = 'block';
+    
+    stopCamera();
+  }, 'image/jpeg', 0.9);
+}
+
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+}
+
+function closeCamera() {
+  stopCamera();
+  document.getElementById('camera_container').style.display = 'none';
+  document.getElementById('zone_selfie').style.display = 'block';
+}
+
+function retakeSelfie() {
+  document.getElementById('selfie_preview_container').style.display = 'none';
+  document.getElementById('zone_selfie').classList.remove('has-file');
+  document.getElementById('lbl_selfie').textContent = 'Tap to take selfie with ID';
+  
+  // Clear file
+  document.getElementById('f_selfie').value = '';
+  
+  startCamera();
+}
+
 // Enable submit only when checkbox is ticked
 document.getElementById('agreeCheck').addEventListener('change', function(){ document.getElementById('btnSubmit').disabled = !this.checked; });
+
+// Prevent double submission
+document.getElementById('regForm').addEventListener('submit', function(e) {
+  if (this.checkValidity()) {
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting...';
+  }
+});
+
+// Determine the step to activate on load based on backend errors
+let errorStep = 1;
+@if($errors->any())
+  @if($errors->hasAny(['national_id_photo', 'selfie_holding_id', 'business_licence']))
+    errorStep = 2;
+  @elseif($errors->hasAny(['payout_method', 'payout_number_or_details', 'payout_account_name', 'payout_bank_name']))
+    errorStep = 3;
+  @elseif($errors->has('agreement'))
+    errorStep = 4;
+  @else
+    errorStep = 1;
+  @endif
+@endif
+
+currentStep = errorStep;
+showStep(currentStep);
 
 // Restore type selection on page load
 @if(old('agent_type')) selectType('{{ old('agent_type') }}'); @endif
