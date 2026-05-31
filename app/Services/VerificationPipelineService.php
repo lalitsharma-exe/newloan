@@ -108,8 +108,8 @@ class VerificationPipelineService
         $hashes = [];
 
         foreach ($documents as $doc) {
-            $filePath = $doc->file_path;
-            if (Storage::disk('public')->exists($filePath)) {
+            $filePath = $doc->path;
+            if ($filePath && Storage::disk('public')->exists($filePath)) {
                 $content = Storage::disk('public')->get($filePath);
                 $hash = hash('sha256', $content);
                 
@@ -151,7 +151,8 @@ class VerificationPipelineService
         // Simulating the check
         $idMatch = true;
 
-        if (strlen($application->national_id) !== 13) {
+        $cleanId = preg_replace('/[^0-9]/', '', $application->national_id);
+        if (strlen($cleanId) !== 13) {
             return [
                 'status' => 'flagged',
                 'confidence' => 100,
@@ -196,7 +197,7 @@ class VerificationPipelineService
             'status' => 'passed',
             'matched_register' => $isGovt ? 'Lesotho HRMIS Register' : 'Standard Business Registry',
             'payroll_status' => 'Verified Active',
-            'details' => "Employer {$employment->employer_name} and employee number {$employment->employee_number} matched active registers."
+            'details' => "Employer {$employment->employer_name} and employment number {$employment->employment_number} matched active registers."
         ];
     }
 

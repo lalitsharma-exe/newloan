@@ -121,7 +121,12 @@
                 {{ strtoupper(substr($app->applicant_name,0,1)) }}
               </div>
               <div>
-                <div style="font-size:13px;font-weight:600">{{ $app->applicant_name }}</div>
+                <div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">
+                  {{ $app->applicant_name }}
+                  @if($app->agent_id)
+                    <span style="background:rgba(15,118,110,.12);color:#0f766e;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:12px;border:1px solid rgba(15,118,110,.25)">Agent</span>
+                  @endif
+                </div>
                 <div style="font-size:11.5px;color:var(--muted)">{{ $app->user->email ?? $app->email ?? '—' }}</div>
               </div>
             </div>
@@ -144,6 +149,11 @@
               <div style="font-size:12.5px;font-weight:600">{{ $app->assignedOfficer->name }}</div>
             @else
               <span style="color:var(--muted);font-size:12px;font-style:italic">Unassigned</span>
+            @endif
+            @if($app->agent_id)
+              <div style="font-size:11px;color:#0f766e;margin-top:2px;font-weight:500">
+                <i class="bi bi-shop"></i> {{ $app->agent->agentProfile->agent_id ?? 'AGT-1001' }}
+              </div>
             @endif
           </td>
           <td>

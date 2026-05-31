@@ -130,11 +130,16 @@ class LoanApplication extends Model
             ->first();
 
         if (!$latest) {
-            return 'APP-000001';
+            $num = 1;
+        } else {
+            $num = (int) str_replace('APP-', '', $latest->application_number) + 1;
         }
 
-        $number = (int) str_replace('APP-', '', $latest->application_number);
-        return 'APP-' . str_pad($number + 1, 6, '0', STR_PAD_LEFT);
+        while (self::where('application_number', 'APP-' . str_pad($num, 6, '0', STR_PAD_LEFT))->exists()) {
+            $num++;
+        }
+
+        return 'APP-' . str_pad($num, 6, '0', STR_PAD_LEFT);
     }
 
     // ── Scopes ────────────────────────────────────────────────────
@@ -175,6 +180,10 @@ class LoanApplication extends Model
     public function assignedOfficer()
     {
         return $this->belongsTo(User::class, 'assigned_officer_id');
+    }
+    public function agent()
+    {
+        return $this->belongsTo(User::class, 'agent_id');
     }
     public function documents()
     {

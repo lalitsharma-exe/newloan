@@ -62,14 +62,21 @@ $afford = app(\App\Services\Admin\ApplicationService::class)->checkAffordability
 </div>
 
 {{-- QUICK STATS --}}
-<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px">
-  @foreach([
-    ['Requested','M '.number_format($application->requested_amount??0,0),'currency-dollar','#4f46e5'],
-    ['Term',($application->requested_term??'—').' months','calendar3','#0891b2'],
-    ['Risk Score',$application->risk_score??'—','graph-up','#f59e0b'],
-    ['Submitted',$application->submitted_at?->format('d M Y')??'Draft','clock','#64748b'],
-    ['Officer',$application->assignedOfficer?->name??'Unassigned','person-badge','#10b981'],
-  ] as [$label,$val,$icon,$color])
+@php
+$stats = [
+  ['Requested','M '.number_format($application->requested_amount??0,0),'currency-dollar','#4f46e5'],
+  ['Term',($application->requested_term??'—').' months','calendar3','#0891b2'],
+  ['Risk Score',$application->risk_score??'—','graph-up','#f59e0b'],
+  ['Submitted',$application->submitted_at?->format('d M Y')??'Draft','clock','#64748b'],
+  ['Officer',$application->assignedOfficer?->name??'Unassigned','person-badge','#10b981'],
+];
+if ($application->agent_id) {
+  $stats[] = ['Agent',$application->agent->agentProfile->agent_id ?? 'AGT-1001','shop','#0f766e'];
+}
+$gridCols = count($stats);
+@endphp
+<div style="display:grid;grid-template-columns:repeat({{ $gridCols }},1fr);gap:12px;margin-bottom:20px">
+  @foreach($stats as [$label,$val,$icon,$color])
   <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:11px">
     <div style="width:36px;height:36px;border-radius:10px;background:{{ $color }}18;display:flex;align-items:center;justify-content:center;color:{{ $color }};font-size:16px;flex-shrink:0"><i class="bi bi-{{ $icon }}"></i></div>
     <div><div style="font-size:14px;font-weight:700;color:var(--dark)">{{ $val }}</div><div style="font-size:11px;color:var(--muted)">{{ $label }}</div></div>

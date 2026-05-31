@@ -24,7 +24,7 @@ class RegistrationController extends Controller
         $request->validate([
             'first_name'    => 'required|string|max:60|regex:/^[a-zA-Z\s\-]+$/',
             'last_name'     => 'required|string|max:60|regex:/^[a-zA-Z\s\-]+$/',
-            'national_id'   => 'required|string|size:13|regex:/^\d{13}$/',
+            'national_id'   => 'required|string|max:50',
             'mobile_number' => 'required|string|max:20',
             'agent_type'    => 'required|in:shop,individual',
             'shop_name'     => 'required_if:agent_type,shop|nullable|string|max:100',
@@ -39,8 +39,6 @@ class RegistrationController extends Controller
             'payout_bank_name'     => 'required_if:payout_method,Bank transfer|nullable|string',
             'agreement'            => 'accepted',
         ], [
-            'national_id.size'       => 'National ID must be exactly 13 digits.',
-            'national_id.regex'      => 'National ID must be numeric digits only.',
             'first_name.regex'       => 'First name must contain letters only.',
             'last_name.regex'        => 'Last name must contain letters only.',
             'agreement.accepted'     => 'You must accept the agent agreement to proceed.',

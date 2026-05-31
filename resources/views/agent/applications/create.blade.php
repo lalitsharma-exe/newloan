@@ -632,7 +632,12 @@ function showStep(n) {
   document.getElementById('btnNext').style.display = n < totalSteps ? '' : 'none';
   document.getElementById('btnSubmit').style.display = n === totalSteps ? '' : 'none';
   
-  if(n === 9) buildReview();
+  if(n === 9) {
+    buildReview();
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 100);
+  }
 }
 
 function nextStep() {
@@ -1029,6 +1034,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 alert('Please ask the client to provide their signature.');
             } else {
                 document.getElementById('signature_data').value = sigPad.toDataURL('image/png');
+                const btnSubmit = document.getElementById('btnSubmit');
+                if (btnSubmit) {
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting Application...';
+                }
             }
         });
     }

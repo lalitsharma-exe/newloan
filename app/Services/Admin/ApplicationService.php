@@ -9,7 +9,7 @@ class ApplicationService
 {
     public function getPaginated(array $filters, int $perPage = 15)
     {
-        $q = LoanApplication::with(['user', 'loanProduct', 'assignedOfficer']);
+        $q = LoanApplication::with(['user', 'loanProduct', 'assignedOfficer', 'agent.agentProfile']);
 
         if (isset($filters['status']) && $filters['status'] === 'draft') {
             $q->where('status', 'draft');

@@ -63,7 +63,7 @@ class ApplicationController extends Controller
             'first_name'            => 'required|string|max:60',
             'surname'               => 'required|string|max:60',
             'maiden_name'           => 'nullable|string|max:60',
-            'national_id'           => 'required|string|size:13',
+            'national_id'           => 'required|string|max:50',
             'date_of_birth'         => 'required|date|before:today',
             'gender'                => 'required|string|in:male,female',
             'marital_status'        => 'required|string|in:single,married,divorced,widowed',
@@ -332,8 +332,11 @@ class ApplicationController extends Controller
                         'user_id'        => $borrower->id,
                         'application_id' => $application->id,
                         'type'           => $label,
-                        'file_path'      => $path,
+                        'filename'       => $file->getClientOriginalName(),
                         'original_name'  => $file->getClientOriginalName(),
+                        'path'           => $path,
+                        'size'           => $file->getSize(),
+                        'mime_type'      => $file->getMimeType(),
                         'status'         => 'pending',
                     ]);
                 }

@@ -199,7 +199,7 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 <script>
 const sbToggle=document.getElementById('sbToggle'),sb=document.getElementById('sb');
 sbToggle.addEventListener('click',()=>sb.classList.toggle('open'));
-setTimeout(()=>document.querySelectorAll('.alert').forEach(el=>{el.style.transition='opacity .5s';el.style.opacity='0';setTimeout(()=>el.remove(),500)}),4500);
+setTimeout(()=>document.querySelectorAll('.alert:not(.a-e)').forEach(el=>{el.style.transition='opacity .5s';el.style.opacity='0';setTimeout(()=>el.remove(),500)}),4500);
 // Logout modal open helper
 document.getElementById('logoutModal').addEventListener('click',function(e){if(e.target===this)this.style.display='none'});
 </script>
