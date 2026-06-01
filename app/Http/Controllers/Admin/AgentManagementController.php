@@ -6,6 +6,7 @@ use App\Models\{AgentApplication, AgentProfile, User, LoanApplication};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{DB, Hash, Storage};
 use Illuminate\Support\Str;
+use App\Services\SmsService;
 
 class AgentManagementController extends Controller
 {
@@ -57,9 +58,10 @@ class AgentManagementController extends Controller
      * Approve an agent application:
      * 1. Create a user account with role='agent'
      * 2. Create an agent_profile record
-     * 3. Mark application as approved
+     * @param  AgentApplication $agentApplication
+     * @param  SmsService $smsService
      */
-    public function approve(AgentApplication $agentApplication)
+    public function approve(AgentApplication $agentApplication, SmsService $smsService)
     {
         if ($agentApplication->status === 'approved') {
             return back()->with('error', 'This application is already approved.');
@@ -97,10 +99,11 @@ class AgentManagementController extends Controller
 
             DB::commit();
 
-            // TODO: Send activation SMS with contract signing link
-            // For now we log the generated credentials
+            // Send activation SMS
+            $smsMessage = "Congratulations! Your MyLoan Agent Application has been approved. Agent ID: {$profile->agent_id}\n\nLogin Credentials:\nEmail: {$user->email}\nPassword: {$password}\n\nLog in here: " . route('agent.login');
+            $smsService->send($agentApplication->mobile_number, $smsMessage);
 
-            return back()->with('success', "Agent {$profile->agent_id} approved! Login: {$user->email} / {$password}");
+            return back()->with('success', "Agent {$profile->agent_id} approved! Login credentials generated & sent to applicant via SMS.");
         } catch (\Throwable $e) {
             DB::rollBack();
             return back()->with('error', 'Failed to approve: ' . $e->getMessage());
