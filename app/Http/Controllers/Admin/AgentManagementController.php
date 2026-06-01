@@ -100,7 +100,7 @@ class AgentManagementController extends Controller
             DB::commit();
 
             // Send activation SMS
-            $smsMessage = "Congratulations! Your MyLoan Agent Application has been approved. Agent ID: {$profile->agent_id}\n\nLogin Credentials:\nEmail: {$user->email}\nPassword: {$password}\n\nLog in here: " . route('agent.login');
+            $smsMessage = "Congratulations! Your Agent ID: {$profile->agent_id}\nLog in here: " . route('agent.login') . "\nEmail: {$user->email}\nPassword: {$password}";
             $smsService->send($agentApplication->mobile_number, $smsMessage);
 
             return back()->with('success', "Agent {$profile->agent_id} approved! Login credentials generated & sent to applicant via SMS.");

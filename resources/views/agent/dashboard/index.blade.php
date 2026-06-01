@@ -3,7 +3,7 @@
 @section('content')
 
 {{-- Commission Banner --}}
-<div style="background:linear-gradient(135deg,#134e4a,#0f766e);border-radius:16px;padding:22px 26px;margin-bottom:22px;color:#fff;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<div style="background:linear-gradient(135deg,#0d1b3e,#2b4bad);border-radius:16px;padding:22px 26px;margin-bottom:22px;color:#fff;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
   <div style="width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">
     <i class="bi bi-wallet2"></i>
   </div>
@@ -79,7 +79,7 @@
       <tbody>
         @forelse($recentApps as $app)
         <tr>
-          <td><a href="{{ route('agent.applications.show', $app) }}" style="color:#0f766e;font-weight:600;text-decoration:none">{{ $app->application_number }}</a></td>
+          <td><a href="{{ route('agent.applications.show', $app) }}" style="color:#2b4bad;font-weight:600;text-decoration:none">{{ $app->application_number }}</a></td>
           <td>{{ $app->applicant_name }}</td>
           <td>M{{ number_format($app->requested_amount, 2) }}</td>
           <td>
@@ -97,7 +97,7 @@
           <td style="color:#64748b;font-size:12px">{{ $app->submitted_at?->format('d M Y') ?? '-' }}</td>
         </tr>
         @empty
-        <tr><td colspan="5" style="text-align:center;color:#64748b;padding:30px">No applications yet. <a href="{{ route('agent.applications.create') }}" style="color:#0f766e">Submit your first one →</a></td></tr>
+        <tr><td colspan="5" style="text-align:center;color:#64748b;padding:30px">No applications yet. <a href="{{ route('agent.applications.create') }}" style="color:#2b4bad">Submit your first one →</a></td></tr>
         @endforelse
       </tbody>
     </table>

@@ -12,7 +12,7 @@
 html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:antialiased}
 .auth-wrap { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
 .auth-brand {
-  background: linear-gradient(160deg, #042f2e 0%, #134e4a 40%, #115e59 70%, #0f766e 100%);
+  background: linear-gradient(160deg, #0d1b3e 0%, #162552 40%, #1e3370 70%, #2b4bad 100%);
   position: relative; overflow: hidden;
   display: flex; flex-direction: column;
   justify-content: space-between; padding: 48px;
@@ -20,13 +20,13 @@ html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:ant
 .auth-brand::before {
   content: ''; position: absolute;
   width: 500px; height: 500px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(45,212,191,.25) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(43,75,173,.25) 0%, transparent 70%);
   top: -100px; right: -150px;
 }
 .auth-brand::after {
   content: ''; position: absolute;
   width: 400px; height: 400px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(16,185,129,.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(43,75,173,.15) 0%, transparent 70%);
   bottom: -80px; left: -80px;
 }
 .brand-logo { position: relative; z-index: 1; }
@@ -37,7 +37,7 @@ html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:ant
   font-size: clamp(32px, 3.5vw, 48px); font-weight: 700;
   color: #fff; line-height: 1.15; letter-spacing: -.02em; margin-bottom: 16px;
 }
-.brand-body h2 em { font-style: italic; color: #2dd4bf; }
+.brand-body h2 em { font-style: italic; color: #7c9ff5; }
 .brand-body p { font-size: 15px; color: rgba(255,255,255,.55); line-height: 1.7; max-width: 340px; margin-bottom: 36px; }
 .brand-pills { display: flex; flex-direction: column; gap: 12px; }
 .brand-pill {
@@ -47,14 +47,14 @@ html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:ant
 }
 .brand-pill-icon {
   width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
-  background: rgba(45,212,191,.2); display: flex; align-items: center;
-  justify-content: center; color: #5eead4; font-size: 15px;
+  background: rgba(43,75,173,.2); display: flex; align-items: center;
+  justify-content: center; color: #7c9ff5; font-size: 15px;
 }
 .brand-pill-text strong { display: block; font-size: 13px; color: #fff; font-weight: 600; margin-bottom: 1px; }
 .brand-pill-text span { font-size: 12px; color: rgba(255,255,255,.45); }
 .brand-foot { position: relative; z-index: 1; font-size: 12px; color: rgba(255,255,255,.25); }
 .auth-form-wrap {
-  background: #f0fdf4;
+  background: #f5f7ff;
   display: flex; align-items: center; justify-content: center; padding: 40px 32px;
 }
 .auth-form { width: 100%; max-width: 400px; }
@@ -69,29 +69,29 @@ html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:ant
 .fg { margin-bottom: 18px; }
 .fl { display: block; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #5a6b85; margin-bottom: 6px; }
 .field-wrap { position: relative; }
-.field-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #86c7bd; font-size: 16px; pointer-events: none; }
+.field-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #2b4bad; font-size: 16px; pointer-events: none; }
 .fc {
   width: 100%; padding: 12px 13px 12px 40px;
-  border: 1.5px solid #d1e7dd; border-radius: 8px;
+  border: 1.5px solid #dde3ef; border-radius: 8px;
   font-size: 14px; font-family: 'Outfit', sans-serif;
   background: #fff; outline: none; color: #1c2433; transition: all .2s;
 }
-.fc:focus { border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15,118,110,.1); }
-.forgot-link { display: block; text-align: right; font-size: 12px; color: #0f766e; text-decoration: none; margin-top: -10px; margin-bottom: 14px; }
+.fc:focus { border-color: #2b4bad; box-shadow: 0 0 0 3px rgba(43,75,173,.1); }
+.forgot-link { display: block; text-align: right; font-size: 12px; color: #2b4bad; text-decoration: none; margin-top: -10px; margin-bottom: 14px; }
 .forgot-link:hover { text-decoration: underline; }
 .check-row { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; }
-.check-row input { width: 16px; height: 16px; accent-color: #0f766e; cursor: pointer; }
+.check-row input { width: 16px; height: 16px; accent-color: #2b4bad; cursor: pointer; }
 .check-row label { font-size: 13px; color: #5a6b85; cursor: pointer; }
 .btn-submit {
   width: 100%; padding: 14px; border-radius: 8px; border: none;
-  background: linear-gradient(135deg, #134e4a, #0f766e);
+  background: linear-gradient(135deg, #0d1b3e, #2b4bad);
   color: #fff; font-size: 15px; font-weight: 700;
   font-family: 'Outfit', sans-serif; cursor: pointer;
   transition: all .3s; display: flex; align-items: center;
   justify-content: center; gap: 8px;
-  box-shadow: 0 4px 16px rgba(15,118,110,.25);
+  box-shadow: 0 4px 16px rgba(43,75,173,.25);
 }
-.btn-submit:hover { background: linear-gradient(135deg, #0f766e, #14b8a6); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(15,118,110,.35); }
+.btn-submit:hover { background: linear-gradient(135deg, #2b4bad, #3d60d4); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(43,75,173,.35); }
 .auth-error {
   background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2);
   color: #991b1b; padding: 11px 14px; border-radius: 8px;
@@ -107,27 +107,27 @@ html,body{height:100%;font-family:'Outfit',sans-serif;-webkit-font-smoothing:ant
   flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
   padding: 10px 12px; border-radius: 8px; text-decoration: none;
   font-size: 12px; font-weight: 600; transition: all .2s;
-  border: 1.5px solid #d1e7dd; color: #5a6b85; background: #fff;
+  border: 1.5px solid #dde3ef; color: #5a6b85; background: #fff;
 }
-.portal-link:hover { border-color: #0f766e; color: #0f766e; background: rgba(15,118,110,.04); }
-.portal-link.active { border-color: #0f766e; color: #0f766e; background: rgba(15,118,110,.06); }
-.register-link { display: block; text-align: center; margin-top: 18px; padding: 12px; background: rgba(45,212,191,.08); border: 1px solid rgba(45,212,191,.2); border-radius: 8px; text-decoration: none; color: #0f766e; font-size: 13px; font-weight: 600; transition: all .2s; }
-.register-link:hover { background: rgba(45,212,191,.15); }
+.portal-link:hover { border-color: #2b4bad; color: #2b4bad; background: rgba(43,75,173,.04); }
+.portal-link.active { border-color: #2b4bad; color: #2b4bad; background: rgba(43,75,173,.06); }
+.register-link { display: block; text-align: center; margin-top: 18px; padding: 12px; background: rgba(43,75,173,.08); border: 1px solid rgba(43,75,173,.2); border-radius: 8px; text-decoration: none; color: #2b4bad; font-size: 13px; font-weight: 600; transition: all .2s; }
+.register-link:hover { background: rgba(43,75,173,.15); }
 @media(max-width: 768px) {
   .auth-wrap { grid-template-columns: 1fr; }
   .auth-brand { display: none; }
   .auth-form-logo { display: block; text-align: center; }
-  .auth-form-wrap { background: linear-gradient(160deg, #042f2e, #115e59); padding: 40px 24px; }
+  .auth-form-wrap { background: linear-gradient(160deg, #0d1b3e, #162552); padding: 40px 24px; }
   .auth-head h1 { color: #fff; } .auth-head p { color: rgba(255,255,255,.55); }
   .fl { color: rgba(255,255,255,.55); }
   .fc { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.15); color: #fff; }
   .fc::placeholder { color: rgba(255,255,255,.3); }
   .fc:focus { border-color: rgba(255,255,255,.4); box-shadow: 0 0 0 3px rgba(255,255,255,.1); }
   .field-icon { color: rgba(255,255,255,.35); }
-  .forgot-link { color: #2dd4bf; }
+  .forgot-link { color: #7c9ff5; }
   .check-row label { color: rgba(255,255,255,.55); }
   .portal-link { border-color: rgba(255,255,255,.15); color: rgba(255,255,255,.55); background: rgba(255,255,255,.05); }
-  .register-link { border-color: rgba(255,255,255,.15); color: #2dd4bf; background: rgba(255,255,255,.05); }
+  .register-link { border-color: rgba(255,255,255,.15); color: #7c9ff5; background: rgba(255,255,255,.05); }
 }
 </style>
 </head>
