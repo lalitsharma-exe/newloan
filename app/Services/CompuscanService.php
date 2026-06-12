@@ -44,7 +44,8 @@ class CompuscanService
             $count++;
         }
         
-        $content .= $this->generateTrailer($count);
+        // Total rows = 1 (header) + $count (data rows) + 1 (trailer) = $count + 2
+        $content .= $this->generateTrailer($count + 2);
         
         return $content;
     }
@@ -56,7 +57,8 @@ class CompuscanService
     {
         $date = Carbon::parse($targetDate);
         
-        $content = $this->generateHeader($date, 'L702', 'D');
+        // Daily files should not include a header record
+        $content = '';
         
         // Fetch loans disbursed on this day (Registrations)
         $registrations = Loan::with(['user', 'application'])
@@ -83,7 +85,8 @@ class CompuscanService
             $count++;
         }
         
-        $content .= $this->generateTrailer($count);
+        // Total rows = 0 (no header) + $count (data rows) + 1 (trailer) = $count + 1
+        $content .= $this->generateTrailer($count + 1);
         
         return $content;
     }
@@ -129,17 +132,17 @@ class CompuscanService
     private function generateHeader(Carbon $date, string $fileType, string $frequency): string
     {
         // 1 RECORD TYPE INDICATOR: "H" (1)
-        // 2 SUPPLIER REFERENCE NUMBER (10)
+        // 2 SUPPLIER REFERENCE NUMBER (10) - right aligned
         // 3 MONTH END DATE / TRANSACTION DATE CCYYMMDD (8)
-        // 4 VERSION NUMBER "03" (2)
+        // 4 VERSION NUMBER "06" (2)
         // 5 DATE FILE WAS CREATED CCYYMMDD (8)
         // 6 TRADING NAME (60)
         // 7 FILLER (611) -> 700 chars total for header
         
         $row = 'H';
-        $row .= $this->padA($this->srn, 10);
+        $row .= $this->padALeft($this->srn, 10);
         $row .= $date->format('Ymd');
-        $row .= '03'; // V3.00
+        $row .= '06'; // V6.00
         $row .= Carbon::now()->format('Ymd');
         $row .= $this->padA($this->tradingName, 60);
         $row .= $this->padA('', 611); // Filler to 700
@@ -339,8 +342,8 @@ class CompuscanService
         // 56 FILLER (2) => to 700
         $row .= '  ';
         
-        // 57 SUPPLIER REFERENCE NUMBER (10)
-        $row .= $this->padA($this->srn, 10);
+        // 57 SUPPLIER REFERENCE NUMBER (10) - right aligned
+        $row .= $this->padALeft($this->srn, 10);
         
         // 58 TRANSACTION DATE (8)
         $row .= $date->format('Ymd');
