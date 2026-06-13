@@ -14,7 +14,7 @@ if ($loan) {
     $targetDate = $loan->disbursement_date->format('Y-m-d');
     echo "Using target date with disbursements: $targetDate\n\n";
 } else {
-    $targetDate = '2026-04-27';
+    $targetDate = '2025-09-25';
     echo "No disbursed loans found in database, using fallback date: $targetDate\n\n";
 }
 
@@ -22,28 +22,105 @@ $service = new CompuscanService();
 
 echo "Running Verification for Experian/Compuscan layout changes...\n\n";
 
+function isValidLuhn(string $num): bool
+{
+    if (!preg_match('/^[0-9]{13}$/', $num)) {
+        return false;
+    }
+    $sum = 0;
+    for ($i = 12; $i >= 0; $i--) {
+        $val = (int)$num[$i];
+        if ($i % 2 === 1) {
+            $val *= 2;
+            if ($val > 9) {
+                $val -= 9;
+            }
+        }
+        $sum += $val;
+    }
+    return ($sum % 10) === 0;
+}
+
+function verifyRecordFields(string $row, string $typeDesc): bool
+{
+    // Positions (0-based indices in 718-character data record)
+    $recType = substr($row, 0, 1);
+    $lsoId = trim(substr($row, 1, 13));
+    $loanReason = substr($row, 363, 2);
+    $currBalance = trim(substr($row, 402, 9));
+    $currBalInd = substr($row, 411, 1);
+    $statusCode = substr($row, 432, 2);
+
+    echo "  Parsed fields for first $typeDesc data record:\n";
+    echo "    Record Type:             '$recType'\n";
+    echo "    LSO ID (trimmed):        '$lsoId'\n";
+    echo "    Loan Reason Code:        '$loanReason'\n";
+    echo "    Current Balance:         '$currBalance'\n";
+    echo "    Current Balance Ind:     '$currBalInd'\n";
+    echo "    Status Code:             '$statusCode'\n";
+
+    // Validations
+    $errors = [];
+    
+    // 1. Check ID format: 12-digit Lesotho or 13-digit Luhn SA ID
+    $cleanId = preg_replace('/[^0-9]/', '', $lsoId);
+    $isValidId = (strlen($cleanId) === 12) || (strlen($cleanId) === 13 && isValidLuhn($cleanId));
+    if (!$isValidId) {
+        $errors[] = "Invalid LSO ID format or Luhn check failed ('$lsoId').";
+    }
+
+    // 2. Loan Reason Code must be '00'
+    if ($loanReason !== '00') {
+        $errors[] = "Loan Reason Code must be '00' (got '$loanReason').";
+    }
+
+    // 3. Current Balance Indicator must be 'D'
+    if ($currBalInd !== 'D') {
+        $errors[] = "Current Balance Indicator must be 'D' (got '$currBalInd').";
+    }
+
+    // 4. If balance is 0, status code must be 'C ' (Closed) or 'W ' (Written off)
+    if ((int)$currBalance === 0) {
+        if ($statusCode !== 'C ' && $statusCode !== 'W ') {
+            $errors[] = "Status Code must be 'C ' or 'W ' where balance is 0 (got '$statusCode').";
+        }
+    } else {
+        if ($statusCode !== '  ') {
+            $errors[] = "Status Code must be '  ' (Open) where balance > 0 (got '$statusCode').";
+        }
+    }
+
+    if (empty($errors)) {
+        echo "    Field Validation: PASS\n";
+        return true;
+    } else {
+        echo "    Field Validation: FAIL\n";
+        foreach ($errors as $err) {
+            echo "      - $err\n";
+        }
+        return false;
+    }
+}
+
 // 1. Generate daily file
 $dailyContent = $service->buildDailyFile($targetDate);
 $dailyLines = explode("\r\n", rtrim($dailyContent, "\r\n"));
 
 echo "=== DAILY FILE VERIFICATION ===\n";
 echo "Total lines: " . count($dailyLines) . "\n";
+$dailyPass = false;
 if (count($dailyLines) > 0) {
     $firstLine = $dailyLines[0];
-    echo "First line starts with: '" . substr($firstLine, 0, 1) . "' (Expected 'D' or 'R' or 'C')\n";
-    echo "First line length: " . strlen($firstLine) . " chars (Expected 718)\n";
-    echo "First line ends with: '" . substr($firstLine, -20) . "'\n";
+    $isDataRecord = in_array(substr($firstLine, 0, 1), ['D', 'R', 'C']);
     
     $lastLine = $dailyLines[count($dailyLines) - 1];
-    echo "Last line starts with: '" . substr($lastLine, 0, 1) . "' (Expected 'T')\n";
-    echo "Last line content: '$lastLine'\n";
-    
     $expectedTrailerValue = str_pad(count($dailyLines), 10, '0', STR_PAD_LEFT);
     $actualTrailerValue = substr($lastLine, 1);
-    echo "Trailer count: '$actualTrailerValue' (Expected '$expectedTrailerValue')\n";
     
-    $isDataRecord = in_array(substr($firstLine, 0, 1), ['D', 'R', 'C']);
-    if ($actualTrailerValue === $expectedTrailerValue && strlen($firstLine) === 718 && $isDataRecord) {
+    $fieldsPass = $isDataRecord ? verifyRecordFields($firstLine, "Daily") : true;
+
+    if ($actualTrailerValue === $expectedTrailerValue && strlen($firstLine) === 718 && $isDataRecord && $fieldsPass) {
+        $dailyPass = true;
         echo "Daily verification: PASS\n";
     } else {
         echo "Daily verification: FAIL\n";
@@ -57,39 +134,39 @@ $monthlyLines = explode("\r\n", rtrim($monthlyContent, "\r\n"));
 
 echo "=== MONTHLY FILE VERIFICATION ===\n";
 echo "Total lines: " . count($monthlyLines) . "\n";
+$monthlyPass = false;
 if (count($monthlyLines) > 0) {
     $headerLine = $monthlyLines[0];
-    echo "Header line starts with: '" . substr($headerLine, 0, 1) . "' (Expected 'H')\n";
-    echo "Header line length: " . strlen($headerLine) . " chars (Expected 700)\n";
-    
-    // Check version number '06' between month end date and creation date
-    $srn = substr($headerLine, 1, 10);
-    $monthEndDate = substr($headerLine, 11, 8);
     $version = substr($headerLine, 19, 2);
-    $creationDate = substr($headerLine, 21, 8);
-    
-    echo "Parsed SRN: '$srn' (Expected right-aligned, e.g. '    LSO250')\n";
-    echo "Parsed Month End Date: '$monthEndDate'\n";
-    echo "Parsed Version: '$version' (Expected '06')\n";
-    echo "Parsed Creation Date: '$creationDate'\n";
     
     $lastLine = $monthlyLines[count($monthlyLines) - 1];
-    echo "Last line starts with: '" . substr($lastLine, 0, 1) . "' (Expected 'T')\n";
-    echo "Last line content: '$lastLine'\n";
-    
     $expectedTrailerValue = str_pad(count($monthlyLines), 10, '0', STR_PAD_LEFT);
     $actualTrailerValue = substr($lastLine, 1);
-    echo "Trailer count: '$actualTrailerValue' (Expected '$expectedTrailerValue')\n";
     
     $firstDataLine = $monthlyLines[1] ?? '';
-    echo "First data line length: " . strlen($firstDataLine) . " chars (Expected 718)\n";
-    echo "First data line ends with: '" . substr($firstDataLine, -20) . "'\n";
-
+    
     $hasCorrectHeader = (substr($headerLine, 0, 1) === 'H' && strlen($headerLine) === 700 && $version === '06');
     $hasCorrectTrailer = ($actualTrailerValue === $expectedTrailerValue);
     $hasCorrectDataRecord = (strlen($firstDataLine) === 718 && substr($firstDataLine, 0, 1) === 'D');
     
-    if ($hasCorrectHeader && $hasCorrectTrailer && $hasCorrectDataRecord) {
+    $fieldsPass = $hasCorrectDataRecord ? verifyRecordFields($firstDataLine, "Monthly") : false;
+    
+    echo "\n  --- Detailed Monthly Records Breakdown ---\n";
+    for ($i = 1; $i < count($monthlyLines) - 1; $i++) {
+        $row = $monthlyLines[$i];
+        $lsoId = trim(substr($row, 1, 13));
+        $loanReason = substr($row, 363, 2);
+        $currBalance = trim(substr($row, 402, 9));
+        $currBalInd = substr($row, 411, 1);
+        $statusCode = substr($row, 432, 2);
+        echo sprintf("    Record %d: ID=%s, Reason=%s, Balance=%s, Ind=%s, Status=%s\n",
+            $i, $lsoId, $loanReason, $currBalance, $currBalInd, $statusCode
+        );
+    }
+    echo "  ------------------------------------------\n\n";
+
+    if ($hasCorrectHeader && $hasCorrectTrailer && $hasCorrectDataRecord && $fieldsPass) {
+        $monthlyPass = true;
         echo "Monthly verification: PASS\n";
     } else {
         echo "Monthly verification: FAIL\n";
