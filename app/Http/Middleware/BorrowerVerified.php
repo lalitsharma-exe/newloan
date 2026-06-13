@@ -9,6 +9,9 @@ class BorrowerVerified {
         if ($user && !$user->email_verified_at && $user->email) {
             return redirect()->route('borrower.verify.pending');
         }
+        if ($user && !$user->is_verified) {
+            return redirect()->route('borrower.phone.verify.show');
+        }
         return $next($request);
     }
 }

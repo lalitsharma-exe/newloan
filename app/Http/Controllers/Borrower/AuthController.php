@@ -70,6 +70,7 @@ class AuthController extends Controller
             'password'          => \Illuminate\Support\Facades\Hash::make($request->password),
             'role'              => 'borrower',
             'is_active'         => true,
+            'is_verified'       => false,
             'email_verified_at' => now(),
             'referral_code'     => \App\Models\User::generateReferralCode(),
         ]);
@@ -124,6 +125,9 @@ class AuthController extends Controller
 
     public function logout(Request $request) {
         Auth::guard('borrower')->logout();
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return redirect()->route('borrower.login');
     }
 

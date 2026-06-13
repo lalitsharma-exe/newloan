@@ -73,7 +73,10 @@ class PhoneVerificationController extends Controller
         }
 
         // Mark phone as verified
-        $user->update(['phone_verified_at' => now()]);
+        $user->update([
+            'phone_verified_at' => now(),
+            'is_verified' => true,
+        ]);
 
         Log::info('Phone verified', ['user_id' => $user->id, 'phone' => $user->phone]);
 

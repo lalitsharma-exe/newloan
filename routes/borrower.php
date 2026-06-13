@@ -69,6 +69,7 @@ Route::prefix('portal')->name('borrower.')->group(function () {
         Route::get('/verify-phone',  [\App\Http\Controllers\Borrower\PhoneVerificationController::class, 'show'])->name('phone.verify.show');
         Route::post('/verify-phone', [\App\Http\Controllers\Borrower\PhoneVerificationController::class, 'verify'])->name('phone.verify');
         Route::post('/verify-phone/resend', [\App\Http\Controllers\Borrower\PhoneVerificationController::class, 'resend'])->name('phone.resend');
+        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     });
 
     // Email verification notice (after register, before confirming)
@@ -78,10 +79,9 @@ Route::prefix('portal')->name('borrower.')->group(function () {
     |------------------------------------------------------------------
     | AUTHENTICATED BORROWER
     |------------------------------------------------------------------
+    |
     */
     Route::middleware(['auth:borrower', 'borrower.active', 'borrower.verified'])->group(function () {
-
-        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
         /*
         | ── DASHBOARD ──────────────────────────────────────────────
