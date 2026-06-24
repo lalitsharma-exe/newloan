@@ -147,7 +147,7 @@ if (count($monthlyLines) > 0) {
     
     $hasCorrectHeader = (substr($headerLine, 0, 1) === 'H' && strlen($headerLine) === 700 && $version === '06');
     $hasCorrectTrailer = ($actualTrailerValue === $expectedTrailerValue);
-    $hasCorrectDataRecord = (strlen($firstDataLine) === 718 && substr($firstDataLine, 0, 1) === 'D');
+    $hasCorrectDataRecord = (strlen($firstDataLine) === 700 && substr($firstDataLine, 0, 1) === 'D');
     
     $fieldsPass = $hasCorrectDataRecord ? verifyRecordFields($firstDataLine, "Monthly") : false;
     

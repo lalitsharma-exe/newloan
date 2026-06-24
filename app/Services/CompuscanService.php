@@ -342,11 +342,13 @@ class CompuscanService
         // 56 FILLER (2) => to 700
         $row .= '  ';
         
-        // 57 SUPPLIER REFERENCE NUMBER (10) - right aligned
-        $row .= $this->padALeft($this->srn, 10);
-        
-        // 58 TRANSACTION DATE (8)
-        $row .= $date->format('Ymd');
+        if ($recordType !== 'D') {
+            // 57 SUPPLIER REFERENCE NUMBER (10) - right aligned
+            $row .= $this->padALeft($this->srn, 10);
+            
+            // 58 TRANSACTION DATE (8)
+            $row .= $date->format('Ymd');
+        }
 
         return $row . "\r\n";
     }
