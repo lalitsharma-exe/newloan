@@ -239,8 +239,8 @@ class CompuscanService
         // 25 OWNERSHIP TYPE (2) => 01 Sole Prop or 00 Other (usually 00 for personal loans)
         $row .= '00';
         
-        // 26 LOAN REASON CODE (2) => '00' for General/Other (mandatory, avoid Field 53 requirement)
-        $row .= '00';
+        // 26 LOAN REASON CODE (2) => mapped from loan purpose
+        $row .= $this->padA($this->getLoanReasonCode($app ? $app->loan_purpose : null), 2);
         
         // 27 PAYMENT TYPE (2) => 00 Other, 01 Payroll, 02 Deferred...
         $row .= '00';
@@ -351,6 +351,42 @@ class CompuscanService
         }
 
         return $row . "\r\n";
+    }
+
+    /**
+     * Map the loan purpose string to a valid 2-character Compuscan Loan Reason Code (End Use Code).
+     */
+    private function getLoanReasonCode(?string $purpose): string
+    {
+        if (!$purpose) {
+            return 'P'; // Default to Personal Finance
+        }
+
+        $purposeLower = strtolower(trim($purpose));
+
+        if (str_contains($purposeLower, 'home') || str_contains($purposeLower, 'housing') || str_contains($purposeLower, 'building') || str_contains($purposeLower, 'improvement')) {
+            return 'H'; // Home Loans (Property acquisition/upgrades)
+        }
+        if (str_contains($purposeLower, 'education') || str_contains($purposeLower, 'study') || str_contains($purposeLower, 'school') || str_contains($purposeLower, 'fees')) {
+            return 'S'; // Study Loan (Formal studies at a recognised institution)
+        }
+        if (str_contains($purposeLower, 'medical') || str_contains($purposeLower, 'health') || str_contains($purposeLower, 'hospital')) {
+            return 'E'; // Crisis Loan - Medical
+        }
+        if (str_contains($purposeLower, 'funeral') || str_contains($purposeLower, 'death')) {
+            return 'D'; // Crisis Loan - Death / Funeral
+        }
+        if (str_contains($purposeLower, 'vehicle') || str_contains($purposeLower, 'car') || str_contains($purposeLower, 'asset')) {
+            return 'F'; // Other Asset acquisition financing
+        }
+        if (str_contains($purposeLower, 'theft') || str_contains($purposeLower, 'fire')) {
+            return 'I'; // Crisis Loan - Theft/Fire
+        }
+        if (str_contains($purposeLower, 'emergency')) {
+            return 'C'; // Crisis Loan - Other Emergency
+        }
+
+        return 'P'; // Default to Personal Finance / Unsecured Personal Loan
     }
 
     /**

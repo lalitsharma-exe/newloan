@@ -1,9 +1,11 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-$kernel->bootstrap();
+if (!function_exists('app') || !app()->resolved(\Illuminate\Contracts\Console\Kernel::class)) {
+    require_once __DIR__ . '/../vendor/autoload.php';
+    $app = require __DIR__ . '/../bootstrap/app.php';
+    $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+    $kernel->bootstrap();
+}
 
 use App\Models\Loan;
 use App\Services\CompuscanService;
@@ -69,9 +71,10 @@ function verifyRecordFields(string $row, string $typeDesc): bool
         $errors[] = "Invalid LSO ID format or Luhn check failed ('$lsoId').";
     }
 
-    // 2. Loan Reason Code must be '00'
-    if ($loanReason !== '00') {
-        $errors[] = "Loan Reason Code must be '00' (got '$loanReason').";
+    // 2. Loan Reason Code must be a valid code
+    $validCodes = ['C ', 'I ', 'H ', 'F ', 'S ', 'E ', 'D ', 'G ', 'P '];
+    if (!in_array($loanReason, $validCodes)) {
+        $errors[] = "Loan Reason Code must be a valid character/code (got '$loanReason').";
     }
 
     // 3. Current Balance Indicator must be 'D'
