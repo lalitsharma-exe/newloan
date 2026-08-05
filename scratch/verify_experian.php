@@ -72,7 +72,7 @@ function verifyRecordFields(string $row, string $typeDesc): bool
     }
 
     // 2. Loan Reason Code must be a valid code
-    $validCodes = ['C ', 'I ', 'H ', 'F ', 'S ', 'E ', 'D ', 'G ', 'P '];
+    $validCodes = ['C ', 'I ', 'H ', 'F ', 'S ', 'E ', 'D ', 'G ', 'O ', 'R '];
     if (!in_array($loanReason, $validCodes)) {
         $errors[] = "Loan Reason Code must be a valid character/code (got '$loanReason').";
     }

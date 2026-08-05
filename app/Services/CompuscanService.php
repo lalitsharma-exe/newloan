@@ -359,7 +359,7 @@ class CompuscanService
     private function getLoanReasonCode(?string $purpose): string
     {
         if (!$purpose) {
-            return 'P'; // Default to Personal Finance
+            return 'O'; // Default to Other
         }
 
         $purposeLower = strtolower(trim($purpose));
@@ -379,6 +379,9 @@ class CompuscanService
         if (str_contains($purposeLower, 'vehicle') || str_contains($purposeLower, 'car') || str_contains($purposeLower, 'asset')) {
             return 'F'; // Other Asset acquisition financing
         }
+        if (str_contains($purposeLower, 'consolidation') || str_contains($purposeLower, 'refinance')) {
+            return 'R'; // Consolidation Loan
+        }
         if (str_contains($purposeLower, 'theft') || str_contains($purposeLower, 'fire')) {
             return 'I'; // Crisis Loan - Theft/Fire
         }
@@ -386,7 +389,7 @@ class CompuscanService
             return 'C'; // Crisis Loan - Other Emergency
         }
 
-        return 'P'; // Default to Personal Finance / Unsecured Personal Loan
+        return 'O'; // Default to Other
     }
 
     /**
