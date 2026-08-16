@@ -557,6 +557,31 @@ class DashboardService
 
     public function getVintageAnalysis(): array
     {
+        $driver = DB::connection()->getDriverName();
+        if ($driver === 'sqlite') {
+            $cohortSql = "CASE strftime('%m', disbursement_date)
+                WHEN '01' THEN 'Jan' WHEN '02' THEN 'Feb' WHEN '03' THEN 'Mar' WHEN '04' THEN 'Apr'
+                WHEN '05' THEN 'May' WHEN '06' THEN 'Jun' WHEN '07' THEN 'Jul' WHEN '08' THEN 'Aug'
+                WHEN '09' THEN 'Sep' WHEN '10' THEN 'Oct' WHEN '11' THEN 'Nov' WHEN '12' THEN 'Dec'
+            END || ' ' || strftime('%Y', disbursement_date)";
+            
+            return DB::select("
+                SELECT 
+                    {$cohortSql} as cohort,
+                    SUM(principal_amount) as disbursed,
+                    SUM(CASE WHEN status IN ('defaulted', 'written_off') THEN principal_amount ELSE 0 END) as defaulted,
+                    CASE WHEN SUM(principal_amount) > 0 
+                         THEN (SUM(CASE WHEN status IN ('defaulted', 'written_off') THEN principal_amount ELSE 0 END) / SUM(principal_amount)) * 100 
+                         ELSE 0 
+                    END as default_rate
+                FROM loans
+                WHERE disbursement_date IS NOT NULL
+                GROUP BY strftime('%Y-%m', disbursement_date), cohort
+                ORDER BY strftime('%Y-%m', disbursement_date) DESC
+                LIMIT 5
+            ");
+        }
+
         return DB::select("
             SELECT 
                 DATE_FORMAT(disbursement_date, '%b %Y') as cohort,

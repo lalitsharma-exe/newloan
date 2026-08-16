@@ -37,10 +37,15 @@ class FinancialReportController extends Controller
     {
         $year = (int) $request->input('year', Carbon::now()->year);
 
+        $driver = \DB::connection()->getDriverName();
+        $monthSql = $driver === 'sqlite' 
+            ? "strftime('%Y-%m', verified_at) as month" 
+            : "DATE_FORMAT(verified_at, '%Y-%m') as month";
+
         $rows = Payment::where('status', 'verified')
             ->whereYear('verified_at', $year)
             ->selectRaw("
-                DATE_FORMAT(verified_at, '%Y-%m') as month,
+                {$monthSql},
                 SUM(principal_portion + interest_portion + initiation_fee_portion + admin_fee_portion + penalty_portion) as turnover,
                 SUM(principal_portion) as capital,
                 SUM(interest_portion) as interest,

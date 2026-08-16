@@ -735,13 +735,8 @@
     <div class="header-pill">
 
       <a href="{{ route('home') }}" class="header-logo" aria-label="{{ config('app.name') }} Home" style="text-decoration:none;display:flex;align-items:center;gap:9px">
-        <div style="width:32px;height:32px;background:linear-gradient(135deg,#1a6b3c,#22894e);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2)">
-          <svg width="18" height="18" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="14" width="3" height="5" rx="1" fill="#fff" opacity=".85"/>
-            <rect x="8" y="9" width="3" height="10" rx="1" fill="#fff"/>
-            <rect x="13" y="5" width="3" height="14" rx="1" fill="#c9943a"/>
-            <rect x="18" y="3" width="2" height="16" rx="1" fill="#e0a843" opacity=".9"/>
-          </svg>
+        <div style="width:32px;height:32px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2);overflow:hidden">
+          <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" style="height:28px;width:28px;object-fit:contain">
         </div>
         <span style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--navy);line-height:1.2">{{ config('app.name') }}</span>
       </a>

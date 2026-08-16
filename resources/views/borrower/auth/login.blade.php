@@ -176,13 +176,8 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:an
   <!-- LEFT — Brand panel -->
   <div class="auth-brand">
     <div class="brand-logo" style="display:flex;align-items:center;gap:12px">
-      <div style="width:44px;height:44px;background:linear-gradient(135deg,#1a6b3c,#22894e);border-radius:11px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.3);flex-shrink:0">
-        <svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="14" width="3" height="5" rx="1" fill="#fff" opacity=".85"/>
-          <rect x="8" y="9" width="3" height="10" rx="1" fill="#fff"/>
-          <rect x="13" y="5" width="3" height="14" rx="1" fill="#c9943a"/>
-          <rect x="18" y="3" width="2" height="16" rx="1" fill="#e0a843" opacity=".9"/>
-        </svg>
+      <div style="width:44px;height:44px;background:#fff;border-radius:11px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.3);flex-shrink:0;overflow:hidden">
+        <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" style="height:38px;width:38px;object-fit:contain">
       </div>
       <div>
         <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fff">{{ config('app.name') }}</div>

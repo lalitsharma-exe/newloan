@@ -177,14 +177,8 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:an
   <!-- LEFT — Brand panel -->
   <div class="auth-brand">
     <div class="brand-logo">
-      <div class="brand-logo-icon">
-        <svg width="26" height="26" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="14" width="3" height="5" rx="1" fill="#fff" opacity=".85"/>
-          <rect x="8" y="9" width="3" height="10" rx="1" fill="#fff"/>
-          <rect x="13" y="5" width="3" height="14" rx="1" fill="#c9943a"/>
-          <rect x="18" y="3" width="2" height="16" rx="1" fill="#e0a843" opacity=".9"/>
-          <polyline points="3,14 8,9 13,5 18,3" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.1"/>
-        </svg>
+      <div class="brand-logo-icon" style="background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden">
+        <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" style="height:32px;width:32px;object-fit:contain">
       </div>
       <div>
         <div class="brand-logo-text">{{ config('app.name') }}</div>

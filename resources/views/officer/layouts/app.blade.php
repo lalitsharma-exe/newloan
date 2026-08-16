@@ -108,14 +108,8 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 <aside class="sb" id="sb">
   <div class="sb-logo">
     <div style="display:flex;align-items:center;gap:10px">
-      <div style="width:40px;height:40px;background:linear-gradient(135deg,#1a6b3c,#22894e);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.3)">
-        <svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="14" width="3" height="5" rx="1" fill="#fff" opacity=".85"/>
-          <rect x="8" y="9" width="3" height="10" rx="1" fill="#fff"/>
-          <rect x="13" y="5" width="3" height="14" rx="1" fill="#c9943a"/>
-          <rect x="18" y="3" width="2" height="16" rx="1" fill="#e0a843" opacity=".9"/>
-          <polyline points="3,14 8,9 13,5 18,3" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.1"/>
-        </svg>
+      <div style="width:40px;height:40px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.3);overflow:hidden">
+        <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" style="height:36px;width:36px;object-fit:contain">
       </div>
       <div>
         <div style="color:#fff;font-size:13.5px;font-weight:800;line-height:1.2;font-family:'Playfair Display',serif">{{ \App\Models\SystemSetting::get('app_name', config('app.name')) }}</div>
