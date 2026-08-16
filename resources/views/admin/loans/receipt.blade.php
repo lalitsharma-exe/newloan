@@ -238,9 +238,9 @@
     <div class="footer">
         <div class="company-info">
             <strong>Prosperity Loans Limited</strong>
-            <p>L&M Complex, Ha Thamae, Maseru</p>
-            <p>Phone: (+266) 59 229 149</p>
-            <p>Email: info@prosperityloans.co.ls</p>
+            <p>Ha Matala, KK Building, Maseru</p>
+            <p>Phone: (+266) 5694 7028 / 5724 7936 / 6321 8591</p>
+            <p>Email: prosperityloans1@gmail.com</p>
             <p>Website: www.prosperityloans.co.ls</p>
         </div>
         

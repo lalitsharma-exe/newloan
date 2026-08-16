@@ -1,6 +1,6 @@
 @extends('borrower.layouts.public')
 @section('title','Contact Us')
-@section('meta_desc','Contact Prosperity Loans Limited — (+266) 58 478 799 — info@prosperityloans.co.ls — L&M Complex, Ha Thamae, Maseru, Lesotho.')
+@section('meta_desc','Contact Prosperity Loans Limited — (+266) 5694 7028 / 5724 7936 / 6321 8591 — prosperityloans1@gmail.com — Ha Matala, KK Building, Maseru, Lesotho.')
 
 @push('page-styles')
 <style>
@@ -50,7 +50,7 @@ textarea.fc{resize:vertical;min-height:120px}
           <div class="contact-icon"><i class="bi bi-telephone-fill"></i></div>
           <div>
             <h4>Phone</h4>
-            <a href="tel:+26658478799">(+266) 58 478 799</a>
+            <a href="tel:+26656947028">(+266) 5694 7028 / 5724 7936 / 6321 8591</a>
             <p style="font-size:13px;color:var(--slate);margin-top:4px">Monday – Friday, 8:00 AM – 5:00 PM</p>
           </div>
         </div>
@@ -59,7 +59,7 @@ textarea.fc{resize:vertical;min-height:120px}
           <div class="contact-icon"><i class="bi bi-envelope-fill"></i></div>
           <div>
             <h4>Email</h4>
-            <a href="mailto:info@prosperityloans.co.ls">info@prosperityloans.co.ls</a>
+            <a href="mailto:prosperityloans1@gmail.com">prosperityloans1@gmail.com</a>
             <p style="font-size:13px;color:var(--slate);margin-top:4px">We respond within 1 business day</p>
           </div>
         </div>
@@ -68,7 +68,7 @@ textarea.fc{resize:vertical;min-height:120px}
           <div class="contact-icon"><i class="bi bi-geo-alt-fill"></i></div>
           <div>
             <h4>Office Address</h4>
-            <p>L&amp;M Complex, Ha Thamae<br>Maseru, Lesotho</p>
+            <p>Ha Matala, KK Building<br>Maseru, Lesotho</p>
           </div>
         </div>
 

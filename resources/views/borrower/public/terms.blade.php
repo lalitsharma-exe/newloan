@@ -71,7 +71,7 @@
       <p>These Terms and Conditions are governed by the laws of the Kingdom of Lesotho. Any disputes arising shall be subject to the jurisdiction of the courts of Lesotho.</p>
 
       <h2>11. Contact</h2>
-      <p>For questions about these Terms, please contact us at info@prosperityloans.co.ls or call (+266) 58 478 799.</p>
+      <p>For questions about these Terms, please contact us at prosperityloans1@gmail.com or call (+266) 5694 7028 / 5724 7936 / 6321 8591.</p>
     </div>
   </div>
 </section>

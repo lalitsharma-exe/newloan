@@ -77,7 +77,7 @@
             ['How do I log in to my account?', 'Visit /portal/login and sign in with your registered phone number or email address and password.'],
             ['I forgot my password. What do I do?', 'On the login page, click "Forgot password?" and enter your registered phone number. Follow the instructions to reset your password.'],
             ['Can I update my personal details?', 'Yes. Log in to your portal account and navigate to the Profile section to update your personal information, employment details, bank details, and next of kin.'],
-            ['How do I contact support?', 'Call us on (+266) 58 478 799, email info@prosperityloans.co.ls, or visit our office at L&M Complex, Ha Thamae, Maseru.'],
+            ['How do I contact support?', 'Call us on (+266) 5694 7028 / 5724 7936 / 6321 8591, email prosperityloans1@gmail.com, or visit our office at Ha Matala, KK Building, Maseru.'],
           ]],
         ];
         @endphp

@@ -792,9 +792,9 @@
 
       <!-- Left: contact -->
       <div class="footer-left">
-        <a href="tel:+26659229149"><i class="bi bi-telephone-fill"></i>(+266) 59 229 149</a>
-        <a href="mailto:info@prosperityloans.co.ls"><i class="bi bi-envelope-fill"></i>info@prosperityloans.co.ls</a>
-        <p><i class="bi bi-geo-alt-fill"></i>L&amp;M Complex, Ha Thamae, Maseru</p>
+        <a href="tel:+26656947028"><i class="bi bi-telephone-fill"></i>(+266) 5694 7028 / 5724 7936 / 6321 8591</a>
+        <a href="mailto:prosperityloans1@gmail.com"><i class="bi bi-envelope-fill"></i>prosperityloans1@gmail.com</a>
+        <p><i class="bi bi-geo-alt-fill"></i>Ha Matala, KK Building, Maseru</p>
       </div>
 
       <!-- Center: logo + copyright -->
@@ -834,40 +834,13 @@
             <path d="M19 5.5a10 10 0 0 1 0 13a10 10 0 0 1 0-13Z" fill="#FF5F00" opacity=".75" />
           </svg>
         </div>
-        <!-- C-Pay -->
-        <div class="pay-logo pay-logo-img-real" title="C-Pay">
-          <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp_Image_2026-04-12_at_11.17.16_AM-removebg-preview.png"
-            alt="C-Pay">
-        </div>
-        <!-- M-Pesa -->
-        <div class="pay-logo pay-logo-img-real" title="M-Pesa">
-          <img
-            src="https://ik.imagekit.io/ygydr1m84/WhatsApp_Image_2026-04-12_at_11.19.20_AM-removebg-preview%20(1).png"
-            alt="
-            M-Pesa">
-        </div>
-        <!-- Payfast -->
-        <div class="pay-logo pay-logo-img-real" title="Payfast">
-          <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp_Image_2026-04-12_at_11.22.04_AM-removebg-preview.png"
-            alt="Payfast">
-        </div>
-        <!-- CDAS -->
-        <div class="pay-logo pay-logo-img-real" title="CDAS">
-          <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp_Image_2026-04-15_at_8.57.51_AM-removebg-preview.png"
-            alt="CDAS">
-        </div>
-        <!-- Experian -->
-        <div class="pay-logo pay-logo-img-real" title="Experian">
-          <img src="https://ik.imagekit.io/ygydr1m84/WhatsApp_Image_2026-04-15_at_8.56.58_AM-removebg-preview%20(1).png"
-            alt="Experian">
-        </div>
       </div>
 
     </div>
   </footer>
 
   <!-- ═══ WHATSAPP FLOAT ════════════════════════════════════ -->
-  <a href="https://wa.me/26663445244" target="_blank" rel="noopener" class="whatsapp-float" title="Chat on WhatsApp"
+  <a href="https://wa.me/26656947028" target="_blank" rel="noopener" class="whatsapp-float" title="Chat on WhatsApp"
     aria-label="Chat with us on WhatsApp">
     <svg viewBox="0 0 32 32" width="26" height="26" fill="#fff">
       <path

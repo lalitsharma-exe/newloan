@@ -128,7 +128,7 @@ $totalSteps = 9;
   <div class="card-hdr"><span class="card-title"><i class="bi bi-geo-alt-fill" style="color:var(--p)"></i> Address Information</span></div>
   <div class="card-body">
     <div class="g2" style="gap:14px">
-      <div class="fg" style="grid-column:span 2"><label class="fl">Residential Address *</label><input type="text" name="residential_address" class="fc" value="{{ old('residential_address',$application->residential_address) }}" placeholder="e.g. Ha Thamae, Block 5, House 23" required></div>
+      <div class="fg" style="grid-column:span 2"><label class="fl">Residential Address *</label><input type="text" name="residential_address" class="fc" value="{{ old('residential_address',$application->residential_address) }}" placeholder="e.g. Ha Matala, Block 5, House 23" required></div>
       <div class="fg"><label class="fl">Village / Area *</label><input type="text" name="village" class="fc" value="{{ old('village',$application->village) }}" required></div>
       <div class="fg"><label class="fl">Town / City *</label><input type="text" name="town" class="fc" value="{{ old('town',$application->town) }}" required></div>
       <div class="fg"><label class="fl">District *</label>

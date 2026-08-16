@@ -71,7 +71,7 @@
 {{-- Parties --}}
 <h2>PARTIES TO THIS AGREEMENT</h2>
 <div class="lender-block">
-  <strong>LENDER:</strong> Prosperity Loans Limited &nbsp;·&nbsp; L&amp;M Complex, Ha Thamae, Maseru, Lesotho<br>
+  <strong>LENDER:</strong> Prosperity Loans Limited &nbsp;·&nbsp; Ha Matala, KK Building, Maseru, Lesotho<br>
   <span class="muted">Hereinafter referred to as "the Lender"</span>
 </div>
 <div class="borrower-block">
@@ -354,7 +354,7 @@
 </div>
 
 <hr class="divider" style="margin-top:30px">
-<p class="center muted" style="margin-top:8px">Prosperity Loans Limited · L&amp;M Complex, Ha Thamae, Maseru, Lesotho · Generated: {{ now()->format('d F Y H:i') }}</p>
+<p class="center muted" style="margin-top:8px">Prosperity Loans Limited · Ha Matala, KK Building, Maseru, Lesotho · Generated: {{ now()->format('d F Y H:i') }}</p>
 
 </body>
 </html>

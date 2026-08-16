@@ -95,9 +95,9 @@
         <h2 id="contact">6. Contact</h2>
         <p>If you have any questions about this Privacy Policy or how we handle your personal information, please contact us:</p>
         <ul>
-          <li>Phone: (+266) 58 478 799</li>
-          <li>Email: info@prosperityloans.co.ls</li>
-          <li>Address: L&amp;M Complex, Ha Thamae, Maseru, Lesotho</li>
+          <li>Phone: (+266) 5694 7028 / 5724 7936 / 6321 8591</li>
+          <li>Email: prosperityloans1@gmail.com</li>
+          <li>Address: Ha Matala, KK Building, Maseru, Lesotho</li>
         </ul>
       </div>
     </div>

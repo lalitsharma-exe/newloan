@@ -281,8 +281,8 @@
       <div class="stmt-logo">
         <img src="{{ config('app.logo') }}" alt="Prosperity Loans">
         <div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,.4);line-height:1.6">
-          L&amp;M Complex, Ha Thamae, Maseru<br>
-          (+266) 58 478 799 · info@prosperityloans.co.ls
+          Ha Matala, KK Building, Maseru<br>
+          (+266) 5694 7028 / 5724 7936 / 6321 8591 · prosperityloans1@gmail.com
         </div>
       </div>
       <div class="stmt-header-right">
@@ -476,7 +476,7 @@
 
     {{-- Footer --}}
     <div class="stmt-footer">
-      <span>Prosperity Loans Limited · CBL Licensed · L&amp;M Complex, Ha Thamae, Maseru</span>
+      <span>Prosperity Loans Limited · CBL Licensed · Ha Matala, KK Building, Maseru</span>
       <span style="font-family:monospace">{{ $loan->loan_number }} · {{ now()->format('d M Y') }}</span>
     </div>
 

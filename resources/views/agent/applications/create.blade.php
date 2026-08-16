@@ -202,7 +202,7 @@
       <div class="g2">
         <div class="fg" style="grid-column:span 2">
           <label class="fl">Residential Address <span class="req">*</span></label>
-          <input type="text" name="residential_address" class="fc" value="{{ old('residential_address') }}" placeholder="e.g. Ha Thamae, Block 5, House 23" required>
+          <input type="text" name="residential_address" class="fc" value="{{ old('residential_address') }}" placeholder="e.g. Ha Matala, Block 5, House 23" required>
         </div>
         <div class="fg">
           <label class="fl">Village / Area <span class="req">*</span></label>

@@ -62,7 +62,7 @@ $totalSteps = 9;
       @elseif($step === 2)
       <div class="alert a-i" style="margin-bottom:16px"><i class="bi bi-info-circle-fill"></i> Your address is used for verification and traceability. Please be accurate.</div>
       <div class="g2">
-        <div class="fg" style="grid-column:span 2"><label class="fl">Residential Address *</label><input type="text" name="residential_address" class="fc" value="{{ old('residential_address',$application->residential_address) }}" placeholder="e.g. Ha Thamae, Block 5, House 23" required></div>
+        <div class="fg" style="grid-column:span 2"><label class="fl">Residential Address *</label><input type="text" name="residential_address" class="fc" value="{{ old('residential_address',$application->residential_address) }}" placeholder="e.g. Ha Matala, Block 5, House 23" required></div>
         <div class="fg"><label class="fl">Village / Area *</label><input type="text" name="village" class="fc" value="{{ old('village',$application->village) }}" required></div>
         <div class="fg"><label class="fl">Town / City *</label><input type="text" name="town" class="fc" value="{{ old('town',$application->town) }}" required></div>
         <div class="fg"><label class="fl">District *</label>
