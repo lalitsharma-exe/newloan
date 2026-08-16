@@ -56,11 +56,11 @@
 <div class="center" style="margin-bottom:18px">
   <div style="border:1.5px solid #9ca3af;border-radius:4px;padding:10px 24px;display:inline-block;max-width:680px;margin:0 auto">
     <p style="font-size:11px;color:#374151;text-align:center;line-height:1.7;margin:0">
-      Myloan Limited is a company licensed under the Financial Institutions Act 2012 and Financial Institutions (Credit only and Deposit taking Financial Institutions) (Amendment) Regulations 2014, as amended in 2018, as a Credit Only Micro Finance Institution tier II and regulated by the Central Bank of Lesotho.
+      Prosperity Loans Limited is a company licensed under the Financial Institutions Act 2012 and Financial Institutions (Credit only and Deposit taking Financial Institutions) (Amendment) Regulations 2014, as amended in 2018, as a Credit Only Micro Finance Institution tier II and regulated by the Central Bank of Lesotho.
     </p>
   </div>
   <div style="margin-top:10px">
-    <img src="https://ik.imagekit.io/ygydr1m84/png.webp" style="height:60px;margin-bottom:8px" alt="MyLoan Logo">
+    <img src="https://ik.imagekit.io/ygydr1m84/png.webp" style="height:60px;margin-bottom:8px" alt="Prosperity Loans Logo">
   </div>
   <div style="margin-top:14px;font-size:17px;font-weight:800;color:#0f172a;letter-spacing:.5px">LOAN AGREEMENT</div>
   <div style="font-size:11px;color:#64748b;margin-top:3px">Agreement Reference: <strong>{{ $loan->loan_number }}</strong></div>
@@ -71,7 +71,7 @@
 {{-- Parties --}}
 <h2>PARTIES TO THIS AGREEMENT</h2>
 <div class="lender-block">
-  <strong>LENDER:</strong> MyLoan Limited &nbsp;·&nbsp; L&amp;M Complex, Ha Thamae, Maseru, Lesotho<br>
+  <strong>LENDER:</strong> Prosperity Loans Limited &nbsp;·&nbsp; L&amp;M Complex, Ha Thamae, Maseru, Lesotho<br>
   <span class="muted">Hereinafter referred to as "the Lender"</span>
 </div>
 <div class="borrower-block">
@@ -315,7 +315,7 @@
         }
         $directorName = \App\Models\SystemSetting::get('director_name', 'Tjale Maila');
         $directorTitle = \App\Models\SystemSetting::get('director_title', 'Managing Director');
-        $companyName = \App\Models\SystemSetting::get('app_name', 'MyLoan Limited');
+        $companyName = \App\Models\SystemSetting::get('app_name', 'Prosperity Loans Limited');
 
         $qrVal = \App\Models\SystemSetting::get('system_qr');
         $qrDataUrl = null;
@@ -354,7 +354,7 @@
 </div>
 
 <hr class="divider" style="margin-top:30px">
-<p class="center muted" style="margin-top:8px">MyLoan Limited · L&amp;M Complex, Ha Thamae, Maseru, Lesotho · Generated: {{ now()->format('d F Y H:i') }}</p>
+<p class="center muted" style="margin-top:8px">Prosperity Loans Limited · L&amp;M Complex, Ha Thamae, Maseru, Lesotho · Generated: {{ now()->format('d F Y H:i') }}</p>
 
 </body>
 </html>

@@ -16,7 +16,7 @@
                 <p style="font-size: 13px; color: #64748b; margin-top: 8px; max-width: 400px;">Monitor and confirm fund movements between corporate bank accounts and mobile money liquidity pools.</p>
             </div>
             <div style="text-align: right; position: relative; z-index: 1;">
-                <div class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 12px; border-radius: 30px; font-weight: 700;">
+                <div class="badge" style="background: rgba(22, 163, 74, 0.2); color: #10b981; border: 1px solid rgba(22, 163, 74, 0.3); padding: 6px 12px; border-radius: 30px; font-weight: 700;">
                     <i class="bi bi-shield-check"></i> Audit Ready
                 </div>
             </div>
@@ -63,14 +63,14 @@
                             </td>
                             <td style="padding: 18px 24px;">
                                 @if($t->status === 'confirmed')
-                                    <span class="badge bok" style="padding: 6px 10px; border-radius: 6px; font-weight: 800; letter-spacing: 0.5px; background: rgba(16, 185, 129, 0.1); color: #10b981; border: none;"><i class="bi bi-check-all"></i> SECURED</span>
+                                    <span class="badge bok" style="padding: 6px 10px; border-radius: 6px; font-weight: 800; letter-spacing: 0.5px; background: rgba(22, 163, 74, 0.1); color: #10b981; border: none;"><i class="bi bi-check-all"></i> SECURED</span>
                                 @else
                                     <span class="badge bw" style="padding: 6px 10px; border-radius: 6px; font-weight: 800; letter-spacing: 0.5px; background: rgba(245, 158, 11, 0.1); color: #d97706; border: none; animation: pulse 2s infinite;"><i class="bi bi-clock-history"></i> PENDING</span>
                                 @endif
                             </td>
                             <td style="padding: 18px 24px; text-align: right;">
                                 @if($t->status === 'pending')
-                                    <button class="btn btn-sm btn-ok" onclick="openConfirmModal({{ $t->id }}, {{ $t->amount }}, '{{ $t->toAccount->name }}')" style="background: #10b981; border: none; font-weight: 700; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">
+                                    <button class="btn btn-sm btn-ok" onclick="openConfirmModal({{ $t->id }}, {{ $t->amount }}, '{{ $t->toAccount->name }}')" style="background: #10b981; border: none; font-weight: 700; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2);">
                                         Confirm Receipt
                                     </button>
                                 @else
@@ -199,7 +199,7 @@
                 
                 <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:14px">
                     <button type="button" class="btn" onclick="closeConfirmModal()" style="height:52px; border-radius:12px; border:1px solid #e2e8f0; background:#fff; font-weight:700; color:#64748b; cursor:pointer;">Cancel</button>
-                    <button type="submit" class="btn" style="height:52px; border-radius:12px; background:#10b981; color:#fff; border:none; font-weight:800; font-size:15px; cursor:pointer; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);">Complete Transfer</button>
+                    <button type="submit" class="btn" style="height:52px; border-radius:12px; background:#10b981; color:#fff; border:none; font-weight:800; font-size:15px; cursor:pointer; box-shadow: 0 10px 20px rgba(22, 163, 74, 0.2);">Complete Transfer</button>
                 </div>
             </form>
         </div>

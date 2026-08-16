@@ -113,7 +113,7 @@
 
     {{-- Security Notice --}}
     <div style="text-align:center; margin-top:30px; color:#94a3b8; font-size:12px">
-        <i class="bi bi-shield-lock-fill" style="margin-right:4px"></i> Securely processed by MyLoan Payment Systems
+        <i class="bi bi-shield-lock-fill" style="margin-right:4px"></i> Securely processed by Prosperity Loans Payment Systems
     </div>
 </div>
 

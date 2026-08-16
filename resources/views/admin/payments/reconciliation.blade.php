@@ -20,7 +20,7 @@
 {{-- Summary cards --}}
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
   @foreach([
-    ['Verified','L '.number_format($summary['total_received'],2),'check-circle-fill','#10b981','rgba(16,185,129,.1)',$summary['count_verified']],
+    ['Verified','L '.number_format($summary['total_received'],2),'check-circle-fill','#10b981','rgba(22,163,74,.1)',$summary['count_verified']],
     ['Pending','L '.number_format($summary['total_pending'],2),'clock-fill','#f59e0b','rgba(245,158,11,.1)',$summary['count_pending']],
     ['Rejected','L '.number_format($summary['total_rejected'],2),'x-circle-fill','#ef4444','rgba(239,68,68,.1)',$summary['count_rejected']],
     ['Reversed','L '.number_format($summary['total_reversed'],2),'arrow-counterclockwise','#64748b','rgba(100,116,139,.1)',0],

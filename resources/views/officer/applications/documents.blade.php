@@ -55,9 +55,9 @@ $missingCount   = count($requiredTypes) - $docs->count();
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
   @foreach($requiredTypes as $type => [$label, $icon, $note])
   @php $doc = $docsByType->get($type); @endphp
-  <div style="background:#fff;border:1.5px solid {{ $doc ? ($doc->status==='verified'?'rgba(16,185,129,.4)':($doc->status==='rejected'?'rgba(239,68,68,.4)':'rgba(245,158,11,.4)')) : 'var(--border)' }};border-radius:14px;padding:18px">
+  <div style="background:#fff;border:1.5px solid {{ $doc ? ($doc->status==='verified'?'rgba(22,163,74,.4)':($doc->status==='rejected'?'rgba(239,68,68,.4)':'rgba(245,158,11,.4)')) : 'var(--border)' }};border-radius:14px;padding:18px">
     <div style="display:flex;align-items:center;gap:11px;margin-bottom:14px">
-      <div style="width:42px;height:42px;border-radius:11px;background:{{ $doc ? ($doc->status==='verified'?'rgba(16,185,129,.1)':($doc->status==='rejected'?'rgba(239,68,68,.1)':'rgba(245,158,11,.1)')) : 'var(--bg)' }};display:flex;align-items:center;justify-content:center;font-size:18px;color:{{ $doc ? ($doc->status==='verified'?'var(--ok)':($doc->status==='rejected'?'var(--err)':'var(--warn)')) : 'var(--muted)' }};flex-shrink:0">
+      <div style="width:42px;height:42px;border-radius:11px;background:{{ $doc ? ($doc->status==='verified'?'rgba(22,163,74,.1)':($doc->status==='rejected'?'rgba(239,68,68,.1)':'rgba(245,158,11,.1)')) : 'var(--bg)' }};display:flex;align-items:center;justify-content:center;font-size:18px;color:{{ $doc ? ($doc->status==='verified'?'var(--ok)':($doc->status==='rejected'?'var(--err)':'var(--warn)')) : 'var(--muted)' }};flex-shrink:0">
         <i class="bi bi-{{ $icon }}"></i>
       </div>
       <div style="flex:1">

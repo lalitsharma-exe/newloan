@@ -10,7 +10,7 @@ $a  = $application->affordability;
 {{-- Header --}}
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:20px">
   <div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--navy)">{{ $application->application_number }}</div>
+    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--navy)">{{ $application->application_number }}</div>
     <div style="font-size:13px;color:var(--muted)">{{ $application->loanProduct?->name ?? '—' }} &nbsp;·&nbsp; Submitted {{ $application->submitted_at?->format('d M Y') ?? 'Draft' }}</div>
   </div>
   <span class="badge {{ $sc[$application->status]??'bs' }}" style="font-size:14px;padding:8px 18px">{{ ucfirst(str_replace('_',' ',$application->status)) }}</span>
@@ -235,7 +235,7 @@ document.addEventListener("DOMContentLoaded", function() {
   <div id="chatPopup" style="display:none;width:350px;height:500px;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.15);flex-direction:column;overflow:hidden;margin-bottom:16px;border:1px solid var(--border);">
     <div style="background:var(--navy);padding:16px 20px;color:#fff;font-weight:700;display:flex;justify-content:space-between;align-items:center;">
       <div style="display:flex;align-items:center;gap:10px">
-        <i class="bi bi-headset" style="font-size:18px"></i> Conversation with MyLoan
+        <i class="bi bi-headset" style="font-size:18px"></i> Conversation with Prosperity Loans
       </div>
       <button onclick="toggleChat()" style="background:none;border:none;color:#fff;cursor:pointer;"><i class="bi bi-x-lg"></i></button>
     </div>

@@ -8,7 +8,7 @@
 
 
 @if(session('success'))
-<div style="background:rgba(16,185,129,.08);color:#065f46;border:1px solid rgba(16,185,129,.2);padding:12px 16px;border-radius:11px;font-size:13px;display:flex;align-items:center;gap:9px;margin-bottom:20px">
+<div style="background:rgba(22,163,74,.08);color:#065f46;border:1px solid rgba(22,163,74,.2);padding:12px 16px;border-radius:11px;font-size:13px;display:flex;align-items:center;gap:9px;margin-bottom:20px">
   <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
 </div>
 @endif
@@ -20,7 +20,7 @@
     ['Total',          $stats['total'],          'collection-fill',    '#4f46e5','rgba(79,70,229,.1)', ''],
     ['Pending Review', $stats['pending'],         'hourglass-split',    '#f59e0b','rgba(245,158,11,.1)', 'submitted'],
     ['Manual Verification', $stats['drafts'],    'credit-card-2-front','#6366f1','rgba(99,102,241,.1)', 'draft'],
-    ['Approved Today', $stats['approved_today'],  'check-circle-fill',  '#10b981','rgba(16,185,129,.1)','approved'],
+    ['Approved Today', $stats['approved_today'],  'check-circle-fill',  '#10b981','rgba(22,163,74,.1)','approved'],
   ];
   @endphp
   @foreach($cards as [$label,$val,$icon,$color,$bg,$status])

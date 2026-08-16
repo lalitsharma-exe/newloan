@@ -7,7 +7,7 @@
 {{-- Stats --}}
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
   @foreach([
-    ['Collected Today','M '.number_format($stats['total_today'],0),'cash-stack','#10b981','rgba(16,185,129,.1)'],
+    ['Collected Today','M '.number_format($stats['total_today'],0),'cash-stack','#10b981','rgba(22,163,74,.1)'],
     ['This Month','M '.number_format($stats['total_month'],0),'calendar-month','#4f46e5','rgba(79,70,229,.1)'],
     ['Pending Verify',$stats['pending_count'],'hourglass-split','#f59e0b','rgba(245,158,11,.1)'],
     ['Transactions/Month',$stats['total_count_month'],'receipt','#0891b2','rgba(8,145,178,.1)'],

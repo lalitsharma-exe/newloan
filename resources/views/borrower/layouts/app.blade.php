@@ -32,6 +32,13 @@
   --ink:     #0f2a1a;
   --muted:   #5a6e5a;
   --dark:    #0f2a1a;
+  --p:       var(--green);
+  --pd:      var(--greend);
+  --pl:      var(--greenl);
+  --s:       var(--gold);
+  --navy:    var(--green);
+  --navy2:   var(--greend);
+  --accent:  var(--gold);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

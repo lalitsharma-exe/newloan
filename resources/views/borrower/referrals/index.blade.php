@@ -55,7 +55,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(140, 198, 63, 0.9);
+    background: rgba(201, 148, 58, 0.9);
     color: #1e1b4b;
     padding: 8px 18px;
     border-radius: 100px;
@@ -64,7 +64,7 @@
     margin-bottom: 22px;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    box-shadow: 0 4px 15px rgba(140,198,63,0.3);
+    box-shadow: 0 4px 15px rgba(201,148,58,0.3);
 }
 .ref-hero-amount {
     background: rgba(255,255,255,0.15);
@@ -234,7 +234,7 @@
                     <i class="bi bi-stars"></i> Partner Rewards
                 </div>
                 <h2>Turn Friendships<br>into Earnings</h2>
-                <p>Earn <strong>M50.00</strong> for every friend you refer. Share your link and watch your earnings grow as they join the MyLoan family.</p>
+                <p>Earn <strong>M50.00</strong> for every friend you refer. Share your link and watch your earnings grow as they join the Prosperity Loans family.</p>
             </div>
             <div class="ref-hero-amount">
                 <div class="val">M50</div>
@@ -247,14 +247,14 @@
 {{-- ── STAT CARDS ───────────────────────────────────────── --}}
 <div class="ref-stats">
     <div class="ref-stat">
-        <div class="ref-stat-icon" style="background:rgba(43,75,173,.1); color:var(--blue);">
+        <div class="ref-stat-icon" style="background:rgba(26,107,60,.1); color:var(--blue);">
             <i class="bi bi-wallet2"></i>
         </div>
         <div class="stat-val">M {{ number_format($stats['total_earned'], 2) }}</div>
         <div class="stat-lbl">Total Earned</div>
     </div>
     <div class="ref-stat">
-        <div class="ref-stat-icon" style="background:rgba(16,185,129,.1); color:var(--ok);">
+        <div class="ref-stat-icon" style="background:rgba(22,163,74,.1); color:var(--ok);">
             <i class="bi bi-people"></i>
         </div>
         <div class="stat-val">{{ count($referrals) }}</div>
@@ -293,7 +293,7 @@
             <div class="card-hdr" style="background:rgba(0,0,0,0.02); padding:20px 24px; border-bottom:1px solid rgba(0,0,0,0.05)">
                 <span class="card-title" style="font-weight:900; color:#0f172a">Share Your Link</span>
                 <div class="ref-share">
-                    <a href="https://wa.me/?text={{ urlencode('Get a loan easily with MyLoan! Apply here: ' . $user->referral_link) }}" target="_blank" class="ref-share-btn wa" title="Share on WhatsApp">
+                    <a href="https://wa.me/?text={{ urlencode('Get a loan easily with Prosperity Loans! Apply here: ' . $user->referral_link) }}" target="_blank" class="ref-share-btn wa" title="Share on WhatsApp">
                         <i class="bi bi-whatsapp"></i>
                     </a>
                     <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($user->referral_link) }}" target="_blank" class="ref-share-btn fb" title="Share on Facebook">

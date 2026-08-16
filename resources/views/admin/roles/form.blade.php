@@ -203,7 +203,7 @@
                 <div class="card-hdr"><span class="card-title">Summary</span></div>
                 <div class="card-body">
                     <div style="text-align:center; padding:16px 0;">
-                        <div id="permCount" style="font-size:36px; font-weight:800; color:var(--pl); font-family:'Cormorant Garamond',serif; line-height:1;">0</div>
+                        <div id="permCount" style="font-size:36px; font-weight:800; color:var(--pl); font-family:'Playfair Display',serif; line-height:1;">0</div>
                         <div class="muted" style="font-size:12px; margin-top:4px;">permissions enabled</div>
                     </div>
 

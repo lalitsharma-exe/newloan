@@ -43,7 +43,7 @@
   <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px">
     <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px">Status</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <div style="width:28px;height:28px;border-radius:50%;background:rgba(16,185,129,.1);display:flex;align-items:center;justify-content:center;font-size:13px;color:#10b981;flex-shrink:0"><i class="bi bi-check-lg"></i></div>
+      <div style="width:28px;height:28px;border-radius:50%;background:rgba(22,163,74,.1);display:flex;align-items:center;justify-content:center;font-size:13px;color:#10b981;flex-shrink:0"><i class="bi bi-check-lg"></i></div>
       <div style="font-size:13px;font-weight:600">Payment initiated</div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
@@ -127,11 +127,11 @@ async function checkNow() {
       document.getElementById('statusTitle').textContent = 'Payment Successful!';
       document.getElementById('statusMessage').textContent = 'Your payment has been confirmed and applied to your loan.';
       document.getElementById('step2icon').innerHTML = '<i class="bi bi-check-lg" style="color:#10b981"></i>';
-      document.getElementById('step2icon').style.background = 'rgba(16,185,129,.1)';
+      document.getElementById('step2icon').style.background = 'rgba(22,163,74,.1)';
       document.getElementById('step2label').textContent = 'Payment confirmed';
       document.getElementById('step2label').style.color = '#10b981';
       document.getElementById('step3icon').innerHTML = '<i class="bi bi-check-lg" style="color:#10b981"></i>';
-      document.getElementById('step3icon').style.background = 'rgba(16,185,129,.1)';
+      document.getElementById('step3icon').style.background = 'rgba(22,163,74,.1)';
       document.getElementById('step3label').style.color = '#10b981';
       // Redirect to success page
       setTimeout(() => { window.location.href = data.redirect_url; }, 2000);

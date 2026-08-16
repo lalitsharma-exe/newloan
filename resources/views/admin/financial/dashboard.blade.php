@@ -67,7 +67,7 @@
         {{-- Card 5: Net Liquidity Runway --}}
         @php
             $statusColor = $stats['liquidity_status'] === 'healthy' ? 'var(--ok)' : ($stats['liquidity_status'] === 'warning' ? 'var(--warn)' : 'var(--err)');
-            $statusBg = $stats['liquidity_status'] === 'healthy' ? 'rgba(16,185,129,0.1)' : ($stats['liquidity_status'] === 'warning' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)');
+            $statusBg = $stats['liquidity_status'] === 'healthy' ? 'rgba(22,163,74,0.1)' : ($stats['liquidity_status'] === 'warning' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)');
         @endphp
         <div class="sc" style="background: {{ $statusBg }}; border-color: {{ $statusColor }}; flex-direction: column; align-items: flex-start; justify-content: center; height: 140px;">
             <div style="display:flex; width:100%; justify-content:space-between; align-items:center; margin-bottom:5px">
@@ -242,8 +242,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 {
                     label: 'Cash Available',
                     data: snapshots.map(s => s.cash_available),
-                    borderColor: '#1e3370',
-                    backgroundColor: 'rgba(30, 51, 112, 0.05)',
+                    borderColor: '#22894e',
+                    backgroundColor: 'rgba(26, 107, 60, 0.05)',
                     fill: true,
                     tension: 0.4,
                     borderWidth: 2.5,
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 {
                     label: 'Net Liquidity',
                     data: snapshots.map(s => s.net_liquidity),
-                    borderColor: '#3d60d4',
+                    borderColor: '#2eaa62',
                     borderDash: [5, 5],
                     fill: false,
                     tension: 0.4,
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: { position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true, font: { family: "'Inter', sans-serif", size: 11, weight: '600' } } },
-                tooltip: { backgroundColor: '#0d1b3e', titleFont: { size: 12 }, bodyFont: { size: 11 }, padding: 10, cornerRadius: 8 }
+                tooltip: { backgroundColor: '#0f4527', titleFont: { size: 12 }, bodyFont: { size: 11 }, padding: 10, cornerRadius: 8 }
             },
             scales: {
                 y: { beginAtZero: false, grid: { borderDash: [3, 3], color: '#e2e8f0' }, ticks: { font: { size: 10, weight: '500' }, color: '#64748b' } },

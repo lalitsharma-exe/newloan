@@ -167,7 +167,7 @@
             </div>
           </div>
 
-          <div style="background:var(--p);color:#fff;border-radius:18px;padding:24px;text-align:center;box-shadow:0 10px 25px rgba(30,51,112,0.2)">
+          <div style="background:var(--p);color:#fff;border-radius:18px;padding:24px;text-align:center;box-shadow:0 10px 25px rgba(26,107,60,0.2)">
             <button type="submit" class="btn btn-ok" style="width:100%;justify-content:center;padding:12px;font-size:15px">
               <i class="bi bi-check-lg"></i> Save Changes
             </button>
@@ -183,7 +183,7 @@
 <style>
 .role-radio:checked + .role-card {
   border-color: var(--p) !important;
-  background: rgba(30,51,112,.03) !important;
+  background: rgba(26,107,60,.03) !important;
   transform: translateY(-4px);
   box-shadow: 0 12px 25px rgba(0,0,0,.06);
 }

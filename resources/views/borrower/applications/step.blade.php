@@ -21,7 +21,7 @@ $totalSteps = 9;
 {{-- Progress --}}
 <div style="margin-bottom:24px">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--navy)">{{ $stepTitle }}</div>
+    <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--navy)">{{ $stepTitle }}</div>
     <div style="font-size:12px;color:var(--muted);font-weight:500">Step {{ $step }} of {{ $totalSteps }}</div>
   </div>
   <div style="background:#e2e8f0;border-radius:99px;height:5px">
@@ -93,7 +93,7 @@ $totalSteps = 9;
         <div class="fg" style="grid-column:span 2"><label class="fl">Nearest Landmark *</label><input type="text" name="nearest_landmark" class="fc" value="{{ old('nearest_landmark',$application->nearest_landmark) }}" placeholder="e.g. Near Maseru West Primary School" required></div>
         <div class="fg" style="grid-column:span 2"><label class="fl">Directions to Home *</label><textarea name="home_directions" class="fc" rows="3" placeholder="e.g. From Shell garage, turn left, third house on right, green gate." required>{{ old('home_directions',$application->home_directions) }}</textarea></div>
       </div>
-      <div style="background:#f0f4ff;border:1px solid #dde3ef;border-radius:8px;padding:14px 16px;margin-top:4px">
+      <div style="background:#f0f4ff;border:1px solid #d4e0d4;border-radius:8px;padding:14px 16px;margin-top:4px">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
           <div><div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:2px"><i class="bi bi-geo-alt-fill" style="color:var(--blue);margin-right:5px"></i>Capture GPS Location <span style="font-size:11px;color:var(--muted);font-weight:400">(optional)</span></div><div style="font-size:12px;color:var(--muted)" id="gps-status">Click to capture your current coordinates.</div></div>
           <button type="button" class="btn btn-p btn-sm" onclick="captureGPS()"><i class="bi bi-crosshair"></i> Capture</button>
@@ -441,7 +441,7 @@ $totalSteps = 9;
       <input type="hidden" name="signature_data" id="signature_data">
 
       <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#92400e">
-        <i class="bi bi-info-circle-fill"></i> By submitting you confirm all information is accurate, provide your digital signature, and agree to MyLoan's loan terms and conditions.
+        <i class="bi bi-info-circle-fill"></i> By submitting you confirm all information is accurate, provide your digital signature, and agree to Prosperity Loans's loan terms and conditions.
       </div>
       @endif
 

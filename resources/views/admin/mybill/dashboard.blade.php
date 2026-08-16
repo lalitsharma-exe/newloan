@@ -193,7 +193,7 @@
 .c-tag { background:#f1f5f9; color:#475569; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:800; text-transform:uppercase; }
 .p-badge { padding:6px 12px; border-radius:8px; font-size:10px; font-weight:900; text-transform:uppercase; }
 .bsubmitted { background:rgba(245,158,11,0.1); color:#f59e0b; }
-.bapproved { background:rgba(16,185,129,0.1); color:#10b981; }
+.bapproved { background:rgba(22,163,74,0.1); color:#10b981; }
 .brejected { background:rgba(239,68,68,0.1); color:#ef4444; }
 
 .btn-icon { width:32px; height:32px; border-radius:8px; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center; color:#94a3b8; text-decoration:none; }

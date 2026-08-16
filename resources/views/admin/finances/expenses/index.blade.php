@@ -5,7 +5,7 @@
 @section('content')
 <div class="d-wrap">
     <div style="margin-bottom: 30px;">
-        <h2 style="font-size: 24px; font-weight: 800; color: #1e293b; margin-bottom: 4px;">Myloan Limited — Finance & Operations</h2>
+        <h2 style="font-size: 24px; font-weight: 800; color: #1e293b; margin-bottom: 4px;">Prosperity Loans Limited — Finance & Operations</h2>
         <p style="color: #64748b; font-size: 14px;">Expense recording • KPI monitoring • Profitability intelligence</p>
     </div>
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Receipt Verification | MyLoan</title>
+<title>Receipt Verification | Prosperity Loans</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Helvetica', 'Arial', sans-serif; }
     body { background: #f8fafc; color: #334155; line-height: 1.5; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
@@ -70,12 +70,12 @@
 <body>
 
 <div class="verify-card">
-    <img src="{{ config('app.logo') }}" alt="MyLoan" class="logo">
+    <img src="{{ config('app.logo') }}" alt="Prosperity Loans" class="logo">
     
     @if($payment)
         <div class="status-icon status-success">✓</div>
         <h1>Receipt Verified</h1>
-        <p>This is an authentic official payment receipt issued by MyLoan Limited.</p>
+        <p>This is an authentic official payment receipt issued by Prosperity Loans Limited.</p>
         
         <div class="details-box">
             <div class="detail-item">
@@ -106,10 +106,10 @@
         <p style="margin-top: -20px;">If you believe this is an error, please contact our support team.</p>
     @endif
     
-    <a href="https://myloan.co.ls" class="btn">Return to Website</a>
+    <a href="https://prosperityloans.co.ls" class="btn">Return to Website</a>
     
     <div class="footer">
-        &copy; {{ date('Y') }} MyLoan Limited. All rights reserved.
+        &copy; {{ date('Y') }} Prosperity Loans Limited. All rights reserved.
     </div>
 </div>
 

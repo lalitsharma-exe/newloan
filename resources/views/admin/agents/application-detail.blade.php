@@ -90,8 +90,8 @@
   <div style="width:340px;flex-shrink:0">
     @if($application->status === 'pending' || $application->status === 'documents_requested')
     {{-- Approve --}}
-    <div class="card" style="margin-bottom:16px;border-color:rgba(16,185,129,.3)">
-      <div class="card-hdr" style="background:rgba(16,185,129,.04)">
+    <div class="card" style="margin-bottom:16px;border-color:rgba(22,163,74,.3)">
+      <div class="card-hdr" style="background:rgba(22,163,74,.04)">
         <div class="card-title" style="color:#065f46"><i class="bi bi-check-circle-fill"></i> Approve Agent</div>
       </div>
       <div class="card-body">
@@ -148,9 +148,9 @@
     @endif
 
     @if($application->status === 'approved')
-    <div class="card" style="border-color:rgba(16,185,129,.3)">
+    <div class="card" style="border-color:rgba(22,163,74,.3)">
       <div class="card-body" style="text-align:center">
-        <div style="width:56px;height:56px;background:rgba(16,185,129,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px;color:#10b981"><i class="bi bi-check-circle-fill"></i></div>
+        <div style="width:56px;height:56px;background:rgba(22,163,74,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px;color:#10b981"><i class="bi bi-check-circle-fill"></i></div>
         <div style="font-size:16px;font-weight:700;color:#065f46;margin-bottom:6px">Approved</div>
         <div style="font-size:12.5px;color:var(--muted)">This agent has been approved and their account has been created.</div>
       </div>

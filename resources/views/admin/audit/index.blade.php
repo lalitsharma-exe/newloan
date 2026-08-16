@@ -6,7 +6,7 @@
 
 {{-- Stats --}}
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
-  @foreach([['Today',$stats['today'],'clock-history','#4f46e5','rgba(79,70,229,.1)'],['This Week',$stats['week'],'calendar-week','#0891b2','rgba(8,145,178,.1)'],['This Month',$stats['month'],'calendar-month','#10b981','rgba(16,185,129,.1)'],['Total',$stats['total'],'archive','#64748b','rgba(100,116,139,.1)']] as [$label,$val,$icon,$color,$bg])
+  @foreach([['Today',$stats['today'],'clock-history','#4f46e5','rgba(79,70,229,.1)'],['This Week',$stats['week'],'calendar-week','#0891b2','rgba(8,145,178,.1)'],['This Month',$stats['month'],'calendar-month','#10b981','rgba(22,163,74,.1)'],['Total',$stats['total'],'archive','#64748b','rgba(100,116,139,.1)']] as [$label,$val,$icon,$color,$bg])
   <div style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;align-items:center;gap:14px">
     <div style="width:48px;height:48px;border-radius:13px;background:{{ $bg }};display:flex;align-items:center;justify-content:center;font-size:20px;color:{{ $color }};flex-shrink:0"><i class="bi bi-{{ $icon }}"></i></div>
     <div><div style="font-size:24px;font-weight:800;color:var(--dark)">{{ number_format($val) }}</div><div style="font-size:12px;color:var(--muted);font-weight:500">{{ $label }}</div></div>

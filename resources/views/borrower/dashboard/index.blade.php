@@ -5,7 +5,7 @@
 
 {{-- Greeting --}}
 <div style="margin-bottom:24px">
-  <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--navy)">
+  <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--navy)">
     Hello, {{ explode(' ',$user->name)[0] }} 👋
   </div>
   <div style="font-size:13px;color:var(--muted);margin-top:2px">{{ now()->format('l, d F Y') }}</div>
@@ -33,7 +33,7 @@
     </div>
     <div style="width:100%;border-top:1px solid #fef2f2;margin-bottom:16px"></div>
     @if($nextInst)
-    <div style="font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:800;color:#ef4444;line-height:1;margin-bottom:6px">
+    <div style="font-family:'Playfair Display',serif;font-size:42px;font-weight:800;color:#ef4444;line-height:1;margin-bottom:6px">
       M{{ number_format($nextInst->outstanding_amount,0) }}
     </div>
     <div style="font-size:13px;color:#64748b;margin-bottom:20px">
@@ -58,7 +58,7 @@
     </div>
     <div style="width:100%;border-top:1px solid #fef3c7;margin-bottom:16px"></div>
     @if($overdueInst)
-    <div style="font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:800;color:#f59e0b;line-height:1;margin-bottom:6px">
+    <div style="font-family:'Playfair Display',serif;font-size:42px;font-weight:800;color:#f59e0b;line-height:1;margin-bottom:6px">
       M{{ number_format($overdueInst->outstanding_amount,0) }}
     </div>
     <div style="font-size:13px;color:#64748b;margin-bottom:20px">
@@ -122,7 +122,7 @@
             <div style="width: 8px; background: var(--navy);"></div>
             <div style="padding: 20px; flex: 1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
                 <div style="display: flex; align-items: center; gap: 16px;">
-                    <div style="width: 44px; height: 44px; background: rgba(13, 27, 62, 0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--navy); font-size: 20px;">
+                    <div style="width: 44px; height: 44px; background: rgba(15, 69, 39, 0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--navy); font-size: 20px;">
                         <i class="bi bi-lightning-fill"></i>
                     </div>
                     <div>
@@ -149,10 +149,10 @@
                     <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; margin-bottom: 12px; letter-spacing: 0.5px;">
                         <i class="bi bi-star-fill" style="font-size: 8px;"></i> EXCLUSIVE OFFER
                     </div>
-                    <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; color: #fff; line-height: 1.1;">Need quick cash? Get <span style="color: var(--accent);">M500</span> instantly.</h2>
+                    <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: #fff; line-height: 1.1;">Need quick cash? Get <span style="color: var(--accent);">M500</span> instantly.</h2>
                     <p style="font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 6px;">Exclusive emergency float for you. M125 fixed fee. No paperwork.</p>
                 </div>
-                <div class="btn" style="background: var(--accent); color: #fff; font-weight: 700; padding: 12px 28px; border-radius: 12px; font-size: 14px; box-shadow: 0 10px 20px rgba(140, 198, 63, 0.3);">
+                <div class="btn" style="background: var(--accent); color: #fff; font-weight: 700; padding: 12px 28px; border-radius: 12px; font-size: 14px; box-shadow: 0 10px 20px rgba(201, 148, 58, 0.3);">
                     Claim M500 Now <i class="bi bi-arrow-right"></i>
                 </div>
             </div>

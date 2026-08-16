@@ -46,7 +46,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-h
 /* STAT */
 .sc{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:20px;display:flex;align-items:flex-start;gap:14px}
 .si{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.si.p{background:rgba(79,70,229,.1);color:var(--p)}.si.ok{background:rgba(16,185,129,.1);color:var(--ok)}
+.si.p{background:rgba(79,70,229,.1);color:var(--p)}.si.ok{background:rgba(22,163,74,.1);color:var(--ok)}
 .si.w{background:rgba(245,158,11,.1);color:var(--warn)}.si.e{background:rgba(239,68,68,.1);color:var(--err)}
 .si.i{background:rgba(6,182,212,.1);color:var(--info)}.si.s{background:rgba(14,165,233,.1);color:var(--s)}
 .sv{font-size:24px;font-weight:800;line-height:1.2}.sl{font-size:12px;color:var(--muted);margin-top:2px}
@@ -57,7 +57,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dark);min-h
 .dt tbody tr:hover{background:#f8fafc}.dt tbody tr:last-child td{border-bottom:none}
 /* BADGE */
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600}
-.bp{background:rgba(79,70,229,.1);color:var(--p)}.bok{background:rgba(16,185,129,.1);color:var(--ok)}
+.bp{background:rgba(79,70,229,.1);color:var(--p)}.bok{background:rgba(22,163,74,.1);color:var(--ok)}
 .bw{background:rgba(245,158,11,.15);color:var(--warn)}.be{background:rgba(239,68,68,.1);color:var(--err)}
 .bi{background:rgba(6,182,212,.1);color:var(--info)}.bs{background:rgba(100,116,139,.1);color:var(--muted)}
 /* BUTTON */
@@ -77,7 +77,7 @@ select.fc{cursor:pointer}.fc.err{border-color:var(--err)}
 .ft{font-size:12px;color:var(--muted);margin-top:3px}.iv{font-size:12px;color:var(--err);margin-top:3px;display:block}
 /* ALERT */
 .alert{padding:12px 16px;border-radius:11px;font-size:13px;display:flex;align-items:flex-start;gap:9px;margin-bottom:18px}
-.a-ok{background:rgba(16,185,129,.08);color:#065f46;border:1px solid rgba(16,185,129,.2)}
+.a-ok{background:rgba(22,163,74,.08);color:#065f46;border:1px solid rgba(22,163,74,.2)}
 .a-e{background:rgba(239,68,68,.08);color:#991b1b;border:1px solid rgba(239,68,68,.2)}
 .a-w{background:rgba(245,158,11,.08);color:#92400e;border:1px solid rgba(245,158,11,.2)}
 .a-i{background:rgba(6,182,212,.08);color:#0c4a6e;border:1px solid rgba(6,182,212,.2)}

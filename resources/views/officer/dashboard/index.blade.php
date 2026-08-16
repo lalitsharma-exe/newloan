@@ -82,7 +82,7 @@ $approvalRate = $totalDecided > 0 ? round($totalApproved/$totalDecided*100,1) : 
   @foreach([
     ['My Assigned',   $assignedTotal,  'file-earmark-person', '#4f46e5','rgba(79,70,229,.1)',   route('officer.applications.assigned')],
     ['Pending Review',$pendingReview,  'hourglass-split',     '#f59e0b','rgba(245,158,11,.1)',  route('officer.applications.pending')],
-    ['My Clients',    $myClients,      'people-fill',         '#10b981','rgba(16,185,129,.1)',  route('officer.clients.index')],
+    ['My Clients',    $myClients,      'people-fill',         '#10b981','rgba(22,163,74,.1)',  route('officer.clients.index')],
     ['Docs Pending',  $docsPending,    'file-earmark-x',      '#ef4444','rgba(239,68,68,.1)',   route('officer.documents.index')],
   ] as [$lbl,$val,$icon,$color,$bg,$link])
   <a href="{{ $link }}" style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;text-decoration:none;transition:all .2s" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow='none'">
@@ -274,7 +274,7 @@ $approvalRate = $totalDecided > 0 ? round($totalApproved/$totalDecided*100,1) : 
   // Loan value line
   new Chart(document.getElementById('ocLoanValue'),{type:'line',data:{
     labels:ma.map(d=>d.month),
-    datasets:[{label:'Approved Amount',data:ma.map(d=>d.amount),borderColor:'var(--p)',backgroundColor:'rgba(30,51,112,.08)',borderWidth:2.5,fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'var(--p)'}]
+    datasets:[{label:'Approved Amount',data:ma.map(d=>d.amount),borderColor:'var(--p)',backgroundColor:'rgba(26,107,60,.08)',borderWidth:2.5,fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'var(--p)'}]
   },options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}}},scales:{y:{beginAtZero:true,grid:{color:gc},ticks:{callback:fmt,font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
 
   // Doc status doughnut

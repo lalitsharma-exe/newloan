@@ -2,57 +2,57 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Become a MyLoan Agent</title>
+<title>Become a Prosperity Loans Agent</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,#0d1b3e,#162552);min-height:100vh;padding:20px}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,#0f4527,#1a6b3c);min-height:100vh;padding:20px}
 .container{max-width:640px;margin:0 auto}
 .header{text-align:center;padding:30px 0 20px;color:#fff}
 .header img{height:42px;margin-bottom:12px}
 .header h1{font-size:24px;font-weight:800;margin-bottom:6px}
 .header p{font-size:14px;color:rgba(255,255,255,.6)}
 .form-card{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
-.stepper{display:flex;border-bottom:1px solid #dde3ef;background:#f8fafc}
+.stepper{display:flex;border-bottom:1px solid #d4e0d4;background:#f8fafc}
 .step-tab{flex:1;padding:14px 8px;text-align:center;font-size:11px;font-weight:600;color:#94a3b8;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent}
-.step-tab.active{color:#2b4bad;border-bottom-color:#2b4bad;background:#f5f7ff}
-.step-tab.done{color:#2b4bad}
+.step-tab.active{color:#1a6b3c;border-bottom-color:#1a6b3c;background:#f4f7f4}
+.step-tab.done{color:#1a6b3c}
 .step-tab .num{display:inline-flex;width:22px;height:22px;border-radius:50%;align-items:center;justify-content:center;font-size:10px;font-weight:800;margin-bottom:2px;background:#e2e8f0;color:#64748b}
-.step-tab.active .num{background:#2b4bad;color:#fff}
-.step-tab.done .num{background:#2b4bad;color:#fff}
+.step-tab.active .num{background:#1a6b3c;color:#fff}
+.step-tab.done .num{background:#1a6b3c;color:#fff}
 .step-panel{display:none;padding:28px}.step-panel.active{display:block}
 .fg{margin-bottom:18px}.fl{display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:#334155}
 .fl .req{color:#ef4444}
-.fc{width:100%;padding:10px 13px;border:1.5px solid #dde3ef;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:all .2s;background:#fff}
-.fc:focus{border-color:#2b4bad;box-shadow:0 0 0 3px rgba(43,75,173,.1)}
+.fc{width:100%;padding:10px 13px;border:1.5px solid #d4e0d4;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:all .2s;background:#fff}
+.fc:focus{border-color:#1a6b3c;box-shadow:0 0 0 3px rgba(26,107,60,.1)}
 select.fc{cursor:pointer}
 .fc.err{border-color:#ef4444}
 .iv{font-size:12px;color:#ef4444;margin-top:3px;display:none}
 .type-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
-.type-card{border:2px solid #dde3ef;border-radius:14px;padding:20px;text-align:center;cursor:pointer;transition:all .2s}
-.type-card:hover{border-color:#2b4bad;background:#f5f7ff}
-.type-card.selected{border-color:#2b4bad;background:#f5f7ff;box-shadow:0 0 0 3px rgba(43,75,173,.15)}
-.type-card i{font-size:28px;color:#2b4bad;margin-bottom:8px;display:block}
+.type-card{border:2px solid #d4e0d4;border-radius:14px;padding:20px;text-align:center;cursor:pointer;transition:all .2s}
+.type-card:hover{border-color:#1a6b3c;background:#f4f7f4}
+.type-card.selected{border-color:#1a6b3c;background:#f4f7f4;box-shadow:0 0 0 3px rgba(26,107,60,.15)}
+.type-card i{font-size:28px;color:#1a6b3c;margin-bottom:8px;display:block}
 .type-card strong{font-size:14px;display:block;margin-bottom:4px}
 .type-card span{font-size:11px;color:#64748b}
-.upload-zone{border:2px dashed #dde3ef;border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .2s}
-.upload-zone:hover{border-color:#2b4bad;background:#f5f7ff}
-.upload-zone.has-file{border-color:#2b4bad;background:rgba(43,75,173,.06)}
+.upload-zone{border:2px dashed #d4e0d4;border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .2s}
+.upload-zone:hover{border-color:#1a6b3c;background:#f4f7f4}
+.upload-zone.has-file{border-color:#1a6b3c;background:rgba(26,107,60,.06)}
 .upload-zone.err{border-color:#ef4444;background:#fef2f2}
 .upload-zone i{font-size:28px;color:#94a3b8;margin-bottom:6px;display:block}
-.upload-zone.has-file i{color:#2b4bad}
+.upload-zone.has-file i{color:#1a6b3c}
 .upload-zone input[type="file"]{display:none}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.btn-row{display:flex;gap:10px;padding:20px 28px;border-top:1px solid #dde3ef;justify-content:flex-end}
+.btn-row{display:flex;gap:10px;padding:20px 28px;border-top:1px solid #d4e0d4;justify-content:flex-end}
 .btn{padding:10px 20px;border-radius:9px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
-.btn-next{background:#2b4bad;color:#fff}.btn-next:hover{background:#1e3370}
+.btn-next{background:#1a6b3c;color:#fff}.btn-next:hover{background:#22894e}
 .btn-back{background:#f1f5f9;color:#334155}.btn-back:hover{background:#e2e8f0}
-.btn-submit{background:linear-gradient(135deg,#0d1b3e,#2b4bad);color:#fff;padding:13px 28px;font-size:14px}
-.btn-submit:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(43,75,173,.3)}
+.btn-submit{background:linear-gradient(135deg,#0f4527,#1a6b3c);color:#fff;padding:13px 28px;font-size:14px}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,107,60,.3)}
 .btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
-.agreement-box{max-height:200px;overflow-y:auto;border:1px solid #dde3ef;border-radius:10px;padding:14px;font-size:12px;color:#475569;line-height:1.7;margin-bottom:14px;background:#f8fafc}
+.agreement-box{max-height:200px;overflow-y:auto;border:1px solid #d4e0d4;border-radius:10px;padding:14px;font-size:12px;color:#475569;line-height:1.7;margin-bottom:14px;background:#f8fafc}
 .check-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-.check-row input{width:18px;height:18px;accent-color:#2b4bad}
+.check-row input{width:18px;height:18px;accent-color:#1a6b3c}
 .check-row label{font-size:13px;color:#334155;cursor:pointer}
 .cond-fields{display:none}.cond-fields.show{display:block}
 @media(max-width:480px){.g2{grid-template-columns:1fr}.type-cards{grid-template-columns:1fr}}
@@ -62,8 +62,8 @@ select.fc{cursor:pointer}
 
 <div class="container">
   <div class="header">
-    <img src="{{ config('app.logo', 'https://ik.imagekit.io/ygydr1m84/png.webp') }}" alt="MyLoan" style="filter:brightness(0) invert(1)">
-    <h1>Become a MyLoan Agent</h1>
+    <img src="{{ config('app.logo', 'https://ik.imagekit.io/ygydr1m84/png.webp') }}" alt="Prosperity Loans" style="filter:brightness(0) invert(1)">
+    <h1>Become a Prosperity Loans Agent</h1>
     <p>Earn M50 per qualifying loan application. Register in 5 minutes.</p>
   </div>
 
@@ -174,7 +174,7 @@ select.fc{cursor:pointer}
           </div>
           @error('selfie_holding_id') <span class="iv" style="display:block">{{ $message }}</span> @enderror
           <!-- Live camera feed element -->
-          <div id="camera_container" style="display:none;margin-top:10px;border-radius:12px;overflow:hidden;border:2px solid #2b4bad;position:relative;background:#000;aspect-ratio:4/3">
+          <div id="camera_container" style="display:none;margin-top:10px;border-radius:12px;overflow:hidden;border:2px solid #1a6b3c;position:relative;background:#000;aspect-ratio:4/3">
             <video id="webcam" autoplay playsinline style="width:100%;height:100%;object-fit:cover"></video>
             <div style="position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:10">
               <button type="button" class="btn btn-submit" id="btn_capture" onclick="captureSelfie()" style="padding:8px 16px;font-size:12px"><i class="bi bi-camera-fill"></i> Capture</button>
@@ -182,7 +182,7 @@ select.fc{cursor:pointer}
             </div>
           </div>
           <!-- Preview captured image -->
-          <div id="selfie_preview_container" style="display:none;margin-top:10px;border-radius:12px;overflow:hidden;border:2px solid #2b4bad;position:relative;aspect-ratio:4/3">
+          <div id="selfie_preview_container" style="display:none;margin-top:10px;border-radius:12px;overflow:hidden;border:2px solid #1a6b3c;position:relative;aspect-ratio:4/3">
             <img id="selfie_preview" style="width:100%;height:100%;object-fit:cover">
             <div style="position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:10">
               <button type="button" class="btn btn-back" id="btn_retake" onclick="retakeSelfie()" style="padding:8px 16px;font-size:12px"><i class="bi bi-arrow-clockwise"></i> Retake</button>
@@ -253,19 +253,19 @@ select.fc{cursor:pointer}
 
         <div style="font-size:13px;font-weight:700;margin-bottom:8px">Agent Agreement</div>
         <div class="agreement-box">
-          <p><strong>1. Appointment</strong> — MyLoan Limited appoints you as a community loan origination agent on a non-exclusive basis. This appointment is personal and may not be transferred.</p>
-          <p><strong>2. Nature of Relationship</strong> — You are an independent contractor, not an employee of MyLoan. You bear no financial risk related to any loan originated through you.</p>
+          <p><strong>1. Appointment</strong> — Prosperity Loans Limited appoints you as a community loan origination agent on a non-exclusive basis. This appointment is personal and may not be transferred.</p>
+          <p><strong>2. Nature of Relationship</strong> — You are an independent contractor, not an employee of Prosperity Loans. You bear no financial risk related to any loan originated through you.</p>
           <p><strong>3. Agent Obligations</strong> — You shall: accurately capture client information; submit only genuine applications; never charge clients any fees; maintain client confidentiality; and comply with all applicable laws.</p>
           <p><strong>4. What You Must Not Do</strong> — You must not: make credit decisions; promise loan approval; handle disbursement funds; collect loan repayments; or misrepresent your role.</p>
-          <p><strong>5. Credit Decisions</strong> — All lending decisions are made solely by MyLoan. You acknowledge that submission of an application does not guarantee approval.</p>
+          <p><strong>5. Credit Decisions</strong> — All lending decisions are made solely by Prosperity Loans. You acknowledge that submission of an application does not guarantee approval.</p>
           <p><strong>6. Confidentiality</strong> — Client personal data collected must be treated as strictly confidential and used only for the purpose of loan application submission.</p>
-          <p><strong>7. Termination</strong> — Either party may terminate this agreement with 7 days written notice. MyLoan reserves the right to immediately terminate for breach of the Code of Conduct.</p>
+          <p><strong>7. Termination</strong> — Either party may terminate this agreement with 7 days written notice. Prosperity Loans reserves the right to immediately terminate for breach of the Code of Conduct.</p>
           <p><strong>8. Governing Law</strong> — This agreement is governed by the laws of the Kingdom of Lesotho.</p>
         </div>
 
         <div class="check-row">
           <input type="checkbox" name="agreement" id="agreeCheck" value="1" required class="@error('agreement') err @enderror">
-          <label for="agreeCheck">I have read and accept the MyLoan Agent Agreement.</label>
+          <label for="agreeCheck">I have read and accept the Prosperity Loans Agent Agreement.</label>
         </div>
         @error('agreement') <span class="iv" style="display:block;margin-top:-8px;margin-bottom:14px">{{ $message }}</span> @enderror
       </div>

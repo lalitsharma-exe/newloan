@@ -279,10 +279,10 @@
     
     <div class="footer">
         <div class="company-info">
-            <strong>MyLoan Limited</strong>
+            <strong>Prosperity Loans Limited</strong>
             <p>L&M Complex, Ha Thamae, Maseru</p>
             <p>Phone: (+266) 59 229 149</p>
-            <p>Email: info@myloan.co.ls</p>
+            <p>Email: info@prosperityloans.co.ls</p>
         </div>
         
         <div class="qr-box">

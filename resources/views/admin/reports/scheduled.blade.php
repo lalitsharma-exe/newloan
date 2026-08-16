@@ -57,7 +57,7 @@
       <tbody>
         @foreach($scheduled as $s)
         @php
-        $freq = ['daily'=>['#10b981','rgba(16,185,129,.1)'],'weekly'=>['#4f46e5','rgba(79,70,229,.1)'],'monthly'=>['#f59e0b','rgba(245,158,11,.1)']];
+        $freq = ['daily'=>['#10b981','rgba(22,163,74,.1)'],'weekly'=>['#4f46e5','rgba(79,70,229,.1)'],'monthly'=>['#f59e0b','rgba(245,158,11,.1)']];
         [$fc,$fb] = $freq[$s->frequency] ?? ['#64748b','rgba(100,116,139,.1)'];
         @endphp
         <tr>

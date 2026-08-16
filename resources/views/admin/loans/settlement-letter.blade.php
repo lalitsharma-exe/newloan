@@ -60,7 +60,7 @@ body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
 <div class="doc">
     <div class="header">
         <div class="logo-area">
-            <img src="{{ asset(config('app.logo')) }}" alt="MyLoan Logo">
+            <img src="{{ asset(config('app.logo')) }}" alt="Prosperity Loans Logo">
         </div>
         <div class="header-info">
             <h1>Settlement Letter</h1>
@@ -80,7 +80,7 @@ body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
             <p>Dear <strong>{{ $loan->user?->name }}</strong>,</p>
             
             <p>
-                We are pleased to formally confirm that your loan account with <strong>MyLoan Limited</strong> has been 
+                We are pleased to formally confirm that your loan account with <strong>Prosperity Loans Limited</strong> has been 
                 <strong>fully settled and closed</strong> as of <strong>{{ $loan->closed_at?->format('d M Y') ?? now()->format('d M Y') }}</strong>.
             </p>
 
@@ -115,7 +115,7 @@ body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
                 @endif
                 <div class="sig-name">{{ $directorName }}</div>
                 <div>{{ $directorTitle }}</div>
-                <div style="font-weight:700;color:var(--primary);margin-top:2px">MyLoan Limited</div>
+                <div style="font-weight:700;color:var(--primary);margin-top:2px">Prosperity Loans Limited</div>
             </div>
             <div class="sig-stamp">
                 @php
@@ -138,7 +138,7 @@ body{background:#f1f5f9;padding:40px 20px;color:var(--text-dark)}
     </div>
 
     <div class="footer">
-        <div>MyLoan Limited · Maseru, Lesotho · Generated at {{ now()->format('H:i') }}</div>
+        <div>Prosperity Loans Limited · Maseru, Lesotho · Generated at {{ now()->format('H:i') }}</div>
         <button class="btn-print" onclick="window.print()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg>
             Print Letter

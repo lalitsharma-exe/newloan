@@ -1,13 +1,13 @@
 @extends('borrower.layouts.public')
 @section('title','Loan Products')
-@section('meta_desc','MyLoan loan products for government employees (up to M20,000), private sector workers and pensioners (up to M4,000) in Lesotho.')
+@section('meta_desc','Prosperity Loans loan products for government employees (up to M20,000), private sector workers and pensioners (up to M4,000) in Lesotho.')
 
 @push('page-styles')
 <style>
 .page-hero{background:var(--forest);padding:120px 0 80px;color:#fff}
 .page-hero h1{color:#fff;margin-bottom:14px}
 .page-hero p{color:rgba(255,255,255,.6);font-size:18px;max-width:520px}
-.breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;font-family:'Outfit',sans-serif}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;font-family:'DM Sans',sans-serif}
 .breadcrumb a{color:rgba(255,255,255,.5);text-decoration:none}.breadcrumb a:hover{color:#fff}
 .breadcrumb i{font-size:10px}
 .product-block{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;padding:72px 0;border-bottom:1px solid var(--border)}
@@ -16,7 +16,7 @@
 .product-block.flip .product-visual{order:1}
 .product-visual{background:var(--forest);border-radius:8px;padding:44px 40px;color:#fff}
 .product-visual h2{color:#fff;font-size:clamp(26px,3vw,40px);margin-bottom:10px}
-.product-visual .range{font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--light);margin-bottom:24px;display:block}
+.product-visual .range{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--light);margin-bottom:24px;display:block}
 .fee-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:14px}
 .fee-row:last-child{border-bottom:none}
 .fee-row span:first-child{color:rgba(255,255,255,.5)}
@@ -24,7 +24,7 @@
 .eligibility-list{list-style:none;padding:0;margin-top:20px}
 .eligibility-list li{display:flex;align-items:flex-start;gap:10px;font-size:15px;color:var(--slate);margin-bottom:12px;line-height:1.6}
 .eligibility-list li i{color:var(--green);margin-top:3px;flex-shrink:0}
-.req-tag{display:inline-block;background:var(--ivory2);border:1px solid var(--border);border-radius:3px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;padding:4px 10px;margin:3px 3px 3px 0;color:var(--slate)}
+.req-tag{display:inline-block;background:var(--ivory2);border:1px solid var(--border);border-radius:3px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 10px;margin:3px 3px 3px 0;color:var(--slate)}
 @media(max-width:768px){.product-block{grid-template-columns:1fr;gap:36px}.product-block.flip .product-details,.product-block.flip .product-visual{order:unset}}
 </style>
 @endpush

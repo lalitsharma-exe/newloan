@@ -74,7 +74,7 @@
           <button onclick="openModal('rejectModal')" class="btn btn-e" style="width:100%;justify-content:center"><i class="bi bi-x-circle"></i> Reject Document</button>
         </div>
         @elseif($doc->status==='verified')
-        <div style="background:rgba(16,185,129,.06);border-radius:10px;padding:14px;text-align:center">
+        <div style="background:rgba(22,163,74,.06);border-radius:10px;padding:14px;text-align:center">
           <i class="bi bi-check-circle-fill" style="color:var(--ok);font-size:24px;display:block;margin-bottom:6px"></i>
           <div style="font-size:12.5px;color:var(--muted)">Verified by {{ $doc->verifiedBy?->name ?? 'Staff' }}<br>{{ $doc->verified_at?->format('d M Y H:i') }}</div>
         </div>

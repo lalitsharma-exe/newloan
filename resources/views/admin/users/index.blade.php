@@ -73,8 +73,8 @@
 @endif
 
 {{-- Bulk Import Excel --}}
-<div class="card" style="margin-bottom:20px;border:2px dashed rgba(43,75,173,.2)">
-  <div class="card-hdr" style="background:linear-gradient(135deg,rgba(43,75,173,.04),rgba(43,75,173,.08));border-bottom:1px solid rgba(43,75,173,.12)">
+<div class="card" style="margin-bottom:20px;border:2px dashed rgba(26,107,60,.2)">
+  <div class="card-hdr" style="background:linear-gradient(135deg,rgba(26,107,60,.04),rgba(26,107,60,.08));border-bottom:1px solid rgba(26,107,60,.12)">
     <span class="card-title"><i class="bi bi-file-earmark-spreadsheet-fill" style="color:#4f46e5"></i> &nbsp;Bulk Import Borrowers</span>
     <div style="display:flex;gap:8px">
       <a href="{{ route('admin.users.import-template') }}" class="btn btn-sm" style="background:rgba(79,70,229,.1);color:#4f46e5;border:1px solid rgba(79,70,229,.25);font-size:12px">

@@ -182,7 +182,7 @@
             <div class="g2">
               <div class="fg">
                 <label class="fl">Application Name *</label>
-                <input type="text" name="app_name" class="fc" value="{{ \App\Models\SystemSetting::get('app_name','MyLoan') }}" required>
+                <input type="text" name="app_name" class="fc" value="{{ \App\Models\SystemSetting::get('app_name','Prosperity Loans') }}" required>
               </div>
               <div class="fg">
                 <label class="fl">Country</label>
@@ -378,7 +378,7 @@
               </div>
               <div class="fg">
                 <label class="fl">Account Name</label>
-                <input type="text" name="bank_account_name" class="fc" value="{{ \App\Models\SystemSetting::get('bank_account_name','Myloan Limited') }}">
+                <input type="text" name="bank_account_name" class="fc" value="{{ \App\Models\SystemSetting::get('bank_account_name','Prosperity Loans Limited') }}">
               </div>
               <div class="fg">
                 <label class="fl">Account Number</label>
@@ -536,11 +536,11 @@
             <div class="g2">
               <div class="fg">
                 <label class="fl">From Email *</label>
-                <input type="email" name="email_from" class="fc" value="{{ \App\Models\SystemSetting::get('email_from','noreply@myloan.co.ls') }}" required>
+                <input type="email" name="email_from" class="fc" value="{{ \App\Models\SystemSetting::get('email_from','noreply@prosperityloans.co.ls') }}" required>
               </div>
               <div class="fg">
                 <label class="fl">From Name *</label>
-                <input type="text" name="email_from_name" class="fc" value="{{ \App\Models\SystemSetting::get('email_from_name','MyLoan') }}" required>
+                <input type="text" name="email_from_name" class="fc" value="{{ \App\Models\SystemSetting::get('email_from_name','Prosperity Loans') }}" required>
               </div>
             </div>
           </div>
@@ -565,7 +565,7 @@
               </div>
               <div class="fg">
                 <label class="fl">Sender Name <span style="font-weight:400;color:var(--muted)">(max 11 chars)</span></label>
-                <input type="text" name="sms_sender" class="fc" value="{{ \App\Models\SystemSetting::get('sms_sender','MyLoan') }}" maxlength="11">
+                <input type="text" name="sms_sender" class="fc" value="{{ \App\Models\SystemSetting::get('sms_sender','Prosperity Loans') }}" maxlength="11">
               </div>
             </div>
             @if(!\App\Models\SystemSetting::get('sms_enabled'))

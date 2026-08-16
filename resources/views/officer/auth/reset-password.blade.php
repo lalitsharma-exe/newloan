@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Reset Password — MyLoan Officer</title>
+<title>Reset Password — Prosperity Loans Officer</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
@@ -28,7 +28,7 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0f2318 0%
 <div class="wrap">
   <div class="top">
     <div class="logo"><i class="bi bi-key-fill"></i></div>
-    <div style="color:#fff;font-size:20px;font-weight:800">MyLoan</div>
+    <div style="color:#fff;font-size:20px;font-weight:800">Prosperity Loans</div>
     <div style="color:rgba(255,255,255,.6);font-size:13px;margin-top:4px">Loan Officer Portal — Set New Password</div>
   </div>
   <div class="body">

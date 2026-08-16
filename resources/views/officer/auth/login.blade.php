@@ -108,7 +108,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:an
   justify-content: center; gap: 8px;
   box-shadow: 0 4px 16px rgba(15,69,39,.3);
 }
-.btn-submit:hover { background: linear-gradient(135deg, #162552, #1a6b3c); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(15,69,39,.4); }
+.btn-submit:hover { background: linear-gradient(135deg, #1a6b3c, #1a6b3c); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(15,69,39,.4); }
 
 .auth-error {
   background: rgba(220,38,38,.07); border: 1px solid rgba(220,38,38,.2);

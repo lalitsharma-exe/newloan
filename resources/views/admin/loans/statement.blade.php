@@ -22,12 +22,12 @@
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(13,27,62,.07);
+  box-shadow: 0 2px 12px rgba(15,69,39,.07);
 }
 
 /* ── Header band ── */
 .stmt-header {
-  background: linear-gradient(135deg, #0d1b3e 0%, #1e3370 60%, #162552 100%);
+  background: linear-gradient(135deg, #0f4527 0%, #22894e 60%, #1a6b3c 100%);
   padding: 28px 36px;
   display: flex;
   justify-content: space-between;
@@ -80,7 +80,7 @@
   text-align: center;
 }
 .stmt-stat:last-child { border-right: none; }
-.stmt-stat-val { font-size: 18px; font-weight: 800; color: #0d1b3e; line-height: 1; margin-bottom: 3px; }
+.stmt-stat-val { font-size: 18px; font-weight: 800; color: #0f4527; line-height: 1; margin-bottom: 3px; }
 .stmt-stat-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .stmt-stat.green .stmt-stat-val { color: #059669; }
 .stmt-stat.red   .stmt-stat-val { color: #dc2626; }
@@ -109,7 +109,7 @@
   align-items: center;
   gap: 6px;
 }
-.stmt-info-block-title i { color: #0d1b3e; font-size: 12px; }
+.stmt-info-block-title i { color: #0f4527; font-size: 12px; }
 .stmt-info-row {
   display: flex;
   justify-content: space-between;
@@ -126,7 +126,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .1em;
-  color: #0d1b3e;
+  color: #0f4527;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
@@ -279,10 +279,10 @@
     {{-- Header --}}
     <div class="stmt-header">
       <div class="stmt-logo">
-        <img src="{{ config('app.logo') }}" alt="MyLoan">
+        <img src="{{ config('app.logo') }}" alt="Prosperity Loans">
         <div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,.4);line-height:1.6">
           L&amp;M Complex, Ha Thamae, Maseru<br>
-          (+266) 58 478 799 · info@myloan.co.ls
+          (+266) 58 478 799 · info@prosperityloans.co.ls
         </div>
       </div>
       <div class="stmt-header-right">
@@ -366,7 +366,7 @@
           <div class="stmt-info-row"><span class="lbl">Total Interest</span><span class="val">M{{ number_format($loan->installments->sum('interest_amount'), 2) }}</span></div>
           <div class="stmt-info-row" style="border-bottom:none;padding-top:6px">
             <span class="lbl" style="font-weight:700;color:#1c2433">Total Cost</span>
-            <span class="val" style="color:#0d1b3e;font-size:14px">M{{ number_format($loan->total_repayable ?? $loan->installments->sum('total_amount'), 2) }}</span>
+            <span class="val" style="color:#0f4527;font-size:14px">M{{ number_format($loan->total_repayable ?? $loan->installments->sum('total_amount'), 2) }}</span>
           </div>
         </div>
 
@@ -388,7 +388,7 @@
           @forelse($loan->payments->where('status','verified') as $p)
           <tr>
             <td style="color:var(--muted)">{{ $p->created_at->format('d M Y') }}</td>
-            <td style="font-family:monospace;font-size:11.5px;color:#0d1b3e;font-weight:600">{{ $p->payment_reference }}</td>
+            <td style="font-family:monospace;font-size:11.5px;color:#0f4527;font-weight:600">{{ $p->payment_reference }}</td>
             <td style="color:var(--muted)">{{ ucfirst(str_replace('_',' ',$p->method)) }}</td>
             <td class="r" style="font-weight:700;color:#059669">M{{ number_format($p->amount, 2) }}</td>
             <td><span style="background:#d1fae5;color:#065f46;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px">Verified</span></td>
@@ -409,7 +409,7 @@
       </table>
 
       {{-- Repayment schedule --}}
-      <div class="stmt-sec" style="margin-top:4px"><i class="bi bi-table" style="color:#0d1b3e"></i> Repayment Schedule</div>
+      <div class="stmt-sec" style="margin-top:4px"><i class="bi bi-table" style="color:#0f4527"></i> Repayment Schedule</div>
       <table class="stmt-table">
         <thead>
           <tr>
@@ -435,7 +435,7 @@
           <tr>
             <td style="font-weight:700;color:var(--muted)">{{ $inst->installment_number }}</td>
             <td style="white-space:nowrap;color:var(--muted)">{{ $inst->due_date->format('d M Y') }}</td>
-            <td class="r" style="color:#0d1b3e">M{{ number_format($inst->principal_amount, 2) }}</td>
+            <td class="r" style="color:#0f4527">M{{ number_format($inst->principal_amount, 2) }}</td>
             <td class="r" style="color:#d97706">M{{ number_format($inst->interest_amount, 2) }}</td>
             <td class="r" style="color:#7c3aed">M{{ number_format($inst->initiation_fee_amount ?? 0, 2) }}</td>
             <td class="r" style="color:#475569">M{{ number_format($inst->admin_fee_amount ?? 0, 2) }}</td>
@@ -450,11 +450,11 @@
         <tfoot>
           <tr>
             <td colspan="2" style="font-weight:700;color:#1c2433">Totals</td>
-            <td class="r" style="color:#0d1b3e">M{{ number_format($loan->installments->sum('principal_amount'), 2) }}</td>
+            <td class="r" style="color:#0f4527">M{{ number_format($loan->installments->sum('principal_amount'), 2) }}</td>
             <td class="r" style="color:#d97706">M{{ number_format($loan->installments->sum('interest_amount'), 2) }}</td>
             <td class="r" style="color:#7c3aed">M{{ number_format($loan->installments->sum('initiation_fee_amount'), 2) }}</td>
             <td class="r" style="color:#475569">M{{ number_format($loan->installments->sum('admin_fee_amount'), 2) }}</td>
-            <td class="r" style="font-weight:800;color:#0d1b3e">M{{ number_format($loan->installments->sum('total_amount'), 2) }}</td>
+            <td class="r" style="font-weight:800;color:#0f4527">M{{ number_format($loan->installments->sum('total_amount'), 2) }}</td>
             <td class="r" style="color:#059669">M{{ number_format($loan->installments->sum('paid_amount'), 2) }}</td>
             <td class="r" style="color:#ef4444">M{{ number_format($loan->installments->sum('late_fee'), 2) }}</td>
             <td class="r" style="font-weight:800;color:#dc2626">M{{ number_format($loan->installments->sum('outstanding_amount'), 2) }}</td>
@@ -476,7 +476,7 @@
 
     {{-- Footer --}}
     <div class="stmt-footer">
-      <span>MyLoan Limited · CBL Licensed · L&amp;M Complex, Ha Thamae, Maseru</span>
+      <span>Prosperity Loans Limited · CBL Licensed · L&amp;M Complex, Ha Thamae, Maseru</span>
       <span style="font-family:monospace">{{ $loan->loan_number }} · {{ now()->format('d M Y') }}</span>
     </div>
 

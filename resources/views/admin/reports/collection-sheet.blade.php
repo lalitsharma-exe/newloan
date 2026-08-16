@@ -17,7 +17,7 @@
 <!-- Premium Collection Sheet Dashboard -->
 <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:16px;margin-bottom:24px">
     <!-- Total Collection Card -->
-    <div class="card" style="background:linear-gradient(135deg, #1e3370, #2b4bad);color:#fff;border:none;box-shadow:0 10px 20px rgba(30,51,112,0.15)">
+    <div class="card" style="background:linear-gradient(135deg, #22894e, #1a6b3c);color:#fff;border:none;box-shadow:0 10px 20px rgba(26,107,60,0.15)">
         <div style="padding:18px">
             <div style="font-size:11px;opacity:0.8;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Total Collection</div>
             <div style="font-size:22px;font-weight:800;margin-top:8px">M{{ number_format($data['totalCollection'], 2) }}</div>
@@ -26,19 +26,19 @@
     </div>
     
     <!-- Government Loan Card -->
-    <div class="card" style="border-left:4px solid #1e3370;box-shadow:0 4px 12px rgba(0,0,0,0.03);transition:transform 0.2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+    <div class="card" style="border-left:4px solid #22894e;box-shadow:0 4px 12px rgba(0,0,0,0.03);transition:transform 0.2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
         <div style="padding:18px">
             <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Government</div>
-            <div style="font-size:18px;font-weight:800;color:#1e3370;margin-top:8px">M{{ number_format($data['govCollection'], 2) }}</div>
+            <div style="font-size:18px;font-weight:800;color:#22894e;margin-top:8px">M{{ number_format($data['govCollection'], 2) }}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:6px"><i class="bi bi-bank"></i> Public Sector</div>
         </div>
     </div>
 
     <!-- Private Sector Card -->
-    <div class="card" style="border-left:4px solid #3d60d4;box-shadow:0 4px 12px rgba(0,0,0,0.03);transition:transform 0.2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+    <div class="card" style="border-left:4px solid #2eaa62;box-shadow:0 4px 12px rgba(0,0,0,0.03);transition:transform 0.2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
         <div style="padding:18px">
             <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Private</div>
-            <div style="font-size:18px;font-weight:800;color:#3d60d4;margin-top:8px">M{{ number_format($data['privateCollection'], 2) }}</div>
+            <div style="font-size:18px;font-weight:800;color:#2eaa62;margin-top:8px">M{{ number_format($data['privateCollection'], 2) }}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:6px"><i class="bi bi-building"></i> Private Sector</div>
         </div>
     </div>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Forgot Password — MyLoan Admin</title>
+<title>Forgot Password — Prosperity Loans Admin</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -24,7 +24,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#1e3a5f 0%,#4f46e5 100%)
 <body>
 <div class="card">
   <div class="logo">
-    <h1><i class="bi bi-bank2" style="color:#4f46e5"></i> MyLoan</h1>
+    <h1><i class="bi bi-bank2" style="color:#4f46e5"></i> Prosperity Loans</h1>
     <p>Admin Portal — Password Reset</p>
   </div>
 

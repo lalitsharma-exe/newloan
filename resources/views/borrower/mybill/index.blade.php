@@ -7,7 +7,7 @@
     style="position:fixed; top:20%; right:10%; width:400px; height:400px; background:rgba(59,130,246,0.04); filter:blur(100px); border-radius:50%; z-index:-1">
   </div>
   <div
-    style="position:fixed; bottom:10%; left:5%; width:300px; height:300px; background:rgba(16,185,129,0.03); filter:blur(80px); border-radius:50%; z-index:-1">
+    style="position:fixed; bottom:10%; left:5%; width:300px; height:300px; background:rgba(22,163,74,0.03); filter:blur(80px); border-radius:50%; z-index:-1">
   </div>
 
   {{-- Flash messages --}}
@@ -306,9 +306,9 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      background: rgba(16, 185, 129, 0.08);
+      background: rgba(22, 163, 74, 0.08);
       color: #059669;
-      border: 1px solid rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(22, 163, 74, 0.2);
     }
   </style>
 

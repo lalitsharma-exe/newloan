@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <meta name="description" content="@yield('meta_desc', 'Myloan Limited — Simple, Fast and Secure loans in Lesotho.')">
+  <meta name="description" content="@yield('meta_desc', 'Prosperity Loans Limited — Simple, Fast and Secure loans in Lesotho.')">
   <title>{{ config('app.name') }}</title>
   <link rel="shortcut icon" href="https://ik.imagekit.io/ygydr1m84/2699f0f4-26da-41ec-92ff-ce4aa8ac0f79.jpeg" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -374,7 +374,7 @@
     }
     #header.transparent .header-signin {
       background: #ffffff;
-      color: #050b1a; /* Dark navy */
+      color: #050f06; /* Dark navy */
       border-color: #ffffff;
       font-weight: 600;
     }
@@ -412,7 +412,7 @@
       position: fixed;
       inset: 0;
       z-index: 899;
-      background: rgba(5, 11, 26, .97);
+      background: rgba(5, 15, 6, .97);
       padding: 80px 28px 40px;
       flex-direction: column;
       overflow-y: auto;

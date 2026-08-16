@@ -13,7 +13,7 @@
    PROSPERITY LOANS — AGENT DESIGN SYSTEM
    Brand: Forest Green · Royal Blue · Gold
 ═══════════════════════════════════════════════════ */
-:root{--green:#1a6b3c;--greend:#0f4527;--greenl:#22894e;--green2:#2eaa62;--blue:#1a3a8f;--bluel:#2b55c9;--gold:#c9943a;--goldl:#e0a843;--ok:#16a34a;--warn:#d97706;--err:#dc2626;--info:#0284c7;--bg:#f4f7f4;--card:#fff;--border:#d4e0d4;--muted:#5a6e5a;--dark:#0f2a1a;--sb:265px;--th:64px}
+:root{--green:#1a6b3c;--greend:#0f4527;--greenl:#22894e;--green2:#2eaa62;--blue:#1a3a8f;--bluel:#2b55c9;--gold:#c9943a;--goldl:#e0a843;--ok:#16a34a;--warn:#d97706;--err:#dc2626;--info:#0284c7;--bg:#f4f7f4;--card:#fff;--border:#d4e0d4;--muted:#5a6e5a;--dark:#0f2a1a;--sb:265px;--th:64px;--p:var(--green);--pd:var(--greend);--pl:var(--greenl);--s:var(--gold)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;display:flex}
 .sb{width:var(--sb);min-height:100vh;background:var(--greend);position:fixed;left:0;top:0;z-index:1000;display:flex;flex-direction:column;transition:transform .3s;box-shadow:4px 0 20px rgba(15,69,39,.25)}

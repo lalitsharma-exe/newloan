@@ -36,7 +36,7 @@
                     <td>
                         <div style="display:flex; align-items:center; gap:10px;">
                             <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;
-                                background:{{ $role->is_super_admin ? 'linear-gradient(135deg,#c9a84c,#e8c865)' : 'rgba(43,75,173,.1)' }};
+                                background:{{ $role->is_super_admin ? 'linear-gradient(135deg,#c9a84c,#e8c865)' : 'rgba(26,107,60,.1)' }};
                                 color:{{ $role->is_super_admin ? '#fff' : 'var(--pl)' }};">
                                 <i class="bi bi-{{ $role->is_super_admin ? 'shield-lock-fill' : 'person-badge' }}"></i>
                             </div>

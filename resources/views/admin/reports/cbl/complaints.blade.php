@@ -21,7 +21,7 @@
                 <div class="card-hdr" style="background:#f8fafc"><span class="card-title">Section 1 & 2: Institution & Reference</span></div>
                 <div class="card-body" style="background:#fff">
                     <div class="g3">
-                        <div class="fg"><label class="fl">Institution ID</label><input type="text" class="fc" value="MyLoan Limited" readonly style="background:#f1f5f9"></div>
+                        <div class="fg"><label class="fl">Institution ID</label><input type="text" class="fc" value="Prosperity Loans Limited" readonly style="background:#f1f5f9"></div>
                         <div class="fg"><label class="fl">Financial Year</label><input type="text" class="fc" value="{{ date('Y') }}" readonly style="background:#f1f5f9"></div>
                         <div class="fg"><label class="fl">Complaint Ref #</label><input type="text" class="fc" value="Auto-generated" readonly style="background:#f1f5f9; color:var(--blue); font-weight:700"></div>
                     </div>

@@ -34,6 +34,10 @@
   --dark:    #0f2a1a;
   --sb:      265px;
   --th:      64px;
+  --p:       var(--green);
+  --pd:      var(--greend);
+  --pl:      var(--greenl);
+  --s:       var(--gold);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;display:flex}

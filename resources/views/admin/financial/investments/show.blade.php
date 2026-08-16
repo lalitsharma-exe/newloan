@@ -78,7 +78,7 @@
                             </td>
                             <td style="padding: 14px 24px; text-align: center;">
                                 @if($acc->status === 'posted')
-                                    <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); font-size:9.5px; padding: 4px 10px; border-radius: 30px;"><i class="bi bi-check-circle"></i> Posted ({{ $acc->posted_at->format('d M') }})</span>
+                                    <span class="badge" style="background: rgba(22, 163, 74, 0.1); color: #10b981; border: 1px solid rgba(22, 163, 74, 0.2); font-size:9.5px; padding: 4px 10px; border-radius: 30px;"><i class="bi bi-check-circle"></i> Posted ({{ $acc->posted_at->format('d M') }})</span>
                                 @elseif($acc->status === 'forfeited')
                                     <span class="badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); font-size:9.5px; padding: 4px 10px; border-radius: 30px;"><i class="bi bi-x-circle"></i> Forfeited</span>
                                 @else
@@ -173,7 +173,7 @@
 
                 @elseif($investment->status === 'matured')
                     {{-- Maturity Repayment Card --}}
-                    <div style="background: rgba(16, 185, 129, 0.05); border:1px solid rgba(16, 185, 129, 0.2); border-radius:12px; padding:15px; text-align:center">
+                    <div style="background: rgba(22, 163, 74, 0.05); border:1px solid rgba(22, 163, 74, 0.2); border-radius:12px; padding:15px; text-align:center">
                         <div style="color:#065f46; font-weight:800; font-size:13px; margin-bottom:6px"><i class="bi bi-award-fill"></i> CONTRACT MATURED</div>
                         <p style="font-size:11.5px; color:#047857; margin:0 0 12px 0;">This contract matured on {{ $investment->maturity_date->format('d M, Y') }}. Full payout of principal + posted interest is ready.</p>
                         

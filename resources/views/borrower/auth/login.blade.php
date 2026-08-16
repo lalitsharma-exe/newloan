@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Sign In — MyLoan Portal</title>
+<title>Sign In — Prosperity Loans Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -120,7 +120,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:an
   justify-content: center; gap: 8px;
   box-shadow: 0 4px 16px rgba(15,69,39,.3);
 }
-.btn-submit:hover { background: linear-gradient(135deg, #162552, #1a6b3c); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(15,69,39,.4); }
+.btn-submit:hover { background: linear-gradient(135deg, #1a6b3c, #1a6b3c); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(15,69,39,.4); }
 
 /* Divider */
 .auth-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
@@ -140,7 +140,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:an
   display: flex; align-items: center; gap: 8px;
 }
 .auth-success {
-  background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.2);
+  background: rgba(22,163,74,.08); border: 1px solid rgba(22,163,74,.2);
   color: #065f46; padding: 11px 14px; border-radius: 8px;
   font-size: 13px; margin-bottom: 18px;
   display: flex; align-items: center; gap: 8px;

@@ -157,7 +157,7 @@
 .glass-alert-light {
     padding: 16px 20px; border-radius: 18px; font-size: 14px; font-weight: 800;
     backdrop-filter: blur(10px); display: flex; align-items: center; gap: 12px;
-    background: rgba(16, 185, 129, 0.08); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2);
+    background: rgba(22, 163, 74, 0.08); color: #059669; border: 1px solid rgba(22, 163, 74, 0.2);
 }
 </style>
 

@@ -19,7 +19,7 @@
   overflow:hidden;
 }
 .pay-method-btn:hover { border-color:var(--blue); box-shadow:0 10px 25px rgba(0,0,0,.05); transform:translateY(-2px); }
-.pay-method-btn.active-card   { border-color:#10b981; background:rgba(16,185,129,.02); box-shadow:0 8px 20px rgba(16,185,129,.1); }
+.pay-method-btn.active-card   { border-color:#10b981; background:rgba(22,163,74,.02); box-shadow:0 8px 20px rgba(22,163,74,.1); }
 .pay-method-btn.active-cpay   { border-color:#7c3aed; background:rgba(124,58,237,.02); box-shadow:0 8px 20px rgba(124,58,237,.1); }
 .pay-method-btn.active-mpesa  { border-color:#e11d48; background:rgba(225,29,72,.02); box-shadow:0 8px 20px rgba(225,29,72,.1); }
 
@@ -164,7 +164,7 @@
         </div>
 
         {{-- Card instructions --}}
-        <div id="cardInfo{{ $loan->id }}" class="info-box" style="{{ $mpesaConfigured ? 'display:none;' : '' }}background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2)">
+        <div id="cardInfo{{ $loan->id }}" class="info-box" style="{{ $mpesaConfigured ? 'display:none;' : '' }}background:rgba(22,163,74,.05);border:1px solid rgba(22,163,74,.2)">
           <div style="font-weight:700;color:var(--ok);font-size:13px;margin-bottom:10px">
             <i class="bi bi-credit-card-fill"></i> How Card Payment works
           </div>
@@ -231,7 +231,7 @@
         </div>
 
         {{-- Summary --}}
-        <div style="background:linear-gradient(135deg,var(--navy),var(--navy2,#2b4bad));border-radius:14px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between">
+        <div style="background:linear-gradient(135deg,var(--navy),var(--navy2,#1a6b3c));border-radius:14px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between">
           <div>
             <div style="color:rgba(255,255,255,.6);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">You will pay</div>
             <div style="color:#fff;font-size:28px;font-weight:900;margin-top:4px" id="summaryAmount{{ $loan->id }}">

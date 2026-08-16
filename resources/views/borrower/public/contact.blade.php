@@ -1,27 +1,27 @@
 @extends('borrower.layouts.public')
 @section('title','Contact Us')
-@section('meta_desc','Contact MyLoan Limited — (+266) 58 478 799 — info@myloan.co.ls — L&M Complex, Ha Thamae, Maseru, Lesotho.')
+@section('meta_desc','Contact Prosperity Loans Limited — (+266) 58 478 799 — info@prosperityloans.co.ls — L&M Complex, Ha Thamae, Maseru, Lesotho.')
 
 @push('page-styles')
 <style>
 .page-hero{background:var(--forest);padding:120px 0 80px;color:#fff}
 .page-hero h1{color:#fff;margin-bottom:14px}
 .page-hero p{color:rgba(255,255,255,.6);font-size:18px;max-width:520px}
-.breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;font-family:'Outfit',sans-serif}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;font-family:'DM Sans',sans-serif}
 .breadcrumb a{color:rgba(255,255,255,.5);text-decoration:none}.breadcrumb a:hover{color:#fff}
 .breadcrumb i{font-size:10px}
 .contact-layout{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start}
 .contact-info-item{display:flex;gap:18px;align-items:flex-start;margin-bottom:36px}
 .contact-icon{width:48px;height:48px;border-radius:6px;background:rgba(26,92,46,.08);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:20px;flex-shrink:0}
-.contact-info-item h4{font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--slate);margin-bottom:4px}
+.contact-info-item h4{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--slate);margin-bottom:4px}
 .contact-info-item p,.contact-info-item a{font-size:16px;color:var(--ink);text-decoration:none;line-height:1.5;display:block;transition:color .2s}
 .contact-info-item a:hover{color:var(--green)}
 .form-card{background:var(--ivory);border-radius:8px;padding:40px 36px;border:1px solid var(--border)}
 .form-card h3{font-size:28px;margin-bottom:6px}
 .form-card .sub{font-size:14px;color:var(--slate);margin-bottom:28px}
 .fg{margin-bottom:20px}
-.fl{display:block;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--slate);margin-bottom:6px}
-.fc{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:4px;font-size:14px;font-family:'Outfit',sans-serif;background:var(--white);outline:none;transition:border-color .2s,box-shadow .2s;color:var(--ink)}
+.fl{display:block;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--slate);margin-bottom:6px}
+.fc{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:4px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--white);outline:none;transition:border-color .2s,box-shadow .2s;color:var(--ink)}
 .fc:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(26,92,46,.08)}
 textarea.fc{resize:vertical;min-height:120px}
 @media(max-width:768px){.contact-layout{grid-template-columns:1fr}}
@@ -59,7 +59,7 @@ textarea.fc{resize:vertical;min-height:120px}
           <div class="contact-icon"><i class="bi bi-envelope-fill"></i></div>
           <div>
             <h4>Email</h4>
-            <a href="mailto:info@myloan.co.ls">info@myloan.co.ls</a>
+            <a href="mailto:info@prosperityloans.co.ls">info@prosperityloans.co.ls</a>
             <p style="font-size:13px;color:var(--slate);margin-top:4px">We respond within 1 business day</p>
           </div>
         </div>

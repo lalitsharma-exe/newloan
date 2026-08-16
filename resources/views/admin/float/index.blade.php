@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 
-@section('title', 'MyLoan Float Management')
-@section('page-title', 'MyLoan Float Queue')
+@section('title', 'Prosperity Loans Float Management')
+@section('page-title', 'Prosperity Loans Float Queue')
 
 @section('content')
 <div class="g4 mb4">

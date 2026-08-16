@@ -21,7 +21,7 @@
 .hero::before {
   content: '';
   position: absolute; inset: 0; z-index: 0;
-  background: linear-gradient(160deg, #050b1a 0%, #0a1530 40%, #0d1b3e 100%);
+  background: linear-gradient(160deg, #050f06 0%, #0a2f1c 40%, #0f4527 100%);
 }
 
 /* Background video */
@@ -36,9 +36,9 @@
 .hero-overlay {
   position: absolute; inset: 0; z-index: 2;
   background: linear-gradient(160deg,
-    rgba(5,11,26,.75) 0%,
-    rgba(13,27,62,.58) 45%,
-    rgba(5,11,26,.70) 100%);
+    rgba(5,15,6,.75) 0%,
+    rgba(15,69,39,.58) 45%,
+    rgba(5,15,6,.70) 100%);
 }
 
 /* Decorative orbs */
@@ -48,11 +48,11 @@
 }
 .hero-orb-1 {
   width: 560px; height: 560px; top: -140px; left: -120px;
-  background: radial-gradient(circle, rgba(43,75,173,.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(26,107,60,.1) 0%, transparent 70%);
 }
 .hero-orb-2 {
   width: 380px; height: 380px; bottom: -80px; right: 18%;
-  background: radial-gradient(circle, rgba(30,51,112,.14) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(26,107,60,.14) 0%, transparent 70%);
   animation-delay: 5s;
 }
 @keyframes orb {
@@ -110,19 +110,19 @@
   display: inline-flex; align-items: center; gap: 10px;
   background: var(--accent); color: #fff;
   padding: 15px 34px; border-radius: 4px;
-  font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
   letter-spacing: .04em; text-decoration: none;
-  transition: all .3s; box-shadow: 0 8px 28px rgba(140,198,63,.3);
+  transition: all .3s; box-shadow: 0 8px 28px rgba(201,148,58,.3);
 }
 .btn-hero:hover {
   background: var(--accent2); transform: translateY(-2px);
-  box-shadow: 0 14px 36px rgba(140,198,63,.4);
+  box-shadow: 0 14px 36px rgba(201,148,58,.4);
 }
 .btn-hero-outline {
   display: inline-flex; align-items: center; gap: 10px;
   background: rgba(255,255,255,0.05); color: #fff;
   padding: 13px 32px; border: 2px solid rgba(255,255,255,.2); border-radius: 4px;
-  font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
   letter-spacing: .04em; text-decoration: none;
   transition: all .3s; backdrop-filter: blur(4px);
 }
@@ -139,7 +139,7 @@
 .trust-pill {
   display: flex; align-items: center; gap: 7px;
   font-size: 12px; color: rgba(255,255,255,.58);
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
 }
 .trust-pill i { color: var(--accent); font-size: 13px; flex-shrink: 0; }
 
@@ -150,7 +150,7 @@
 
 /* ── RIGHT: Calculator card ─────────────────────────── */
 .calc-card {
-  background: rgba(5,11,26,.78);
+  background: rgba(5,15,6,.78);
   border: 1px solid rgba(255,255,255,.12);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
@@ -158,7 +158,7 @@
   opacity: 0; animation: rise 1s 1s forwards;
 }
 .calc-card-title {
-  font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600;
   letter-spacing: .13em; text-transform: uppercase;
   color: rgba(255,255,255,.4); margin-bottom: 20px;
   display: flex; align-items: center; justify-content: space-between;
@@ -169,7 +169,7 @@
 .cf-header {
   display: flex; justify-content: space-between; align-items: center;
   font-size: 12.5px; color: rgba(255,255,255,.55);
-  font-family: 'Outfit', sans-serif; margin-bottom: 8px;
+  font-family: 'DM Sans', sans-serif; margin-bottom: 8px;
 }
 .cf-val { color: #fff; font-weight: 700; font-size: 13.5px; }
 input[type=range] {
@@ -187,16 +187,16 @@ input[type=range] {
 .prod-btn {
   background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
   border-radius: 5px; padding: 7px 4px; cursor: pointer;
-  font-family: 'Outfit', sans-serif; font-size: 10px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600;
   color: rgba(255,255,255,.5); text-align: center;
   transition: all .2s; letter-spacing: .03em; line-height: 1.3;
 }
 .prod-btn:hover, .prod-btn.active {
-  background: rgba(140,198,63,.15); border-color: rgba(140,198,63,.4); color: var(--accent);
+  background: rgba(201,148,58,.15); border-color: rgba(201,148,58,.4); color: var(--accent);
 }
 
 .calc-result {
-  background: rgba(140,198,63,.07); border: 1px solid rgba(140,198,63,.18);
+  background: rgba(201,148,58,.07); border: 1px solid rgba(201,148,58,.18);
   border-radius: 9px; padding: 15px 17px; margin-top: 16px;
   display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
 }
@@ -205,33 +205,33 @@ input[type=range] {
   letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px;
 }
 .cr-val {
-  font-family: 'Cormorant Garamond', serif; font-size: 26px;
+  font-family: 'Playfair Display', serif; font-size: 26px;
   font-weight: 700; color: #fff; line-height: 1;
 }
 .cr-val.accent { color: var(--accent); }
 .cr-small {
   font-size: 11.5px; color: rgba(255,255,255,.4);
-  font-family: 'Outfit', sans-serif; margin-top: 6px; line-height: 1.4;
+  font-family: 'DM Sans', sans-serif; margin-top: 6px; line-height: 1.4;
 }
 
 .calc-apply {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   width: 100%; margin-top: 14px; padding: 12px;
   background: var(--accent); color: #fff; border: none; border-radius: 5px;
-  font-family: 'Outfit', sans-serif; font-size: 13.5px; font-weight: 700;
+  font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 700;
   letter-spacing: .04em; cursor: pointer; text-decoration: none; transition: all .25s;
 }
 .calc-apply:hover { background: var(--accent2); transform: translateY(-1px); }
 .calc-disclaimer {
   text-align: center; margin-top: 8px; font-size: 10px;
-  color: rgba(255,255,255,.28); font-family: 'Outfit', sans-serif;
+  color: rgba(255,255,255,.28); font-family: 'DM Sans', sans-serif;
 }
 
 /* ── MOBILE CALC STRIP (shown below hero text on mobile) ── */
 .hero-mobile-calc {
   display: none;
   position: relative; z-index: 3;
-  background: rgba(5,11,26,.85);
+  background: rgba(5,15,6,.85);
   border-top: 1px solid rgba(255,255,255,.1);
   padding: 20px 20px;
 }
@@ -375,7 +375,7 @@ input[type=range] {
         <input type="range" id="m-term" min="1" max="6" step="1" value="3" oninput="calcM()">
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;background:rgba(140,198,63,.07);border:1px solid rgba(140,198,63,.18);border-radius:9px;padding:13px 15px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;background:rgba(201,148,58,.07);border:1px solid rgba(201,148,58,.18);border-radius:9px;padding:13px 15px">
         <div><div class="cr-lbl">Monthly Payment</div><div class="cr-val accent" id="m-monthly" style="font-size:22px">M 4,067</div></div>
         <div><div class="cr-lbl">Total Repayable</div><div class="cr-val" id="m-total" style="font-size:22px">M 12,200</div></div>
         <div style="grid-column:span 2"><div class="cr-small" id="m-breakdown">Principal M5,000 · Initiation M2,000 · Interest M2,250 · Admin M150</div></div>

@@ -60,7 +60,7 @@
         <i class="bi bi-clock-history"></i> You have a pending change request submitted on {{ $latestRequest->created_at->format('d M Y') }}.
       </div>
     @elseif($latestRequest && $latestRequest->status === 'approved')
-       <div class="alert bs mb-4" style="background:rgba(16,185,129,.08);color:#065f46;border:1px solid rgba(16,185,129,.2);padding:12px;border-radius:10px;font-size:13px">
+       <div class="alert bs mb-4" style="background:rgba(22,163,74,.08);color:#065f46;border:1px solid rgba(22,163,74,.2);padding:12px;border-radius:10px;font-size:13px">
         <i class="bi bi-check-circle"></i> Your last request was approved. @if($latestRequest->admin_note) <strong>Note:</strong> {{ $latestRequest->admin_note }} @endif
       </div>
     @elseif($latestRequest && $latestRequest->status === 'rejected')
@@ -98,18 +98,18 @@
     <div style="text-align:right"><button type="submit" class="btn btn-w btn-sm"><i class="bi bi-lock-fill"></i> Change Password</button></div>
   </form>
 </div>
-<div class="card" style="margin-top:20px; border:none; background: linear-gradient(135deg, #0d1b3e, #1e3370); color:#fff; overflow:hidden; position:relative;">
+<div class="card" style="margin-top:20px; border:none; background: linear-gradient(135deg, #0f4527, #22894e); color:#fff; overflow:hidden; position:relative;">
   <div style="display:flex; align-items:center;">
     <div style="flex:1; padding:40px; position:relative; z-index:2;">
       <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:6px 12px; border-radius:30px; font-size:11px; font-weight:700; margin-bottom:16px;">
         <i class="bi bi-shield-lock-fill" style="color:var(--accent)"></i> PROTECTED BY MYLOAN SECURE
       </div>
-      <h3 style="font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:700; margin-bottom:12px;">Your data is <span style="color:var(--accent)">secure.</span></h3>
+      <h3 style="font-family:'Playfair Display',serif; font-size:32px; font-weight:700; margin-bottom:12px;">Your data is <span style="color:var(--accent)">secure.</span></h3>
       <p style="font-size:14px; opacity:0.8; line-height:1.6; max-width:400px;">We use bank-grade encryption and multi-factor authentication to ensure your personal information and financial history remain private and protected at all times.</p>
     </div>
     <div style="width:300px; height:280px; position:relative; overflow:hidden;">
         <img src="{{ asset('financial_security_shield_1778866185839.png') }}" style="width:100%; height:100%; object-fit:cover; mix-blend-mode: lighten; opacity:0.9;">
-        <div style="position:absolute; inset:0; background:linear-gradient(to right, #0d1b3e, transparent);"></div>
+        <div style="position:absolute; inset:0; background:linear-gradient(to right, #0f4527, transparent);"></div>
     </div>
   </div>
 </div>

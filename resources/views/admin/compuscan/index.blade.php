@@ -50,7 +50,7 @@
         <span class="card-title">Upload to Experian</span>
     </div>
     <div class="card-body" style="text-align: center; padding: 40px 20px;">
-        <div style="width: 64px; height: 64px; background: rgba(16,185,129,0.1); color: var(--ok); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px;">
+        <div style="width: 64px; height: 64px; background: rgba(22,163,74,0.1); color: var(--ok); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px;">
             <i class="bi bi-cloud-upload-fill"></i>
         </div>
         <h5 style="margin-bottom: 8px; font-weight: 700;">Experian/Compuscan Portal</h5>

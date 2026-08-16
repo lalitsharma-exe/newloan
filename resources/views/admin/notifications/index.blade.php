@@ -23,7 +23,7 @@
   $isPayment = str_contains($n->type,'payment');
   $isApproved = str_contains($n->type,'approved')||str_contains($n->type,'verified');
   $isDanger = str_contains($n->type,'overdue')||str_contains($n->type,'declined');
-  $iconBg = $isApproved ? 'rgba(16,185,129,.1)' : ($isPayment ? 'rgba(79,70,229,.1)' : ($isDanger ? 'rgba(239,68,68,.1)' : 'rgba(100,116,139,.1)'));
+  $iconBg = $isApproved ? 'rgba(22,163,74,.1)' : ($isPayment ? 'rgba(79,70,229,.1)' : ($isDanger ? 'rgba(239,68,68,.1)' : 'rgba(100,116,139,.1)'));
   $iconColor = $isApproved ? '#10b981' : ($isPayment ? '#4f46e5' : ($isDanger ? '#ef4444' : '#64748b'));
   $icon = $isPayment ? 'cash-coin' : (str_contains($n->type,'loan') ? 'bank' : (str_contains($n->type,'application') ? 'file-earmark-text' : 'bell'));
   @endphp

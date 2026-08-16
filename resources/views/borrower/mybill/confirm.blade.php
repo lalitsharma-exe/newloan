@@ -79,7 +79,7 @@
             @if(!empty($data[$f]))<input type="hidden" name="{{ $f }}" value="{{ $data[$f] }}">@endif
         @endforeach
 
-        <button type="submit" class="glass-submit-btn" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 10px 30px rgba(16,185,129,0.25)" onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> Processing...'; this.closest('form').submit()">
+        <button type="submit" class="glass-submit-btn" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 10px 30px rgba(22,163,74,0.25)" onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> Processing...'; this.closest('form').submit()">
             <i class="bi bi-check-circle-fill"></i> Confirm & Pay
         </button>
         <a href="{{ route('borrower.mybill.purchase', $category) }}" class="back-text">Change Details</a>

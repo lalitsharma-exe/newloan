@@ -292,7 +292,7 @@
     {{-- ── FLAT INTEREST LIVE CALCULATOR ── --}}
     <div id="calcPreview" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:13px;padding:18px;margin-top:14px">
       <div style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px">
-        <i class="bi bi-calculator-fill"></i> Flat Interest Breakdown (MyLoan rules)
+        <i class="bi bi-calculator-fill"></i> Flat Interest Breakdown (Prosperity Loans rules)
       </div>
       <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;text-align:center;margin-bottom:12px">
         <div style="background:#fff;border-radius:9px;padding:11px;border:1px solid #d1fae5">

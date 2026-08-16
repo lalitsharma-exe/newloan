@@ -25,8 +25,8 @@
     transition: all .2s;
     margin-bottom: 10px;
 }
-.audience-card:hover { border-color: var(--pl); background: rgba(43,75,173,.02); }
-.audience-card.selected { border-color: var(--pl); background: rgba(43,75,173,.05); }
+.audience-card:hover { border-color: var(--pl); background: rgba(26,107,60,.02); }
+.audience-card.selected { border-color: var(--pl); background: rgba(26,107,60,.05); }
 .audience-card input[type=radio] { display: none; }
 .audience-dot {
     width: 18px; height: 18px;
@@ -161,7 +161,7 @@
                 <div class="card-body">
                     <div class="fg">
                         <textarea name="message" id="smsMessage" class="fc" rows="5" maxlength="480"
-                            placeholder="Hi {name}, your loan payment is due soon. Please make your payment to avoid penalties. — MyLoan" required
+                            placeholder="Hi {name}, your loan payment is due soon. Please make your payment to avoid penalties. — Prosperity Loans" required
                             oninput="updatePreview()">{{ old('message') }}</textarea>
                         <div class="char-count" id="charCount">0 / 480 characters</div>
                         @error('message') <span class="iv">{{ $message }}</span> @enderror
@@ -189,7 +189,7 @@
                                 <i class="bi bi-chat-fill" style="font-size:12px; color:#fff;"></i>
                             </div>
                             <div>
-                                <div style="font-size:12px; font-weight:600;">MyLoan</div>
+                                <div style="font-size:12px; font-weight:600;">Prosperity Loans</div>
                                 <div style="font-size:10px; color:rgba(255,255,255,.4);">SMS</div>
                             </div>
                         </div>

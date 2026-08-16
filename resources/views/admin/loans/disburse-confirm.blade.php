@@ -25,7 +25,7 @@ Disburse
   </div>
 </div>
 @else
-<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:10px;margin-bottom:22px">
+<div style="background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:10px;margin-bottom:22px">
   <i class="bi bi-check-circle-fill" style="color:#10b981;font-size:20px;flex-shrink:0"></i>
   <div style="font-weight:700;color:#065f46;font-size:14px">All required checks passed. Ready to disburse.</div>
 </div>
@@ -109,7 +109,7 @@ Disburse
       <div class="card-body" style="padding:0">
         @foreach($checks as $check)
         <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--border)">
-          <div style="width:34px;height:34px;border-radius:50%;background:{{ $check['pass'] ? 'rgba(16,185,129,.1)' : 'rgba(239,68,68,.1)' }};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <div style="width:34px;height:34px;border-radius:50%;background:{{ $check['pass'] ? 'rgba(22,163,74,.1)' : 'rgba(239,68,68,.1)' }};display:flex;align-items:center;justify-content:center;flex-shrink:0">
             <i class="bi bi-{{ $check['pass'] ? 'check-lg' : 'x-lg' }}" style="color:{{ $check['pass'] ? '#10b981' : '#ef4444' }};font-size:16px"></i>
           </div>
           <div style="flex:1">
@@ -124,7 +124,7 @@ Disburse
           @elseif(!$check['pass'])
           <span style="background:rgba(245,158,11,.1);color:#d97706;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px">WARNING</span>
           @else
-          <span style="background:rgba(16,185,129,.1);color:#059669;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px">PASSED</span>
+          <span style="background:rgba(22,163,74,.1);color:#059669;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px">PASSED</span>
           @endif
         </div>
         @endforeach
@@ -219,7 +219,7 @@ Disburse
           <label style="cursor:pointer">
             <input type="radio" name="_method_preview" value="mpesa_b2c" style="display:none" class="method-radio" onchange="switchMethod('mpesa_b2c')">
             <div class="method-card" data-m="mpesa_b2c" style="border:2px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:all .2s">
-              <div style="width:42px;height:42px;background:rgba(16,185,129,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <div style="width:42px;height:42px;background:rgba(22,163,74,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <i class="bi bi-phone-fill" style="font-size:20px;color:#10b981"></i>
               </div>
               <div style="flex:1">
@@ -240,7 +240,7 @@ Disburse
           <label style="cursor:pointer">
             <input type="radio" name="_method_preview" value="cash" style="display:none" class="method-radio" onchange="switchMethod('cash')">
             <div class="method-card" data-m="cash" style="border:2px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:all .2s">
-              <div style="width:42px;height:42px;background:rgba(16,185,129,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <div style="width:42px;height:42px;background:rgba(22,163,74,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <i class="bi bi-cash-stack" style="font-size:20px;color:#10b981"></i>
               </div>
               <div>
@@ -291,7 +291,7 @@ Disburse
 
     {{-- 6. Confirmation Form --}}
     <div class="card" style="border:2px solid {{ $blocked ? '#ef4444' : '#10b981' }}">
-      <div class="card-hdr" style="background:{{ $blocked ? 'rgba(239,68,68,.05)' : 'rgba(16,185,129,.05)' }}">
+      <div class="card-hdr" style="background:{{ $blocked ? 'rgba(239,68,68,.05)' : 'rgba(22,163,74,.05)' }}">
         <span class="card-title"><i class="bi bi-{{ $blocked ? 'slash-circle' : 'check2-circle' }}" style="color:{{ $blocked ? '#ef4444' : '#10b981' }}"></i> 6. Confirm Disbursement</span>
       </div>
       <div class="card-body">

@@ -254,7 +254,7 @@
                                 <form action="{{ route('admin.referrals.credit-loan', $ref) }}" method="POST" onsubmit="return confirm('Credit M{{ number_format($ref->amount, 2) }} to {{ $ref->referrer->name }}\'s active loan?')">
                                     @csrf
                                     <button type="submit" class="pay-opt">
-                                        <div class="pay-opt-icon" style="background:rgba(43,75,173,.1); color:var(--pl);">
+                                        <div class="pay-opt-icon" style="background:rgba(26,107,60,.1); color:var(--pl);">
                                             <i class="bi bi-bank"></i>
                                         </div>
                                         <div>
@@ -270,7 +270,7 @@
                                 <form action="{{ route('admin.referrals.pay-mpesa', $ref) }}" method="POST" onsubmit="return confirm('Send M{{ number_format($ref->amount, 2) }} to {{ $ref->referrer->name }} ({{ $ref->referrer->phone }}) via M-Pesa?')">
                                     @csrf
                                     <button type="submit" class="pay-opt">
-                                        <div class="pay-opt-icon" style="background:rgba(16,185,129,.1); color:var(--ok);">
+                                        <div class="pay-opt-icon" style="background:rgba(22,163,74,.1); color:var(--ok);">
                                             <i class="bi bi-phone"></i>
                                         </div>
                                         <div>

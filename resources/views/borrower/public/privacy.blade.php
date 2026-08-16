@@ -1,25 +1,25 @@
 @extends('borrower.layouts.public')
 @section('title','Privacy Policy')
-@section('meta_desc','MyLoan Limited Privacy Policy — how we collect, use, and protect your personal information.')
+@section('meta_desc','Prosperity Loans Limited Privacy Policy — how we collect, use, and protect your personal information.')
 
 @push('page-styles')
 <style>
 .page-hero{background:var(--forest);padding:120px 0 80px;color:#fff}
 .page-hero h1{color:#fff;margin-bottom:14px}
 .page-hero p{color:rgba(255,255,255,.6);font-size:18px}
-.breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;font-family:'Outfit',sans-serif}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;font-family:'DM Sans',sans-serif}
 .breadcrumb a{color:rgba(255,255,255,.5);text-decoration:none}.breadcrumb a:hover{color:#fff}
 .breadcrumb i{font-size:10px}
 .legal-layout{display:grid;grid-template-columns:220px 1fr;gap:56px;align-items:start}
 .legal-nav{position:sticky;top:92px}
-.legal-nav a{display:block;font-size:13px;color:var(--slate);text-decoration:none;padding:8px 12px;border-left:2px solid var(--border);margin-bottom:2px;font-family:'Outfit',sans-serif;transition:all .2s}
+.legal-nav a{display:block;font-size:13px;color:var(--slate);text-decoration:none;padding:8px 12px;border-left:2px solid var(--border);margin-bottom:2px;font-family:'DM Sans',sans-serif;transition:all .2s}
 .legal-nav a:hover{color:var(--green);border-left-color:var(--green)}
 .legal-body h2{font-size:26px;margin-top:48px;margin-bottom:14px;padding-top:48px;border-top:1px solid var(--border)}
 .legal-body h2:first-child{margin-top:0;padding-top:0;border-top:none}
 .legal-body p{font-size:15px;line-height:1.85;color:var(--slate);margin-bottom:14px}
 .legal-body ul{padding-left:20px;margin-bottom:14px}
 .legal-body ul li{font-size:15px;line-height:1.85;color:var(--slate);margin-bottom:6px}
-.last-updated{font-family:'Outfit',sans-serif;font-size:12px;color:var(--slate);margin-bottom:36px;padding:10px 14px;background:var(--ivory2);border-radius:4px;border-left:3px solid var(--gold)}
+.last-updated{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--slate);margin-bottom:36px;padding:10px 14px;background:var(--ivory2);border-radius:4px;border-left:3px solid var(--gold)}
 @media(max-width:768px){.legal-layout{grid-template-columns:1fr}.legal-nav{display:none}}
 </style>
 @endpush
@@ -29,7 +29,7 @@
   <div class="container">
     <div class="breadcrumb"><a href="{{ route('home') }}">Home</a><i class="bi bi-chevron-right"></i><span>Privacy Policy</span></div>
     <h1>Privacy Policy</h1>
-    <p>How MyLoan collects, uses, and protects your personal information.</p>
+    <p>How Prosperity Loans collects, uses, and protects your personal information.</p>
   </div>
 </div>
 
@@ -48,7 +48,7 @@
         <div class="last-updated">Last updated: January 2025</div>
 
         <h2 id="collection">1. Information We Collect</h2>
-        <p>When you apply for a loan or use our portal, MyLoan Limited collects the following types of personal information:</p>
+        <p>When you apply for a loan or use our portal, Prosperity Loans Limited collects the following types of personal information:</p>
         <ul>
           <li><strong>Identity information</strong> — Full name, national ID number, date of birth, gender</li>
           <li><strong>Contact information</strong> — Phone number, email address, residential address</li>
@@ -79,7 +79,7 @@
         </ul>
 
         <h2 id="security">4. How We Protect Your Information</h2>
-        <p>MyLoan uses reasonable technical and organisational measures to protect your personal information against unauthorised access, loss, or misuse. Our online portal uses encryption (HTTPS) for all data transmission.</p>
+        <p>Prosperity Loans uses reasonable technical and organisational measures to protect your personal information against unauthorised access, loss, or misuse. Our online portal uses encryption (HTTPS) for all data transmission.</p>
         <p>However, no method of transmission over the internet is 100% secure. We encourage you to use a strong, unique password for your portal account and to never share it with anyone.</p>
 
         <h2 id="rights">5. Your Rights</h2>
@@ -96,7 +96,7 @@
         <p>If you have any questions about this Privacy Policy or how we handle your personal information, please contact us:</p>
         <ul>
           <li>Phone: (+266) 58 478 799</li>
-          <li>Email: info@myloan.co.ls</li>
+          <li>Email: info@prosperityloans.co.ls</li>
           <li>Address: L&amp;M Complex, Ha Thamae, Maseru, Lesotho</li>
         </ul>
       </div>

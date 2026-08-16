@@ -33,14 +33,14 @@ $totalSteps = 9;
     </div>
   </div>
   <div style="display:flex;gap:4px">
-    <span class="badge bs" style="background:rgba(30,51,112,.08);color:var(--p);font-size:10px">Walk-in Application</span>
+    <span class="badge bs" style="background:rgba(26,107,60,.08);color:var(--p);font-size:10px">Walk-in Application</span>
   </div>
 </div>
 
 {{-- Progress --}}
 <div style="margin-bottom:24px">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--navy)">{{ $stepTitle }}</div>
+    <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--navy)">{{ $stepTitle }}</div>
     <div style="font-size:12px;color:var(--muted);font-weight:500">Step {{ $step }} of {{ $totalSteps }}</div>
   </div>
   <div style="background:#e2e8f0;border-radius:99px;height:5px">
@@ -160,7 +160,7 @@ $totalSteps = 9;
       <div class="fg" style="grid-column:span 2"><label class="fl">Directions to Home *</label><textarea name="home_directions" class="fc" rows="3" placeholder="e.g. From Shell garage, turn left, third house on right, green gate." required>{{ old('home_directions',$application->home_directions) }}</textarea></div>
     </div>
     
-    <div style="background:#f0f4ff;border:1px solid #dde3ef;border-radius:10px;padding:16px;margin-top:16px">
+    <div style="background:#f0f4ff;border:1px solid #d4e0d4;border-radius:10px;padding:16px;margin-top:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div>
           <div style="font-size:14px;font-weight:700;color:var(--p);margin-bottom:2px"><i class="bi bi-geo-alt-fill" style="margin-right:5px"></i>Capture GPS Location</div>
@@ -502,9 +502,9 @@ $totalSteps = 9;
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       @foreach($docTypes as [$dtype, $dlabel, $icon, $note])
       @php $existing = $uploaded->get($dtype); @endphp
-      <div style="background:#f8fafc;border-radius:15px;padding:20px;border:1.5px solid {{ $existing?'rgba(16,185,129,.3)':'var(--border)' }};position:relative">
+      <div style="background:#f8fafc;border-radius:15px;padding:20px;border:1.5px solid {{ $existing?'rgba(22,163,74,.3)':'var(--border)' }};position:relative">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div style="width:42px;height:42px;border-radius:12px;background:{{ $existing?'rgba(16,185,129,.1)':'rgba(43,108,176,.1)' }};display:flex;align-items:center;justify-content:center;font-size:18px;color:{{ $existing?'var(--ok)':'var(--p)' }}">
+          <div style="width:42px;height:42px;border-radius:12px;background:{{ $existing?'rgba(22,163,74,.1)':'rgba(43,108,176,.1)' }};display:flex;align-items:center;justify-content:center;font-size:18px;color:{{ $existing?'var(--ok)':'var(--p)' }}">
             <i class="bi {{ $icon }}"></i>
           </div>
           @if($existing)
@@ -541,7 +541,7 @@ $totalSteps = 9;
 
 {{-- ═══════════ STEP 9: REVIEW & SUBMIT ═══════════ --}}
 @elseif($step == 9)
-<div class="alert a-ok" style="margin-bottom:20px;border:1px solid rgba(16,185,129,.2)">
+<div class="alert a-ok" style="margin-bottom:20px;border:1px solid rgba(22,163,74,.2)">
   <i class="bi bi-check-circle-fill"></i>
   <div><strong>Ready to submit!</strong> Please review all details below. Once confirmed, collect the client's signature.</div>
 </div>
@@ -609,7 +609,7 @@ $totalSteps = 9;
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px">
       @foreach(['national_id'=>'National ID','payslip'=>'Payslip','bank_statement'=>'Bank Statement','photo'=>'Selfie Picture'] as $dtype=>$dlabel)
       @php $doc = $application->documents->where('type',$dtype)->first(); @endphp
-      <div style="background:{{ $doc?'rgba(16,185,129,.08)':'rgba(239,68,68,.08)' }};border:1px solid {{ $doc?'rgba(16,185,129,.2)':'rgba(239,68,68,.2)' }};border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;color:{{ $doc?'#16a34a':'#dc2626' }}">
+      <div style="background:{{ $doc?'rgba(22,163,74,.08)':'rgba(239,68,68,.08)' }};border:1px solid {{ $doc?'rgba(22,163,74,.2)':'rgba(239,68,68,.2)' }};border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;color:{{ $doc?'#16a34a':'#dc2626' }}">
         <i class="bi bi-{{ $doc?'check-circle-fill':'x-circle-fill' }}"></i> {{ $dlabel }}
       </div>
       @endforeach
@@ -664,7 +664,7 @@ $totalSteps = 9;
     <button class="cb" onclick="closeModal('submitModal')">&times;</button>
   </div>
   <div class="mb" style="text-align:center;padding:25px">
-    <div style="width:60px;height:60px;background:rgba(16,185,129,.1);color:var(--ok);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 15px">
+    <div style="width:60px;height:60px;background:rgba(22,163,74,.1);color:var(--ok);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 15px">
       <i class="bi bi-send-check"></i>
     </div>
     <p style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:8px">Ready to Finalize?</p>
@@ -962,8 +962,8 @@ function calcPreview(){
           limitMsg.style.border = '1px solid rgba(239,68,68,0.2)';
       } else {
           limitMsg.innerHTML = `<span style="color:var(--ok)"><i class="bi bi-check-circle-fill"></i> Qualifies: Repayment is within 30% limit</span>`;
-          limitMsg.style.background = 'rgba(16,185,129,0.1)';
-          limitMsg.style.border = '1px solid rgba(16,185,129,0.2)';
+          limitMsg.style.background = 'rgba(22,163,74,0.1)';
+          limitMsg.style.border = '1px solid rgba(22,163,74,0.2)';
       }
   }
 }

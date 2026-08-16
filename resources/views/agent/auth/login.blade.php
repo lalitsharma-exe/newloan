@@ -93,14 +93,14 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:an
   justify-content: center; gap: 8px;
   box-shadow: 0 4px 16px rgba(15,69,39,.3);
 }
-.btn-submit:hover { background: linear-gradient(135deg, #162552, #1a6b3c); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(15,69,39,.4); }
+.btn-submit:hover { background: linear-gradient(135deg, #1a6b3c, #1a6b3c); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(15,69,39,.4); }
 .auth-error {
   background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2);
   color: #991b1b; padding: 11px 14px; border-radius: 8px;
   font-size: 13px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
 }
 .auth-success {
-  background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.2);
+  background: rgba(22,163,74,.08); border: 1px solid rgba(22,163,74,.2);
   color: #065f46; padding: 11px 14px; border-radius: 8px;
   font-size: 13px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
 }

@@ -75,8 +75,8 @@
   $vMeta = $application->verification_meta;
   $steps = $vMeta['steps'] ?? [];
 @endphp
-<div class="card" style="margin-bottom:22px;border-color:{{ $vStatus === 'passed' ? 'rgba(16,185,129,.3)' : 'rgba(245,158,11,.3)' }}">
-  <div class="card-hdr" style="background:{{ $vStatus === 'passed' ? 'rgba(16,185,129,.02)' : 'rgba(245,158,11,.02)' }}">
+<div class="card" style="margin-bottom:22px;border-color:{{ $vStatus === 'passed' ? 'rgba(22,163,74,.3)' : 'rgba(245,158,11,.3)' }}">
+  <div class="card-hdr" style="background:{{ $vStatus === 'passed' ? 'rgba(22,163,74,.02)' : 'rgba(245,158,11,.02)' }}">
     <div class="card-title" style="color:{{ $vStatus === 'passed' ? '#0f766e' : '#b45309' }}">
       <i class="bi bi-shield-check"></i> 5-Step Automated Verification Pipeline
     </div>

@@ -199,8 +199,8 @@ function calcAfford(){
   if(earn > 0){
     msgEl.style.display = 'block';
     if(disposable >= 0){
-      msgEl.style.background='rgba(16,185,129,.08)';
-      msgEl.style.border='1px solid rgba(16,185,129,.25)';
+      msgEl.style.background='rgba(22,163,74,.08)';
+      msgEl.style.border='1px solid rgba(22,163,74,.25)';
       msgEl.style.color='#065f46';
       msgEl.innerHTML='<i class="bi bi-check-circle-fill"></i> <strong>Passes affordability check.</strong> Disposable income is positive.';
     } else {

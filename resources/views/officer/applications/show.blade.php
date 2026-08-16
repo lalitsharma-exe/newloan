@@ -244,7 +244,7 @@ $badgeMap  = ['submitted'=>['#6366f1','#ede9fe'],'under_review'=>['#0891b2','#e0
             <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Disposable Income</div>
             <div style="font-size:24px;font-weight:800;color:var(--p);margin-top:4px">M{{ number_format($a->disposable_income??0,2) }}</div>
           </div>
-          <div style="background:{{ ($a->disposable_income??0) >= 0 ? 'rgba(16,185,129,.06)':'rgba(239,68,68,.06)' }};border-radius:10px;padding:16px;text-align:center;border:1px solid {{ ($a->disposable_income??0)>=0?'rgba(16,185,129,.15)':'rgba(239,68,68,.15)' }}">
+          <div style="background:{{ ($a->disposable_income??0) >= 0 ? 'rgba(22,163,74,.06)':'rgba(239,68,68,.06)' }};border-radius:10px;padding:16px;text-align:center;border:1px solid {{ ($a->disposable_income??0)>=0?'rgba(22,163,74,.15)':'rgba(239,68,68,.15)' }}">
             <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Affordability</div>
             <div style="font-size:20px;font-weight:800;color:{{ ($a->disposable_income??0)>=0?'#10b981':'#ef4444' }};margin-top:4px">{{ ($a->disposable_income??0)>=0?'✓ Passes':'✗ Fails' }}</div>
           </div>

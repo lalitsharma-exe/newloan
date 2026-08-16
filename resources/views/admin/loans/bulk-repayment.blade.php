@@ -5,7 +5,7 @@
 @section('content')
 
 @if(session('success'))
-<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:#065f46;padding:12px 16px;border-radius:11px;font-size:13px;display:flex;align-items:center;gap:9px;margin-bottom:18px">
+<div style="background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2);color:#065f46;padding:12px 16px;border-radius:11px;font-size:13px;display:flex;align-items:center;gap:9px;margin-bottom:18px">
   <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
 </div>
 @endif
