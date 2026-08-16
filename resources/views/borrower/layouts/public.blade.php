@@ -9,26 +9,28 @@
   <link rel="shortcut icon" href="https://ik.imagekit.io/ygydr1m84/2699f0f4-26da-41ec-92ff-ce4aa8ac0f79.jpeg" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     :root {
-      --navy: #0d1b3e;
-      --navy2: #162552;
-      --navy3: #1e3370;
-      --blue: #2b4bad;
-      --blue2: #3d60d4;
-      --accent: #8cc63f;
-      --accent2: #7ab033;
-      --ivory: #faf8f3;
-      --ivory2: #f0ece0;
-      --charcoal: #111827;
-      --ink: #1c2433;
-      --slate: #4b5a72;
-      --border: #dde3ef;
+      --navy: #0f4527;
+      --navy2: #0a2f1c;
+      --navy3: #1a6b3c;
+      --blue: #1a6b3c;
+      --blue2: #22894e;
+      --accent: #c9943a;
+      --accent2: #b07c27;
+      --ivory: #f4f7f4;
+      --ivory2: #e8f0e8;
+      --charcoal: #0f2a1a;
+      --ink: #0f2a1a;
+      --slate: #5a6e5a;
+      --border: #d4e0d4;
       --white: #ffffff;
-      --light: #7c9ff5;
+      --light: #2eaa62;
+      --gold: #c9943a;
+      --goldl: #e0a843;
     }
 
     *,
@@ -46,7 +48,7 @@
     }
 
     body {
-      font-family: 'Outfit', sans-serif;
+      font-family: 'DM Sans', sans-serif;
       font-weight: 400;
       color: var(--ink);
       background: var(--white);
@@ -68,7 +70,7 @@
     h1,
     h2,
     h3 {
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: 'Playfair Display', Georgia, serif;
       font-weight: 600;
       line-height: 1.15;
       letter-spacing: -.02em;
@@ -98,9 +100,9 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      font-family: 'Outfit', sans-serif;
+      font-family: 'DM Sans', sans-serif;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: .14em;
       text-transform: uppercase;
       color: var(--blue2);
@@ -119,8 +121,8 @@
       align-items: center;
       gap: 8px;
       padding: 13px 28px;
-      border-radius: 4px;
-      font-family: 'Outfit', sans-serif;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
       font-size: 14px;
       font-weight: 600;
       letter-spacing: .03em;
@@ -139,17 +141,18 @@
     .btn-navy:hover {
       background: var(--navy2);
       transform: translateY(-1px);
-      box-shadow: 0 6px 24px rgba(13, 27, 62, .35);
+      box-shadow: 0 6px 24px rgba(15, 69, 39, .4);
     }
 
     .btn-accent {
-      background: var(--accent);
+      background: var(--gold);
       color: var(--white);
     }
 
     .btn-accent:hover {
-      background: var(--accent2);
+      background: var(--goldl);
       transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(201,148,58,.4);
     }
 
     .btn-outline-white {
@@ -272,10 +275,10 @@
     }
 
     .header-home {
-      font-family: 'Outfit', sans-serif;
+      font-family: 'DM Sans', sans-serif;
       font-size: 13.5px;
       font-weight: 500;
-      color: rgba(13, 27, 62, .7);
+      color: rgba(15, 69, 39, .7);
       text-decoration: none;
       padding: 6px 13px;
       border-radius: 99px;
@@ -285,7 +288,7 @@
 
     .header-home:hover {
       color: var(--navy);
-      background: rgba(13, 27, 62, .05);
+      background: rgba(15, 69, 39, .06);
     }
 
     .header-home.active {
@@ -305,14 +308,14 @@
     }
 
     .header-signin {
-      font-family: 'Outfit', sans-serif;
+      font-family: 'DM Sans', sans-serif;
       font-size: 13px;
       font-weight: 500;
-      color: rgba(13, 27, 62, .8);
+      color: rgba(15, 69, 39, .8);
       text-decoration: none;
       padding: 7px 16px;
       border-radius: 99px;
-      border: 1px solid rgba(13, 27, 62, .2);
+      border: 1px solid rgba(15, 69, 39, .25);
       transition: all .2s;
       display: flex;
       align-items: center;
@@ -323,7 +326,7 @@
     .header-signin:hover {
       color: var(--navy);
       border-color: var(--navy);
-      background: rgba(13, 27, 62, .04);
+      background: rgba(15, 69, 39, .05);
     }
 
     .header-signin i {
@@ -331,11 +334,11 @@
     }
 
     .header-apply {
-      background: var(--accent);
+      background: var(--gold);
       color: var(--white);
       padding: 8px 20px;
       border-radius: 99px;
-      font-family: 'Outfit', sans-serif;
+      font-family: 'DM Sans', sans-serif;
       font-size: 13px;
       font-weight: 700;
       letter-spacing: .03em;
@@ -349,8 +352,8 @@
     }
 
     .header-apply:hover {
-      background: var(--accent2);
-      box-shadow: 0 4px 14px rgba(140, 198, 63, .4);
+      background: var(--goldl);
+      box-shadow: 0 4px 14px rgba(201, 148, 58, .45);
     }
 
     .header-apply i {
@@ -384,8 +387,8 @@
     /* Hamburger — hidden on desktop */
     .nav-mobile-btn {
       display: none;
-      background: rgba(13, 27, 62, .06);
-      border: 1px solid rgba(13, 27, 62, .1);
+      background: rgba(15, 69, 39, .06);
+      border: 1px solid rgba(15, 69, 39, .12);
       color: var(--navy);
       font-size: 18px;
       cursor: pointer;
@@ -400,7 +403,7 @@
     }
 
     .nav-mobile-btn:hover {
-      background: rgba(13, 27, 62, .12);
+      background: rgba(15, 69, 39, .14);
     }
 
     /* ── Mobile nav overlay ─────────────────────────────── */
@@ -420,7 +423,7 @@
     }
 
     #mobile-nav a {
-      font-family: 'Cormorant Garamond', serif;
+      font-family: 'Playfair Display', serif;
       font-size: 32px;
       font-weight: 600;
       color: rgba(255, 255, 255, .75);
@@ -597,7 +600,7 @@
       font-weight: 700;
       color: rgba(255, 255, 255, .55);
       letter-spacing: .03em;
-      font-family: 'Outfit', sans-serif;
+      font-family: 'DM Sans', sans-serif;
     }
 
     /* ── RESPONSIVE BREAKPOINTS ─────────────────────────── */
@@ -731,8 +734,16 @@
   <header id="header" class="@yield('header-class', 'solid')">
     <div class="header-pill">
 
-      <a href="{{ route('home') }}" class="header-logo" aria-label="MyLoan Home">
-        <img src="{{ config('app.logo') }}" alt="MyLoan">
+      <a href="{{ route('home') }}" class="header-logo" aria-label="{{ config('app.name') }} Home" style="text-decoration:none;display:flex;align-items:center;gap:9px">
+        <div style="width:32px;height:32px;background:linear-gradient(135deg,#1a6b3c,#22894e);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2)">
+          <svg width="18" height="18" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="14" width="3" height="5" rx="1" fill="#fff" opacity=".85"/>
+            <rect x="8" y="9" width="3" height="10" rx="1" fill="#fff"/>
+            <rect x="13" y="5" width="3" height="14" rx="1" fill="#c9943a"/>
+            <rect x="18" y="3" width="2" height="16" rx="1" fill="#e0a843" opacity=".9"/>
+          </svg>
+        </div>
+        <span style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--navy);line-height:1.2">{{ config('app.name') }}</span>
       </a>
 
       <nav class="header-nav-links">
@@ -787,14 +798,24 @@
       <!-- Left: contact -->
       <div class="footer-left">
         <a href="tel:+26659229149"><i class="bi bi-telephone-fill"></i>(+266) 59 229 149</a>
-        <a href="mailto:info@myloan.co.ls"><i class="bi bi-envelope-fill"></i>info@myloan.co.ls</a>
+        <a href="mailto:info@prosperityloans.co.ls"><i class="bi bi-envelope-fill"></i>info@prosperityloans.co.ls</a>
         <p><i class="bi bi-geo-alt-fill"></i>L&amp;M Complex, Ha Thamae, Maseru</p>
       </div>
 
       <!-- Center: logo + copyright -->
       <div class="footer-center">
-        <img src="{{ config('app.logo') }}" alt="MyLoan" class="footer-logo">
-        <div class="footer-copy">MyLoan &copy; {{ date('Y') }} &middot; All rights reserved</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px">
+          <div style="width:24px;height:24px;background:rgba(201,148,58,.2);border-radius:6px;display:flex;align-items:center;justify-content:center">
+            <svg width="14" height="14" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="14" width="3" height="5" rx="1" fill="#e0a843" opacity=".85"/>
+              <rect x="8" y="9" width="3" height="10" rx="1" fill="#e0a843" opacity=".7"/>
+              <rect x="13" y="5" width="3" height="14" rx="1" fill="#c9943a"/>
+              <rect x="18" y="3" width="2" height="16" rx="1" fill="#e0a843" opacity=".9"/>
+            </svg>
+          </div>
+          <span style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:rgba(255,255,255,.5)">{{ config('app.name') }}</span>
+        </div>
+        <div class="footer-copy">{{ config('app.name') }} &copy; {{ date('Y') }} &middot; All rights reserved</div>
         <a href="https://www.facebook.com/share/18TBN7SB8y/?mibextid=wwXIfr" target="_blank" rel="noopener"
           class="footer-fb">
           <i class="bi bi-facebook" style="color:#4267B2;font-size:14px"></i> Facebook

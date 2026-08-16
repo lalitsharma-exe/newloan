@@ -12,9 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('loan_applications', function (Blueprint $table) {
-            $existing = \Illuminate\Support\Facades\DB::select("SHOW COLUMNS FROM loan_applications");
-            $cols = array_column($existing, 'Field');
-            if (!in_array('residential_address', $cols)) {
+            if (!Schema::hasColumn('loan_applications', 'residential_address')) {
                 $table->string('residential_address')->nullable();
             }
         });

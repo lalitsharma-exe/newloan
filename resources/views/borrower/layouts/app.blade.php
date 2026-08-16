@@ -7,53 +7,64 @@
 <title>{{ config('app.name') }}</title>
 <link rel="shortcut icon" href="https://ik.imagekit.io/ygydr1m84/2699f0f4-26da-41ec-92ff-ce4aa8ac0f79.jpeg" type="image/x-icon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
-/* ─────────────────────────────────────────────────────────
-   NAVY BLUE PORTAL THEME
-───────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   PROSPERITY LOANS — BORROWER PORTAL THEME
+   Brand: Forest Green · Royal Blue · Gold
+═══════════════════════════════════════════════════ */
 :root {
-  --navy:    #0d1b3e;
-  --navy2:   #162552;
-  --navy3:   #1e3370;
-  --blue:    #2b4bad;
-  --blue2:   #3d60d4;
-  --light:   #7c9ff5;
-  --accent:  #8cc63f;
-  --accent2: #7ab237;
-  --ok:      #10b981;
-  --warn:    #f59e0b;
-  --err:     #ef4444;
-  --bg:      #f0f3fa;
+  --green:   #1a6b3c;
+  --greend:  #0f4527;
+  --greenl:  #22894e;
+  --green2:  #2eaa62;
+  --blue:    #1a3a8f;
+  --bluel:   #2b55c9;
+  --gold:    #c9943a;
+  --goldl:   #e0a843;
+  --ok:      #16a34a;
+  --warn:    #d97706;
+  --err:     #dc2626;
+  --bg:      #f4f7f4;
   --card:    #ffffff;
-  --border:  #dde3ef;
-  --ink:     #1c2433;
-  --muted:   #5a6b85;
-  --dark:    #0d1b3e;
+  --border:  #d4e0d4;
+  --ink:     #0f2a1a;
+  --muted:   #5a6e5a;
+  --dark:    #0f2a1a;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   background: var(--bg); color: var(--ink);
   min-height: 100vh; -webkit-font-smoothing: antialiased;
 }
 
 /* ── TOP NAV ────────────────────────────────────────────── */
 .topnav {
-  background: var(--navy);
-  height: 62px;
+  background: var(--greend);
+  height: 64px;
   display: flex; align-items: center;
   padding: 0 24px; gap: 6px;
   position: sticky; top: 0; z-index: 200;
-  box-shadow: 0 2px 16px rgba(13,27,62,.35);
+  box-shadow: 0 2px 16px rgba(15,69,39,.3);
 }
 .nav-logo {
   display: flex; align-items: center;
-  text-decoration: none; margin-right: 24px; flex-shrink: 0;
+  text-decoration: none; margin-right: 20px; flex-shrink: 0; gap: 10px;
 }
-.nav-logo img { height: 32px; width: auto; object-fit: contain; display: block; }
+.nav-logo .logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #1a6b3c, #22894e);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25); flex-shrink: 0;
+}
+.nav-logo .logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px; font-weight: 700; color: #fff; line-height: 1.15;
+}
+.nav-logo .logo-sub { font-size: 9.5px; color: rgba(255,255,255,.45); font-weight: 500; letter-spacing:.05em; text-transform:uppercase; }
 .nav-divider { width: 1px; height: 22px; background: rgba(255,255,255,.12); margin: 0 6px; flex-shrink: 0; }
 .nav-sp { flex: 1; }
 .navbtn {
@@ -62,34 +73,35 @@ body {
   font-size: 13px; font-weight: 500; cursor: pointer;
   text-decoration: none; transition: all .2s;
   white-space: nowrap; background: none;
-  color: rgba(255,255,255,.55); font-family: 'Outfit', sans-serif;
+  color: rgba(255,255,255,.55); font-family: 'DM Sans', sans-serif;
 }
 .navbtn:hover { color: #fff; background: rgba(255,255,255,.08); }
 .navbtn.active { color: #fff; background: rgba(255,255,255,.1); }
 .navbtn.apply {
-  background: var(--accent); color: #fff; font-weight: 600;
-  padding: 7px 18px;
+  background: var(--gold); color: #fff; font-weight: 700;
+  padding: 7px 18px; border-radius: 7px;
+  box-shadow: 0 2px 8px rgba(201,148,58,.35);
 }
-.navbtn.apply:hover { background: #a88030; color: #fff; }
+.navbtn.apply:hover { background: var(--goldl); color: #fff; transform: translateY(-1px); }
 .navbtn.icon-btn { padding: 7px 10px; position: relative; }
 .nav-badge {
   position: absolute; top: 3px; right: 3px;
   width: 8px; height: 8px; border-radius: 50%;
-  background: var(--err); border: 2px solid var(--navy);
+  background: var(--err); border: 2px solid var(--greend);
 }
 
 /* User chip */
 .nav-user {
   display: flex; align-items: center; gap: 8px;
   padding: 5px 8px 5px 5px; border-radius: 8px;
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
   cursor: pointer; transition: all .2s;
 }
-.nav-user:hover { background: rgba(255,255,255,.12); }
+.nav-user:hover { background: rgba(255,255,255,.14); }
 .nav-user-av {
   width: 28px; height: 28px; border-radius: 6px;
-  background: linear-gradient(135deg, var(--blue2), var(--blue));
+  background: linear-gradient(135deg, var(--green2), var(--gold));
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
 }
@@ -105,8 +117,8 @@ body {
 /* ── PAGE HEADER ────────────────────────────────────────── */
 .page-hdr { margin-bottom: 22px; }
 .page-hdr h1 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 28px; font-weight: 700; color: var(--navy);
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 700; color: var(--dark);
   letter-spacing: -.02em; line-height: 1.2;
 }
 .page-hdr p { font-size: 14px; color: var(--muted); margin-top: 4px; }
@@ -116,14 +128,14 @@ body {
   background: var(--card); border-radius: 12px;
   border: 1px solid var(--border);
   overflow: hidden; margin-bottom: 18px;
-  box-shadow: 0 1px 4px rgba(13,27,62,.05);
+  box-shadow: 0 1px 4px rgba(15,69,39,.06);
 }
 .card-hdr {
   padding: 15px 20px; border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
-  background: #fafbff;
+  background: #fafcfa;
 }
-.card-title { font-size: 14px; font-weight: 600; color: var(--navy); }
+.card-title { font-size: 14px; font-weight: 600; color: var(--dark); }
 .card-body { padding: 20px; }
 
 /* ── STAT GRID ──────────────────────────────────────────── */
@@ -134,39 +146,39 @@ body {
 .stat {
   background: var(--card); border-radius: 10px;
   border: 1px solid var(--border); padding: 18px 16px;
-  box-shadow: 0 1px 4px rgba(13,27,62,.04);
+  box-shadow: 0 1px 4px rgba(15,69,39,.05);
 }
-.stat-val { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: var(--navy); }
-.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+.stat-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--dark); }
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
 
 /* ── TABLES ─────────────────────────────────────────────── */
 .dt { width: 100%; border-collapse: collapse; }
 .dt th {
   padding: 10px 14px; text-align: left;
-  font-size: 11px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: .06em; color: var(--muted);
-  background: #f5f7fd; border-bottom: 1px solid var(--border);
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--muted);
+  background: #f6faf6; border-bottom: 1px solid var(--border);
 }
 .dt td {
   padding: 12px 14px; font-size: 13.5px;
   border-bottom: 1px solid var(--border); vertical-align: middle;
 }
 .dt tbody tr:last-child td { border-bottom: none; }
-.dt tbody tr:hover { background: #fafbff; }
+.dt tbody tr:hover { background: #f6faf6; }
 
 /* ── BADGES ─────────────────────────────────────────────── */
 .badge {
   display: inline-flex; align-items: center;
   padding: 3px 10px; border-radius: 20px;
-  font-size: 11.5px; font-weight: 600;
+  font-size: 11px; font-weight: 700;
 }
-.bp  { background: rgba(43,75,173,.1);  color: var(--blue); }
-.bok { background: rgba(16,185,129,.1); color: #059669; }
-.bw  { background: rgba(245,158,11,.15); color: #d97706; }
-.be  { background: rgba(239,68,68,.1);  color: #dc2626; }
-.bi  { background: rgba(124,159,245,.12); color: var(--blue2); }
-.bs  { background: rgba(90,107,133,.1); color: var(--muted); }
-.ba  { background: rgba(201,168,76,.12); color: var(--accent); }
+.bp  { background: rgba(26,107,60,.1);  color: var(--green); }
+.bok { background: rgba(22,163,74,.1);  color: var(--ok); }
+.bw  { background: rgba(217,119,6,.12); color: var(--warn); }
+.be  { background: rgba(220,38,38,.1);  color: var(--err); }
+.bi  { background: rgba(2,132,199,.1);  color: var(--blue); }
+.bs  { background: rgba(90,110,90,.1);  color: var(--muted); }
+.ba  { background: rgba(201,148,58,.12); color: var(--gold); }
 
 /* ── BUTTONS ─────────────────────────────────────────────── */
 .btn {
@@ -174,17 +186,17 @@ body {
   padding: 9px 18px; border-radius: 8px; border: none;
   font-size: 13.5px; font-weight: 600; cursor: pointer;
   text-decoration: none; transition: all .2s; white-space: nowrap;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'DM Sans', sans-serif;
 }
 .btn-sm  { padding: 6px 13px; font-size: 12px; border-radius: 6px; }
 .btn-xs  { padding: 4px 10px; font-size: 11px; border-radius: 5px; }
 .btn-lg  { padding: 12px 26px; font-size: 15px; }
-.btn-p   { background: var(--navy); color: #fff; }
-.btn-p:hover   { background: var(--navy2); color: #fff; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(13,27,62,.25); }
-.btn-accent { background: var(--accent); color: #fff; }
-.btn-accent:hover { background: #a88030; color: #fff; }
+.btn-p   { background: var(--green); color: #fff; }
+.btn-p:hover   { background: var(--greend); color: #fff; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(15,69,39,.25); }
+.btn-accent { background: var(--gold); color: #fff; }
+.btn-accent:hover { background: var(--goldl); color: #fff; }
 .btn-ok  { background: var(--ok); color: #fff; }
-.btn-ok:hover { background: #059669; color: #fff; }
+.btn-ok:hover { background: #15803d; color: #fff; }
 .btn-e   { background: var(--err); color: #fff; }
 .btn-e:hover { background: #b91c1c; color: #fff; }
 .btn-w   { background: var(--warn); color: #fff; }
@@ -192,18 +204,18 @@ body {
   background: transparent; border: 1.5px solid var(--border);
   color: var(--ink);
 }
-.btn-o:hover { border-color: var(--blue); color: var(--blue); }
+.btn-o:hover { border-color: var(--green); color: var(--green); }
 
 /* ── FORMS ──────────────────────────────────────────────── */
 .fg  { margin-bottom: 16px; }
-.fl  { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.fl  { display: block; font-size: 11.5px; font-weight: 700; margin-bottom: 5px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; }
 .fc  {
   width: 100%; padding: 10px 13px;
   border: 1.5px solid var(--border); border-radius: 7px;
-  font-size: 13.5px; font-family: 'Outfit', sans-serif;
+  font-size: 13.5px; font-family: 'DM Sans', sans-serif;
   background: #fff; outline: none; transition: all .2s; color: var(--ink);
 }
-.fc:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(43,75,173,.1); }
+.fc:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(26,107,60,.1); }
 select.fc { cursor: pointer; }
 .fc.err { border-color: var(--err); }
 .ft  { font-size: 12px; color: var(--muted); margin-top: 3px; }
@@ -214,26 +226,26 @@ select.fc { cursor: pointer; }
   padding: 12px 16px; border-radius: 9px; font-size: 13px;
   display: flex; align-items: flex-start; gap: 9px; margin-bottom: 16px;
 }
-.a-ok { background: rgba(16,185,129,.08);  color: #065f46; border: 1px solid rgba(16,185,129,.2); }
-.a-e  { background: rgba(239,68,68,.08);   color: #991b1b; border: 1px solid rgba(239,68,68,.2); }
-.a-w  { background: rgba(245,158,11,.08);  color: #92400e; border: 1px solid rgba(245,158,11,.2); }
-.a-i  { background: rgba(43,75,173,.07);   color: var(--navy2); border: 1px solid rgba(43,75,173,.18); }
+.a-ok { background: rgba(22,163,74,.08);  color: #15803d; border: 1px solid rgba(22,163,74,.2); }
+.a-e  { background: rgba(220,38,38,.07);  color: #991b1b; border: 1px solid rgba(220,38,38,.2); }
+.a-w  { background: rgba(217,119,6,.08);  color: #92400e; border: 1px solid rgba(217,119,6,.2); }
+.a-i  { background: rgba(26,107,60,.07);  color: var(--greend); border: 1px solid rgba(26,107,60,.18); }
 
 /* ── GRIDS ──────────────────────────────────────────────── */
 .g2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
 .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
 
 /* ── INFO PAIRS ─────────────────────────────────────────── */
-.info-lbl { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+.info-lbl { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
 .info-val  { font-size: 13.5px; font-weight: 500; color: var(--ink); }
 
 /* ── PROGRESS STEPS ─────────────────────────────────────── */
 .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-.step-dot.done   { background: var(--blue); color: #fff; }
-.step-dot.active { background: var(--blue); color: #fff; box-shadow: 0 0 0 4px rgba(43,75,173,.2); }
+.step-dot.done   { background: var(--green); color: #fff; }
+.step-dot.active { background: var(--green); color: #fff; box-shadow: 0 0 0 4px rgba(26,107,60,.2); }
 .step-dot.todo   { background: #eef0f7; color: var(--muted); border: 2px solid var(--border); }
 .step-line       { height: 2px; background: var(--border); flex: 1; }
-.step-line.done  { background: var(--blue); }
+.step-line.done  { background: var(--green); }
 
 /* ── TABS ───────────────────────────────────────────────── */
 .tabs { display: flex; gap: 2px; border-bottom: 2px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
@@ -241,16 +253,16 @@ select.fc { cursor: pointer; }
   padding: 10px 16px; font-size: 13px; font-weight: 500;
   color: var(--muted); border: none; background: none; cursor: pointer;
   border-bottom: 2px solid transparent; margin-bottom: -2px;
-  white-space: nowrap; transition: all .2s; font-family: 'Outfit', sans-serif;
+  white-space: nowrap; transition: all .2s; font-family: 'DM Sans', sans-serif;
   display: flex; align-items: center; gap: 6px;
 }
-.tab:hover { color: var(--navy); }
-.tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+.tab:hover { color: var(--dark); }
+.tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 700; }
 
 /* ── MOBILE BOTTOM NAV ───────────────────────────────────── */
 .bottomnav {
   display: none; position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--navy);
+  background: var(--greend);
   border-top: 1px solid rgba(255,255,255,.1);
   padding: 6px 0 env(safe-area-inset-bottom); z-index: 200;
 }
@@ -263,7 +275,7 @@ select.fc { cursor: pointer; }
 .bottomnav a.active, .bottomnav a:hover { color: #fff; }
 .bottomnav a i { font-size: 19px; }
 .bottomnav .apply-tab {
-  background: var(--accent); border-radius: 10px;
+  background: var(--gold); border-radius: 10px;
   margin: 3px; padding: 4px 0; color: #fff !important;
 }
 
@@ -285,7 +297,19 @@ select.fc { cursor: pointer; }
 <!-- TOP NAV -->
 <nav class="topnav">
   <a href="{{ route('borrower.dashboard') }}" class="nav-logo">
-    <img src="https://ik.imagekit.io/ygydr1m84/png.webp" alt="MyLoan">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="14" width="3" height="5" rx="1" fill="#fff" opacity=".85"/>
+        <rect x="8" y="9" width="3" height="10" rx="1" fill="#fff"/>
+        <rect x="13" y="5" width="3" height="14" rx="1" fill="#c9943a"/>
+        <rect x="18" y="3" width="2" height="16" rx="1" fill="#e0a843" opacity=".9"/>
+        <polyline points="3,14 8,9 13,5 18,3" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.1"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">{{ config('app.name') }}</div>
+      <div class="logo-sub">Member Portal</div>
+    </div>
   </a>
   <div class="nav-divider"></div>
 
@@ -295,19 +319,19 @@ select.fc { cursor: pointer; }
   <a href="{{ route('borrower.documents.index') }}" class="navbtn {{ request()->routeIs('borrower.documents.*') ? 'active' : '' }}"><i class="bi bi-folder2"></i> Documents</a>
   <a href="{{ route('borrower.referrals.index') }}" class="navbtn {{ request()->routeIs('borrower.referrals.*') ? 'active' : '' }}"><i class="bi bi-gift"></i> Refer & Earn</a>
   <a href="{{ route('borrower.mybill.index') }}" class="navbtn {{ request()->routeIs('borrower.mybill.*') ? 'active' : '' }}"><i class="bi bi-lightning-charge-fill"></i> MyBill</a>
-  <a href="{{ route('borrower.float.index') }}" class="navbtn {{ request()->routeIs('borrower.float.*') ? 'active' : '' }}"><i class="bi bi-lightning-fill" style="color:var(--accent)"></i> MyFloat</a>
+  <a href="{{ route('borrower.float.index') }}" class="navbtn {{ request()->routeIs('borrower.float.*') ? 'active' : '' }}"><i class="bi bi-lightning-fill" style="color:var(--goldl)"></i> MyFloat</a>
 
   <div class="nav-sp"></div>
 
   <a href="{{ route('borrower.apply.start') }}" class="navbtn apply"><i class="bi bi-plus-circle-fill"></i> Apply Now</a>
   <a href="{{ route('borrower.referrals.index') }}" class="navbtn mobile-show" style="display:none;background:rgba(255,255,255,.1);color:#fff;border-radius:8px;font-weight:600"><i class="bi bi-gift"></i> Refer</a>
-  <a href="{{ route('borrower.mybill.index') }}" class="navbtn mobile-show" style="display:none;background:rgba(255,193,7,.2);color:#ffc107;border-radius:8px;font-weight:700"><i class="bi bi-lightning-charge-fill"></i> MyBill</a>
+  <a href="{{ route('borrower.mybill.index') }}" class="navbtn mobile-show" style="display:none;background:rgba(201,148,58,.2);color:#e0a843;border-radius:8px;font-weight:700"><i class="bi bi-lightning-charge-fill"></i> MyBill</a>
 
   @php
     try { $bUnread = \App\Models\Notification::where('user_id', auth('borrower')->id())->where('is_read',false)->count(); } catch(\Exception $e){ $bUnread=0; }
   @endphp
   <a href="{{ route('borrower.notifications.index') }}" class="navbtn icon-btn" title="Notifications">
-    <i class="bi bi-bell{{ $bUnread ? '-fill' : '' }}" style="{{ $bUnread ? 'color:var(--accent2)' : 'color:rgba(255,255,255,.5)' }}"></i>
+    <i class="bi bi-bell{{ $bUnread ? '-fill' : '' }}" style="{{ $bUnread ? 'color:var(--goldl)' : 'color:rgba(255,255,255,.5)' }}"></i>
     @if($bUnread)<div class="nav-badge"></div>@endif
   </a>
 
@@ -342,13 +366,13 @@ select.fc { cursor: pointer; }
 </nav>
 
 <!-- SESSION IDLE MODAL -->
-<div id="idleModal" style="position:fixed;inset:0;background:rgba(13,27,62,.6);backdrop-filter:blur(4px);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px">
+<div id="idleModal" style="position:fixed;inset:0;background:rgba(10,30,18,.6);backdrop-filter:blur(4px);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px">
   <div style="background:#fff;border-radius:16px;width:100%;max-width:400px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)">
     <div style="padding:24px;text-align:center">
-      <div style="width:60px;height:60px;background:#fff7ed;color:#ea580c;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">
+      <div style="width:60px;height:60px;background:rgba(201,148,58,.12);color:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">
         <i class="bi bi-clock-history"></i>
       </div>
-      <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px">Session Expiring Soon</h3>
+      <h3 style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:8px;font-family:'Playfair Display',serif">Session Expiring Soon</h3>
       <p style="font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.5">You have been inactive for a while. For your security, you will be logged out in <strong id="idleCounter" style="color:var(--err)">60</strong> seconds.</p>
       <div style="display:flex;gap:12px">
         <button type="button" onclick="stayLoggedIn()" class="btn btn-p" style="flex:1;justify-content:center">Stay Logged In</button>
@@ -361,15 +385,13 @@ select.fc { cursor: pointer; }
 <script>
 // ── IDLE AUTO-LOGOUT (30 min idle → 60 s warning → logout) ──────────
 (function(){
-  const IDLE_MS    = 30 * 60 * 1000; // 30 minutes
-  const WARN_SECS  = 60;             // 60-second countdown
+  const IDLE_MS    = 30 * 60 * 1000;
+  const WARN_SECS  = 60;
   const CSRF       = document.querySelector('meta[name="csrf-token"]')?.content || '';
   const LOGOUT_URL = "{{ route('borrower.logout') }}";
-
   let idleTimer, countdownTimer, warnActive = false, secs = WARN_SECS;
   const modal   = document.getElementById('idleModal');
   const counter = document.getElementById('idleCounter');
-
   function doLogout() {
     const f = document.createElement('form');
     f.method = 'POST'; f.action = LOGOUT_URL;
@@ -377,7 +399,6 @@ select.fc { cursor: pointer; }
     t.type = 'hidden'; t.name = '_token'; t.value = CSRF;
     f.appendChild(t); document.body.appendChild(f); f.submit();
   }
-
   function showWarning() {
     warnActive = true; secs = WARN_SECS; counter.textContent = secs;
     modal.style.display = 'flex';
@@ -386,24 +407,20 @@ select.fc { cursor: pointer; }
       if (secs <= 0) { clearInterval(countdownTimer); doLogout(); }
     }, 1000);
   }
-
   window.stayLoggedIn = function() {
     clearInterval(countdownTimer);
     modal.style.display = 'none';
     warnActive = false;
     resetIdle();
   };
-
   function resetIdle() {
     if (warnActive) return;
     clearTimeout(idleTimer);
     idleTimer = setTimeout(showWarning, IDLE_MS);
   }
-
   ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev =>
     document.addEventListener(ev, resetIdle, { passive: true })
   );
-
   resetIdle();
 })();
 </script>
