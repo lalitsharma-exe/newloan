@@ -4,8 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <meta name="description" content="@yield('meta_desc', 'Prosperity Loans Limited — Simple, Fast and Secure loans in Lesotho.')">
   <title>{{ config('app.name') }}</title>
+  <meta property="og:title" content="{{ config('app.name') }}">
+  <meta property="og:description" content="@yield('meta_desc', 'Prosperity Loans Limited — Simple, Fast and Secure loans in Lesotho.')">
+  <meta property="og:image" content="{{ asset('images/logo.png') }}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:type" content="website">
   <link rel="shortcut icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
