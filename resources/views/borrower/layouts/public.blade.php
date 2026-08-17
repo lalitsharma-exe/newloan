@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <meta name="description" content="@yield('meta_desc', 'Prosperity Loans Limited — Simple, Fast and Secure loans in Lesotho.')">
   <title>{{ config('app.name') }}</title>
-  <link rel="shortcut icon" href="https://ik.imagekit.io/ygydr1m84/2699f0f4-26da-41ec-92ff-ce4aa8ac0f79.jpeg" type="image/x-icon">
+  <link rel="shortcut icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap"
