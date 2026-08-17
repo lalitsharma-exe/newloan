@@ -51,7 +51,7 @@ class WalkInClientController extends Controller
             'email_verified_at'   => now(),
         ]);
 
-        // TODO: Send SMS: "Your MyLoan login — Phone: {$phone} | Temp Password: {$tempPassword}"
+        // TODO: Send SMS: "Your Prosperity Loans login — Phone: {$phone} | Temp Password: {$tempPassword}"
 
         return redirect()->route('officer.walk-in.apply', $client)
             ->with('success', "Client {$client->name} registered. Temp password: {$tempPassword} — send to client via SMS.");

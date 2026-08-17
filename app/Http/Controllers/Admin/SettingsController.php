@@ -112,8 +112,8 @@ class SettingsController extends Controller {
     public function testEmail(Request $r) {
         $r->validate(['test_email' => 'required|email']);
         try {
-            Mail::raw('This is a test email from MyLoan System.', fn($m) =>
-                $m->to($r->test_email)->subject('MyLoan Test Email')
+            Mail::raw('This is a test email from Prosperity Loans System.', fn($m) =>
+                $m->to($r->test_email)->subject('Prosperity Loans Test Email')
             );
             return back()->with('success', 'Test email sent to '.$r->test_email);
         } catch (\Exception $e) {

@@ -73,7 +73,7 @@ class AgentManagementController extends Controller
             $password = Str::random(10);
             $user = User::create([
                 'name'      => $agentApplication->first_name . ' ' . $agentApplication->last_name,
-                'email'     => strtolower(str_replace(' ', '', $agentApplication->first_name)) . '.' . strtolower(str_replace(' ', '', $agentApplication->last_name)) . '@agent.myloan.co.ls',
+                'email'     => strtolower(str_replace(' ', '', $agentApplication->first_name)) . '.' . strtolower(str_replace(' ', '', $agentApplication->last_name)) . '@agent.prosperityloans.co.ls',
                 'phone'     => $agentApplication->mobile_number,
                 'password'  => Hash::make($password),
                 'role'      => 'agent',

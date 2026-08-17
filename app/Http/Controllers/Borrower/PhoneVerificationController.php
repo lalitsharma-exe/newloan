@@ -81,6 +81,6 @@ class PhoneVerificationController extends Controller
         Log::info('Phone verified', ['user_id' => $user->id, 'phone' => $user->phone]);
 
         return redirect()->route('borrower.dashboard')
-            ->with('success', 'Phone verified! Welcome to MyLoan, ' . $user->name . '.');
+            ->with('success', 'Phone verified! Welcome to Prosperity Loans, ' . $user->name . '.');
     }
 }

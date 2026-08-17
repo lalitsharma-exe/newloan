@@ -97,13 +97,13 @@ class CblReportController extends Controller
         $date = Carbon::parse($request->complaint_date);
         $data['financial_year'] = $date->year;
         $data['reporting_period'] = 'Quarter ' . $date->quarter;
-        $data['institution_id'] = 'MyLoan Limited';
+        $data['institution_id'] = 'Prosperity Loans Limited';
         $data['reference_number'] = Complaint::generateReference();
         $data['status'] = 'Pending';
 
         Complaint::create($data);
 
-        return back()->with('success', 'Complaint MLL Reference generated and logged successfully.');
+        return back()->with('success', 'Complaint PLL Reference generated and logged successfully.');
     }
 
     public function updateComplaint(Request $request, Complaint $complaint)

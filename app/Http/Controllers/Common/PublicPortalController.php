@@ -23,7 +23,7 @@ class PublicPortalController extends Controller
             'name'    => 'required|string|max:100',
             'message' => 'required|string|max:2000',
         ]);
-        // TODO: Mail::to('info@myloan.co.ls')->send(new ContactFormMail($request->all()));
+        // TODO: Mail::to('info@prosperityloans.co.ls')->send(new ContactFormMail($request->all()));
         return back()->with('success', 'Thank you, ' . $request->name . '. We received your message and will respond within one business day.');
     }
 }

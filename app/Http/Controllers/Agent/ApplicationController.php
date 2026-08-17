@@ -184,7 +184,7 @@ class ApplicationController extends Controller
             if (!$borrower) {
                 $borrower = User::create([
                     'name'          => trim($request->first_name . ' ' . $request->surname),
-                    'email'         => $request->email ?? ($request->national_id . '@agent.myloan.co.ls'),
+                    'email'         => $request->email ?? ($request->national_id . '@agent.prosperityloans.co.ls'),
                     'phone'         => $request->cell_number,
                     'national_id'   => $request->national_id,
                     'date_of_birth' => $request->date_of_birth,

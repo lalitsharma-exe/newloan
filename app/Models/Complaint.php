@@ -27,13 +27,13 @@ class Complaint extends Model
     ];
 
     /**
-     * Generate sequential reference number MLL-001, MLL-002...
+     * Generate sequential reference number PLL-001, PLL-002...
      */
     public static function generateReference()
     {
         $last = self::orderBy('id', 'desc')->first();
-        $nextNum = $last ? ((int) str_replace('MLL-', '', $last->reference_number) + 1) : 1;
-        return 'MLL-' . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
+        $nextNum = $last ? ((int) str_replace('PLL-', '', $last->reference_number) + 1) : 1;
+        return 'PLL-' . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
     }
 
     /**

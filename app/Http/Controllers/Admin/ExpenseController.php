@@ -102,7 +102,7 @@ class ExpenseController extends Controller
     {
         $expenses = OperatingExpense::with(['taxonomyItem.subcategory.category', 'recorder'])->get();
         
-        $filename = "myloan_expenses_" . date('Y-m-d') . ".csv";
+        $filename = "prosperity_expenses_" . date('Y-m-d') . ".csv";
         $handle = fopen('php://output', 'w');
         
         header('Content-Type: text/csv');

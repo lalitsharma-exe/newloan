@@ -102,7 +102,7 @@
   <div style="display:flex; align-items:center;">
     <div style="flex:1; padding:40px; position:relative; z-index:2;">
       <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:6px 12px; border-radius:30px; font-size:11px; font-weight:700; margin-bottom:16px;">
-        <i class="bi bi-shield-lock-fill" style="color:var(--accent)"></i> PROTECTED BY MYLOAN SECURE
+        <i class="bi bi-shield-lock-fill" style="color:var(--accent)"></i> PROTECTED BY PROSPERITY SECURE
       </div>
       <h3 style="font-family:'Playfair Display',serif; font-size:32px; font-weight:700; margin-bottom:12px;">Your data is <span style="color:var(--accent)">secure.</span></h3>
       <p style="font-size:14px; opacity:0.8; line-height:1.6; max-width:400px;">We use bank-grade encryption and multi-factor authentication to ensure your personal information and financial history remain private and protected at all times.</p>
