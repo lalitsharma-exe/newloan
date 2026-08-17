@@ -294,7 +294,7 @@ input[type=range] {
         <div class="hero-kicker">
           <div class="hero-kicker-dot"></div>Licensed by Central Bank of Lesotho
         </div>
-        <h1>Fast, Secure<br>Loans for <em>Lesotho</em></h1>
+        <h1>Affordable loan<br>for <em>everyone in Lesotho</em></h1>
         <p class="hero-sub">
           Government employees, private sector workers, and pensioners.
           Apply online in minutes — funds delivered directly to you.
