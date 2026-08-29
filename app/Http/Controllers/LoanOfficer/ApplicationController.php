@@ -145,6 +145,12 @@ class ApplicationController extends Controller
             'other_expenses'           => 'nullable|numeric|min:0',
         ]);
 
+        foreach ($data as $key => $val) {
+            if ($val === null) {
+                $data[$key] = 0;
+            }
+        }
+
         $assessment = AffordabilityAssessment::updateOrCreate(
             ['application_id' => $application->id],
             array_merge($data, ['application_id' => $application->id])

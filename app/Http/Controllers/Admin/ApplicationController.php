@@ -131,6 +131,12 @@ class ApplicationController extends Controller
             'other_expenses'           => 'nullable|numeric|min:0',
         ]);
 
+        foreach ($data as $key => $val) {
+            if ($val === null) {
+                $data[$key] = 0;
+            }
+        }
+
         $afford = $application->affordability()->updateOrCreate(
             ['application_id' => $application->id],
             $data

@@ -14,12 +14,14 @@ class TreasuryAccount extends Model
         'account_number',
         'balance',
         'currency',
-        'is_active'
+        'is_active',
+        'is_director_owned'
     ];
 
     protected $casts = [
         'balance' => 'decimal:2',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
+        'is_director_owned' => 'boolean'
     ];
 
     public function transactions(): HasMany

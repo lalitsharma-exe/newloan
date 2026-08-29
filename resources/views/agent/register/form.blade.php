@@ -62,7 +62,7 @@ select.fc{cursor:pointer}
 
 <div class="container">
   <div class="header">
-    <img src="{{ config('app.logo', 'https://ik.imagekit.io/ygydr1m84/png.webp') }}" alt="Prosperity Loans" style="filter:brightness(0) invert(1)">
+    <img src="{{ asset('images/logo.png') }}" alt="Prosperity Loans" style="height:44px;object-fit:contain;filter:brightness(0) invert(1)">
     <h1>Become a Prosperity Loans Agent</h1>
     <p>Earn M50 per qualifying loan application. Register in 5 minutes.</p>
   </div>

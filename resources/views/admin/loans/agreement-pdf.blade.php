@@ -60,7 +60,7 @@
     </p>
   </div>
   <div style="margin-top:10px">
-    <img src="https://ik.imagekit.io/ygydr1m84/png.webp" style="height:60px;margin-bottom:8px" alt="Prosperity Loans Logo">
+    <img src="{{ public_path('images/logo.png') }}" style="height:60px;margin-bottom:8px" alt="Prosperity Loans Logo">
   </div>
   <div style="margin-top:14px;font-size:17px;font-weight:800;color:#0f172a;letter-spacing:.5px">LOAN AGREEMENT</div>
   <div style="font-size:11px;color:#64748b;margin-top:3px">Agreement Reference: <strong>{{ $loan->loan_number }}</strong></div>

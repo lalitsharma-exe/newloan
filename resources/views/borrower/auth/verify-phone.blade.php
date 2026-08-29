@@ -56,7 +56,7 @@ body{background:linear-gradient(160deg,#050f06 0%,#0f4527 40%,#1a6b3c 70%,#0f452
 <body>
 <div class="card">
   <div class="card-top">
-    <img src="https://ik.imagekit.io/ygydr1m84/png.webp" alt="Prosperity Loans">
+    <img src="{{ asset('images/logo.png') }}" alt="Prosperity Loans" style="height:44px;object-fit:contain;filter:brightness(0) invert(1)">
     <h1>Verify Your Phone</h1>
     <p>One-time code sent via SMS</p>
   </div>

@@ -29,7 +29,7 @@ body{font-family:'DM Sans',sans-serif;background:linear-gradient(160deg,#050f06,
 <body>
 <div class="card">
   <div class="card-top">
-    <img src="https://ik.imagekit.io/ygydr1m84/png.webp" alt="Prosperity Loans">
+    <img src="{{ asset('images/logo.png') }}" alt="Prosperity Loans" style="height:44px;object-fit:contain;filter:brightness(0) invert(1)">
     <h1>Forgot Password?</h1>
     <p>Enter your phone number and we'll send a reset code</p>
   </div>
