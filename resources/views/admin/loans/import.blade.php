@@ -124,8 +124,8 @@
     <div class="card-hdr"><span class="card-title"><i class="bi bi-exclamation-circle"></i> Important Notes</span></div>
     <div style="padding:14px 16px;font-size:13px;color:var(--muted);line-height:1.8">
       <p>• The borrower must already exist in the system (matched by email).</p>
-      <p>• Calculations use flat interest: 15%/month + 40% initiation + M50 admin.</p>
-      <p>• Max term is 6 months per product rules.</p>
+      <p>• Calculations use product rules: 20%/month reducing balance without extra fees.</p>
+      <p>• Max term is 24 months per product rules.</p>
       <p>• Duplicate imports are not prevented — check carefully.</p>
     </div>
   </div>

@@ -29,15 +29,26 @@ class LoanProduct extends Model {
 
     /**
      * Calculate the monthly installment for a given principal and term.
-     * Flat interest: Interest = principal × rate × term (same every month)
+     * Supports both 'reducing' and 'flat' interest calculation methods.
      */
     public function calcMonthly(float $principal, int $term): float
     {
-        $rate            = $this->interest_rate / 100;
-        $initiationFee   = round($principal * ($this->initiation_fee_rate / 100), 2);
-        $totalInterest   = round($principal * $rate * $term, 2);
-        $totalAdmin      = (float) $this->admin_fee_fixed * $term;
-        $totalRepay      = $principal + $totalInterest + $initiationFee + $totalAdmin;
+        if ($term <= 0) return 0.0;
+        $rate          = (float) $this->interest_rate / 100;
+        $initiationFee = round($principal * ((float) $this->initiation_fee_rate / 100), 2);
+        $adminPerMonth = (float) ($this->admin_fee_fixed ?? 0);
+        $totalAdmin    = $adminPerMonth * $term;
+
+        if ($this->interest_method === 'reducing') {
+            $pmt = ($rate > 0)
+                ? ($principal * $rate * pow(1 + $rate, $term)) / (pow(1 + $rate, $term) - 1)
+                : ($principal / $term);
+            $monthly = $pmt + $adminPerMonth + ($initiationFee / $term);
+            return round($monthly, 2);
+        }
+
+        $totalInterest = round($principal * $rate * $term, 2);
+        $totalRepay    = $principal + $totalInterest + $initiationFee + $totalAdmin;
         return round($totalRepay / $term, 2);
     }
 

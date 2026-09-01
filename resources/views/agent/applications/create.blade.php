@@ -469,10 +469,11 @@
             <option value="">— Select a Product —</option>
             @foreach($products as $p)
               <option value="{{ $p->id }}" {{ old('loan_product_id') == $p->id ? 'selected' : '' }}
+                data-method="{{ $p->interest_method }}"
                 data-rate="{{ $p->interest_rate }}" data-init="{{ $p->initiation_fee_rate }}"
                 data-admin="{{ $p->admin_fee_fixed }}" data-min="{{ $p->min_amount }}"
                 data-max="{{ $p->max_amount }}" data-minterm="{{ $p->min_term_months }}" data-maxterm="{{ $p->max_term_months }}">
-                {{ $p->name }} — {{ $p->interest_rate }}%/mo · M{{ number_format($p->min_amount,0) }}–M{{ number_format($p->max_amount,0) }}
+                {{ $p->name }} — {{ $p->interest_rate }}%/mo {{ $p->interest_method }} · M{{ number_format($p->min_amount,0) }}–M{{ number_format($p->max_amount,0) }}
               </option>
             @endforeach
           </select>
@@ -906,17 +907,27 @@ function calcPreview() {
   const p = parseFloat(document.getElementById('amtInput').value) || 0;
   const t = parseInt(document.getElementById('termInput').value) || 0;
   
-  const rate = parseFloat(opt.dataset.rate)/100;
-  const initR = parseFloat(opt.dataset.init)/100;
-  const admin = parseFloat(opt.dataset.admin);
+  const method = opt.dataset.method || 'reducing';
+  const rate = parseFloat(opt.dataset.rate || 20)/100;
+  const initR = parseFloat(opt.dataset.init || 0)/100;
+  const admin = parseFloat(opt.dataset.admin || 0);
   
   const box = document.getElementById('previewBox');
   if (!p || !t) { box.style.display = 'none'; return; }
   
-  const totalInt = p * rate * t;
+  let monthly = 0;
+  let total = 0;
   const initFee = p * initR;
-  const total = p + totalInt + initFee + (admin * t);
-  const monthly = total / t;
+
+  if (method === 'reducing') {
+    const pmt = (rate > 0) ? (p * rate * Math.pow(1 + rate, t)) / (Math.pow(1 + rate, t) - 1) : (p / t);
+    monthly = pmt + admin + (initFee / t);
+    total = monthly * t;
+  } else {
+    const totalInt = p * rate * t;
+    total = p + totalInt + initFee + (admin * t);
+    monthly = total / t;
+  }
   
   document.getElementById('prev-monthly').textContent = 'M' + monthly.toFixed(2);
   document.getElementById('prev-total').textContent = 'M' + total.toFixed(2);

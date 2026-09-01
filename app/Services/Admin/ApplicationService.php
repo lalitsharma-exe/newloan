@@ -150,15 +150,27 @@ class ApplicationService
         ]);
     }
 
-    // ── Calculate monthly installment (flat interest) ──────────────────────────
+    // ── Calculate monthly installment ─────────────────────────────────────────
     public function calcMonthly(float $principal, float $ratePercent, int $term, ?object $product = null): float
     {
+        if ($term <= 0) return 0.0;
         $rate            = $ratePercent / 100;
-        $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
-        $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 50);
-        $totalInterest   = round($principal * $rate * $term, 2);
+        $initiationRate  = ($product?->initiation_fee_rate ?? 0) / 100;
+        $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 0);
+        $method          = $product?->interest_method ?? 'reducing';
+
         $totalInitiation = round($principal * $initiationRate, 2);
         $totalAdmin      = $adminPerMonth * $term;
+
+        if ($method === 'reducing') {
+            $pmt = ($rate > 0)
+                ? ($principal * $rate * pow(1 + $rate, $term)) / (pow(1 + $rate, $term) - 1)
+                : ($principal / $term);
+            $monthly = $pmt + $adminPerMonth + ($totalInitiation / $term);
+            return round($monthly, 2);
+        }
+
+        $totalInterest   = round($principal * $rate * $term, 2);
         $totalRepay      = $principal + $totalInterest + $totalInitiation + $totalAdmin;
         return round($totalRepay / $term, 2);
     }
@@ -250,13 +262,20 @@ class ApplicationService
         $product   = $app->loanProduct;
 
         $monthlyRate     = (float) $app->approved_interest_rate / 100;
-        $totalInterest   = round($principal * $monthlyRate * $term, 2);
-        $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
+        $initiationRate  = ($product?->initiation_fee_rate ?? 0) / 100;
         $totalInitiation = round($principal * $initiationRate, 2);
-        $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 50);
+        $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 0);
         $totalAdmin      = $adminPerMonth * $term;
-        $totalRepay      = $principal + $totalInterest + $totalInitiation + $totalAdmin;
-        $monthly         = round($totalRepay / $term, 2);
+        $method          = $product?->interest_method ?? 'reducing';
+
+        if ($method === 'reducing') {
+            $monthly    = $this->calcMonthly($principal, (float)$app->approved_interest_rate, $term, $product);
+            $totalRepay = round($monthly * $term, 2);
+        } else {
+            $totalInterest = round($principal * $monthlyRate * $term, 2);
+            $totalRepay    = $principal + $totalInterest + $totalInitiation + $totalAdmin;
+            $monthly       = round($totalRepay / $term, 2);
+        }
 
         $disbDate   = Carbon::parse($app->disbursement_date);
         $nextId     = (Loan::max('id') ?? 0) + 1;

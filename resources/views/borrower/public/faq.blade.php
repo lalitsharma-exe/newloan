@@ -56,11 +56,10 @@
             ['Is there a minimum age requirement?', 'Yes. You must be at least 18 years of age to apply for a loan with Prosperity Loans Limited.'],
           ]],
           'products' => ['Products & Fees', [
-            ['What is the interest rate?', 'Prosperity Loans charges a flat interest rate of 15% per month on the original loan principal. This means the interest amount is the same every month regardless of your outstanding balance.'],
-            ['What is the initiation fee?', 'A once-off initiation fee of 40% of the loan principal is charged when a loan is granted. This fee is spread across your monthly installments and covers loan processing and administration.'],
-            ['What is the admin fee?', 'A fixed monthly administration fee of M50 is charged each month for the duration of your loan term.'],
+            ['What is the interest rate?', 'Prosperity Loans charges a monthly interest rate of 20% on the reducing outstanding balance. Your monthly interest reduces as you pay off the principal.'],
+            ['Are there initiation or admin fees?', 'No. Prosperity Loans charges only interest. There are no initiation fees and no monthly administration fees.'],
             ['Are there penalties for late payment?', 'Yes. A late payment fee of M20 is charged for every 10 days that a required installment remains unpaid. We encourage you to contact us if you are experiencing difficulty making a payment.'],
-            ['What is the maximum loan I can get?', 'Government employees can borrow up to M20,000. Private sector employees and pensioners can borrow up to M4,000. Minimum loan amount is M100 for all products.'],
+            ['What is the maximum loan I can get?', 'Government employees can borrow up to M50,000. Private sector employees can borrow up to M30,000, and pensioners can borrow up to M20,000. Minimum loan amount is M500.'],
           ]],
           'documents' => ['Required Documents', [
             ['Do you have an office?', 'Yes, we are located in the main city center. You can view our map link on the contact page, or use the portal to do everything online.'],

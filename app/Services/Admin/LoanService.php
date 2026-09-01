@@ -610,41 +610,83 @@ class LoanService
         $principal  = (float) $loan->principal_amount;
         $term       = (int)   $loan->term_months;
         $product    = $loan->loanProduct;
+        $method     = $product?->interest_method ?? 'reducing';
 
-        $monthlyRate     = (float) $loan->interest_rate / 100;
-        $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
-        $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 50);
-
-        $totalInterest   = round($principal * $monthlyRate * $term, 2);
-        $totalInitiation = round($principal * $initiationRate, 2);
-
-        $principalPerMonth  = round($principal / $term, 2);
-        $interestPerMonth   = round($principal * $monthlyRate, 2);
+        $monthlyRate        = (float) $loan->interest_rate / 100;
+        $initiationRate     = ($product?->initiation_fee_rate ?? 0) / 100;
+        $adminPerMonth      = (float) ($product?->admin_fee_fixed ?? 0);
+        $totalInitiation    = round($principal * $initiationRate, 2);
         $initiationPerMonth = round($totalInitiation / $term, 2);
 
-        $payday = (int) ($loan->salary_payday ?? 25);
+        $payday  = (int) ($loan->salary_payday ?? 25);
         $payDate = \Carbon\Carbon::parse($loan->disbursement_date)->addMonth()->setDay($payday);
 
-        for ($i = 1; $i <= $term; $i++) {
-            $isLast = ($i === $term);
-            $prin   = $isLast ? round($principal - $principalPerMonth * ($term - 1), 2) : $principalPerMonth;
-            $init   = $isLast ? round($totalInitiation - $initiationPerMonth * ($term - 1), 2) : $initiationPerMonth;
-            $total  = round($prin + $interestPerMonth + $adminPerMonth + $init, 2);
+        if ($method === 'reducing') {
+            $pmt = ($monthlyRate > 0)
+                ? ($principal * $monthlyRate * pow(1 + $monthlyRate, $term)) / (pow(1 + $monthlyRate, $term) - 1)
+                : ($principal / $term);
+            $monthlyInstallment = round($pmt + $adminPerMonth + $initiationPerMonth, 2);
 
-            \App\Models\LoanInstallment::create([
-                'loan_id'               => $loan->id,
-                'installment_number'    => $i,
-                'due_date'              => $payDate->copy()->toDateString(),
-                'principal_amount'      => $prin,
-                'interest_amount'       => $interestPerMonth,
-                'initiation_fee_amount' => $init,
-                'admin_fee_amount'      => $adminPerMonth,
-                'total_amount'          => $total,
-                'paid_amount'           => 0,
-                'outstanding_amount'    => $total,
-                'status'                => 'pending',
-            ]);
-            $payDate->addMonth();
+            $balance = $principal;
+            for ($i = 1; $i <= $term; $i++) {
+                $isLast = ($i === $term);
+                $interest = round($balance * $monthlyRate, 2);
+                $init = $isLast ? round($totalInitiation - $initiationPerMonth * ($term - 1), 2) : $initiationPerMonth;
+
+                if ($isLast) {
+                    $prin = $balance;
+                    $total = round($prin + $interest + $adminPerMonth + $init, 2);
+                } else {
+                    $prin = round($pmt - $interest, 2);
+                    if ($prin > $balance) {
+                        $prin = $balance;
+                    }
+                    $total = $monthlyInstallment;
+                }
+
+                \App\Models\LoanInstallment::create([
+                    'loan_id'               => $loan->id,
+                    'installment_number'    => $i,
+                    'due_date'              => $payDate->copy()->toDateString(),
+                    'principal_amount'      => $prin,
+                    'interest_amount'       => $interest,
+                    'initiation_fee_amount' => $init,
+                    'admin_fee_amount'      => $adminPerMonth,
+                    'total_amount'          => $total,
+                    'paid_amount'           => 0,
+                    'outstanding_amount'    => $total,
+                    'status'                => 'pending',
+                ]);
+
+                $balance = round($balance - $prin, 2);
+                $payDate->addMonth();
+            }
+        } else {
+            $totalInterest      = round($principal * $monthlyRate * $term, 2);
+            $principalPerMonth  = round($principal / $term, 2);
+            $interestPerMonth   = round($totalInterest / $term, 2);
+
+            for ($i = 1; $i <= $term; $i++) {
+                $isLast = ($i === $term);
+                $prin   = $isLast ? round($principal - $principalPerMonth * ($term - 1), 2) : $principalPerMonth;
+                $init   = $isLast ? round($totalInitiation - $initiationPerMonth * ($term - 1), 2) : $initiationPerMonth;
+                $total  = round($prin + $interestPerMonth + $adminPerMonth + $init, 2);
+
+                \App\Models\LoanInstallment::create([
+                    'loan_id'               => $loan->id,
+                    'installment_number'    => $i,
+                    'due_date'              => $payDate->copy()->toDateString(),
+                    'principal_amount'      => $prin,
+                    'interest_amount'       => $interestPerMonth,
+                    'initiation_fee_amount' => $init,
+                    'admin_fee_amount'      => $adminPerMonth,
+                    'total_amount'          => $total,
+                    'paid_amount'           => 0,
+                    'outstanding_amount'    => $total,
+                    'status'                => 'pending',
+                ]);
+                $payDate->addMonth();
+            }
         }
     }
 

@@ -165,29 +165,79 @@ class ApplicationController extends Controller
     {
         $product  = $application->loanProduct;
         $amount   = (float) $request->input('amount', $application->approved_amount ?? $application->requested_amount ?? 0);
-        $rateP    = (float) $request->input('rate', $application->approved_interest_rate ?? $product?->interest_rate ?? 15);
+        $rateP    = (float) $request->input('rate', $application->approved_interest_rate ?? $product?->interest_rate ?? 20);
         $term     = (int)   $request->input('term', $application->approved_term ?? $application->requested_term ?? 1);
 
+        $method          = $product?->interest_method ?? 'reducing';
         $rate            = $rateP / 100;
-        $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
-        $adminPerMonth   = (float)($product?->admin_fee_fixed ?? 50);
-        $totalInterest   = round($amount * $rate * $term, 2);
+        $initiationRate  = ($product?->initiation_fee_rate ?? 0) / 100;
+        $adminPerMonth   = (float)($product?->admin_fee_fixed ?? 0);
         $totalInitiation = round($amount * $initiationRate, 2);
-        $totalRepay      = $amount + $totalInterest + $totalInitiation + ($adminPerMonth * $term);
-        $monthly         = round($totalRepay / $term, 2);
-        $principalPerMonth  = round($amount / $term, 2);
-        $interestPerMonth   = round($amount * $rate, 2);
         $initiationPerMonth = round($totalInitiation / $term, 2);
 
-        $schedule = [];
-        $remainPrincipal = $amount;
-        for ($i = 1; $i <= $term; $i++) {
-            $isLast = ($i === $term);
-            $prin   = $isLast ? round($remainPrincipal, 2) : $principalPerMonth;
-            $init   = $isLast ? round($totalInitiation - $initiationPerMonth * ($term - 1), 2) : $initiationPerMonth;
-            $total  = round($prin + $interestPerMonth + $adminPerMonth + $init, 2);
-            $remainPrincipal = max(0, round($remainPrincipal - $prin, 2));
-            $schedule[] = ['no' => $i, 'principal' => $prin, 'interest' => $interestPerMonth, 'initiation_fee' => $init, 'admin_fee' => $adminPerMonth, 'payment' => $total, 'balance' => $remainPrincipal];
+        $schedule      = [];
+        $totalInterest = 0;
+
+        if ($method === 'reducing') {
+            $pmt = ($rate > 0)
+                ? ($amount * $rate * pow(1 + $rate, $term)) / (pow(1 + $rate, $term) - 1)
+                : ($amount / $term);
+            $monthly = round($pmt + $adminPerMonth + $initiationPerMonth, 2);
+            $balance = $amount;
+
+            for ($i = 1; $i <= $term; $i++) {
+                $isLast   = ($i === $term);
+                $interest = round($balance * $rate, 2);
+                $totalInterest += $interest;
+                $init     = $isLast ? round($totalInitiation - $initiationPerMonth * ($term - 1), 2) : $initiationPerMonth;
+
+                if ($isLast) {
+                    $prin  = $balance;
+                    $total = round($prin + $interest + $adminPerMonth + $init, 2);
+                } else {
+                    $prin  = round($pmt - $interest, 2);
+                    if ($prin > $balance) $prin = $balance;
+                    $total = $monthly;
+                }
+
+                $balance = max(0, round($balance - $prin, 2));
+
+                $schedule[] = [
+                    'no'             => $i,
+                    'principal'      => $prin,
+                    'interest'       => $interest,
+                    'initiation_fee' => $init,
+                    'admin_fee'      => $adminPerMonth,
+                    'payment'        => $total,
+                    'balance'        => $balance,
+                ];
+            }
+            $totalRepay = round($monthly * $term, 2);
+        } else {
+            $totalInterest      = round($amount * $rate * $term, 2);
+            $totalRepay         = $amount + $totalInterest + $totalInitiation + ($adminPerMonth * $term);
+            $monthly            = round($totalRepay / $term, 2);
+            $principalPerMonth  = round($amount / $term, 2);
+            $interestPerMonth   = round($amount * $rate, 2);
+
+            $remainPrincipal = $amount;
+            for ($i = 1; $i <= $term; $i++) {
+                $isLast = ($i === $term);
+                $prin   = $isLast ? round($remainPrincipal, 2) : $principalPerMonth;
+                $init   = $isLast ? round($totalInitiation - $initiationPerMonth * ($term - 1), 2) : $initiationPerMonth;
+                $total  = round($prin + $interestPerMonth + $adminPerMonth + $init, 2);
+                $remainPrincipal = max(0, round($remainPrincipal - $prin, 2));
+
+                $schedule[] = [
+                    'no'             => $i,
+                    'principal'      => $prin,
+                    'interest'       => $interestPerMonth,
+                    'initiation_fee' => $init,
+                    'admin_fee'      => $adminPerMonth,
+                    'payment'        => $total,
+                    'balance'        => $remainPrincipal,
+                ];
+            }
         }
 
         return response()->json([

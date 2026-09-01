@@ -861,13 +861,28 @@ $gridCols = count($stats);
 </div></div>
 
 <script>
-const INITIATION_RATE = {{ $application->loanProduct?->initiation_fee_rate ?? 40 }} / 100;
-const ADMIN_PER_MONTH = {{ $application->loanProduct?->admin_fee_fixed ?? 50 }};
+const INTEREST_METHOD = '{{ $application->loanProduct?->interest_method ?? "reducing" }}';
+const INITIATION_RATE = {{ $application->loanProduct?->initiation_fee_rate ?? 0 }} / 100;
+const ADMIN_PER_MONTH = {{ $application->loanProduct?->admin_fee_fixed ?? 0 }};
 
 function flatCalc(amount, ratePercent, term) {
   if (!amount || !term) return null;
-  const rate=ratePercent/100, interest=amount*rate*term, initiation=amount*INITIATION_RATE, admin=ADMIN_PER_MONTH*term, total=amount+interest+initiation+admin, monthly=total/term;
-  return {rate,interest,initiation,admin,total,monthly,principalPerMonth:amount/term,interestPerMonth:amount*rate,initiationPerMonth:initiation/term};
+  const rate = ratePercent / 100;
+  const initiation = amount * INITIATION_RATE;
+  const admin = ADMIN_PER_MONTH * term;
+
+  if (INTEREST_METHOD === 'reducing') {
+    const pmt = (rate > 0) ? (amount * rate * Math.pow(1 + rate, term)) / (Math.pow(1 + rate, term) - 1) : (amount / term);
+    const monthly = pmt + ADMIN_PER_MONTH + (initiation / term);
+    const total = monthly * term;
+    const interest = total - amount - initiation - admin;
+    return { rate, interest, initiation, admin, total, monthly, pmt, isReducing: true };
+  }
+
+  const interest = amount * rate * term;
+  const total = amount + interest + initiation + admin;
+  const monthly = total / term;
+  return { rate, interest, initiation, admin, total, monthly, principalPerMonth: amount / term, interestPerMonth: amount * rate, initiationPerMonth: initiation / term, isReducing: false };
 }
 
 function liveCalc() {
@@ -902,7 +917,30 @@ function previewSchedule() {
   const term=parseInt(document.getElementById('schTerm').value||0);
   const c=flatCalc(amount,rateP,term); if(!c) return;
   let rows='',rem=amount;
-  for(let i=1;i<=term;i++){const isLast=i===term;const prin=isLast?parseFloat(rem.toFixed(2)):parseFloat(c.principalPerMonth.toFixed(2));const init=parseFloat(c.initiationPerMonth.toFixed(2));const tot=parseFloat((prin+c.interestPerMonth+ADMIN_PER_MONTH+init).toFixed(2));rem=Math.max(0,rem-prin);rows+=`<tr style="font-size:12.5px"><td style="padding:8px 10px;border-bottom:1px solid var(--border)">${i}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--p)">M ${prin.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#f59e0b">M ${c.interestPerMonth.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#8b5cf6">M ${init.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#64748b">M ${ADMIN_PER_MONTH.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:700">M ${tot.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border)">M ${rem.toFixed(2)}</td></tr>`;}
+
+  for(let i=1;i<=term;i++){
+    const isLast=i===term;
+    let prin, intVal, init, tot;
+    if (c.isReducing) {
+      intVal = parseFloat((rem * c.rate).toFixed(2));
+      init = parseFloat((c.initiation / term).toFixed(2));
+      if (isLast) {
+        prin = parseFloat(rem.toFixed(2));
+        tot = parseFloat((prin + intVal + ADMIN_PER_MONTH + init).toFixed(2));
+      } else {
+        prin = parseFloat((c.pmt - intVal).toFixed(2));
+        if (prin > rem) prin = rem;
+        tot = parseFloat(c.monthly.toFixed(2));
+      }
+    } else {
+      prin = isLast ? parseFloat(rem.toFixed(2)) : parseFloat(c.principalPerMonth.toFixed(2));
+      intVal = parseFloat(c.interestPerMonth.toFixed(2));
+      init = parseFloat(c.initiationPerMonth.toFixed(2));
+      tot = parseFloat((prin + intVal + ADMIN_PER_MONTH + init).toFixed(2));
+    }
+    rem = Math.max(0, parseFloat((rem - prin).toFixed(2)));
+    rows+=`<tr style="font-size:12.5px"><td style="padding:8px 10px;border-bottom:1px solid var(--border)">${i}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--p)">M ${prin.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#f59e0b">M ${intVal.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#8b5cf6">M ${init.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);color:#64748b">M ${ADMIN_PER_MONTH.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:700">M ${tot.toFixed(2)}</td><td style="padding:8px 10px;border-bottom:1px solid var(--border)">M ${rem.toFixed(2)}</td></tr>`;
+  }
   document.getElementById('scheduleResult').innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;text-align:center;font-size:13px"><div style="background:rgba(79,70,229,.06);border-radius:10px;padding:12px;border:1px solid rgba(79,70,229,.12)"><div style="font-size:11px;color:var(--muted)">Monthly</div><div style="font-size:19px;font-weight:800;color:var(--p)">M ${c.monthly.toFixed(2)}</div></div><div style="background:rgba(22,163,74,.06);border-radius:10px;padding:12px;border:1px solid rgba(22,163,74,.12)"><div style="font-size:11px;color:var(--muted)">Total Repay</div><div style="font-size:19px;font-weight:800;color:#10b981">M ${c.total.toFixed(2)}</div></div><div style="background:rgba(245,158,11,.06);border-radius:10px;padding:12px;border:1px solid rgba(245,158,11,.12)"><div style="font-size:11px;color:var(--muted)">Interest+Fees</div><div style="font-size:19px;font-weight:800;color:#f59e0b">M ${(c.interest+c.initiation+c.admin).toFixed(2)}</div></div><div style="background:rgba(100,116,139,.06);border-radius:10px;padding:12px;border:1px solid rgba(100,116,139,.12)"><div style="font-size:11px;color:var(--muted)">Cash to Client</div><div style="font-size:19px;font-weight:800;color:#475569">M ${amount.toFixed(2)}</div></div></div><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f8fafc;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)"><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">#</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Principal</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Interest</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Initiation</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Admin</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Total</th><th style="padding:9px 10px;border-bottom:1px solid var(--border);text-align:left">Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 

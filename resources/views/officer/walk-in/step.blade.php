@@ -381,16 +381,17 @@ $totalSteps = 9;
           <input type="radio" name="loan_product_id" value="{{ $prod->id }}"
             {{ $application->loan_product_id==$prod->id?'checked':'' }}
             class="prod-radio" style="display:none"
+            data-method="{{ $prod->interest_method }}"
             data-rate="{{ $prod->interest_rate }}"
-            data-initiation="{{ $prod->initiation_fee_rate ?? 40 }}"
-            data-admin="{{ $prod->admin_fee_fixed ?? 50 }}"
+            data-initiation="{{ $prod->initiation_fee_rate ?? 0 }}"
+            data-admin="{{ $prod->admin_fee_fixed ?? 0 }}"
             data-min="{{ $prod->min_amount }}"
             data-max="{{ $prod->max_amount }}"
             data-minterms="{{ $prod->min_term_months }}"
             data-maxterms="{{ $prod->max_term_months }}">
           <div class="prod-card" style="border:2px solid {{ $application->loan_product_id==$prod->id?'var(--p)':'var(--border)' }};border-radius:13px;padding:14px;transition:all .2s">
             <div style="font-weight:700;font-size:13px;margin-bottom:5px">{{ $prod->name }}</div>
-            <div style="font-size:11.5px;color:var(--muted)"><i class="bi bi-percent"></i> {{ $prod->interest_rate }}%/mo flat</div>
+            <div style="font-size:11.5px;color:var(--muted)"><i class="bi bi-percent"></i> {{ $prod->interest_rate }}%/mo {{ $prod->interest_method }}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px">M{{ number_format($prod->min_amount,0) }} – M{{ number_format($prod->max_amount,0) }}</div>
             <div style="font-size:11px;color:var(--muted)">{{ $prod->min_term_months }}–{{ $prod->max_term_months }} months</div>
           </div>
@@ -905,6 +906,7 @@ document.querySelectorAll('.prod-radio').forEach(radio=>{
     document.querySelectorAll('.prod-card').forEach(c=>{c.style.border='2px solid var(--border)'});
     this.closest('label').querySelector('.prod-card').style.border='2px solid var(--p)';
     selectedProduct = {
+      method: this.dataset.method || 'reducing',
       rate: parseFloat(this.dataset.rate),
       initiation: parseFloat(this.dataset.initiation),
       admin: parseFloat(this.dataset.admin),
@@ -926,17 +928,31 @@ function calcPreview(){
   const term   = parseInt(document.getElementById('reqTerm').value)||0;
   if(!amount||!term){ document.getElementById('calcPreview').style.display='none'; return; }
 
+  const method = selectedProduct.method || 'reducing';
   const rate = selectedProduct.rate/100;
   const initFee = amount * (selectedProduct.initiation/100);
-  const interest = amount * rate * term;
-  const admin = selectedProduct.admin * term;
-  const totalRepay = amount + interest + initFee + admin;
-  const monthly = totalRepay / term;
+  const adminPerMonth = selectedProduct.admin;
+  const totalAdmin = adminPerMonth * term;
+
+  let monthly = 0;
+  let totalRepay = 0;
+  let totalInterest = 0;
+
+  if (method === 'reducing') {
+    const pmt = (rate > 0) ? (amount * rate * Math.pow(1 + rate, term)) / (Math.pow(1 + rate, term) - 1) : (amount / term);
+    monthly = pmt + adminPerMonth + (initFee / term);
+    totalRepay = monthly * term;
+    totalInterest = totalRepay - amount - initFee - totalAdmin;
+  } else {
+    totalInterest = amount * rate * term;
+    totalRepay = amount + totalInterest + initFee + totalAdmin;
+    monthly = totalRepay / term;
+  }
 
   document.getElementById('previewMonthly').textContent = 'M'+monthly.toFixed(2);
-  document.getElementById('previewInterest').textContent = 'M'+interest.toFixed(2);
+  document.getElementById('previewInterest').textContent = 'M'+totalInterest.toFixed(2);
   document.getElementById('previewInitiation').textContent = 'M'+initFee.toFixed(2);
-  document.getElementById('previewAdmin').textContent = 'M'+admin.toFixed(2);
+  document.getElementById('previewAdmin').textContent = 'M'+totalAdmin.toFixed(2);
   document.getElementById('previewTotal').textContent = 'M'+totalRepay.toFixed(2);
   document.getElementById('calcPreview').style.display = 'block';
 

@@ -339,14 +339,14 @@ input[type=range] {
 
         <div class="calc-result">
           <div><div class="cr-lbl">Monthly Payment</div><div class="cr-val accent" id="c-monthly">M 4,067</div></div>
-          <div><div class="cr-lbl">Total Repayable</div><div class="cr-val" id="c-total">M 12,200</div></div>
+          <div><div class="cr-val" id="c-total">M 12,200</div></div>
           <div style="grid-column:span 2"><div class="cr-small" id="c-breakdown">Principal M5,000 · Initiation M2,000 · Interest M2,250 · Admin M150</div></div>
         </div>
 
         <a href="{{ route('borrower.register') }}" class="calc-apply">
           <i class="bi bi-arrow-right-circle-fill"></i> Apply for this Loan
         </a>
-        <div class="calc-disclaimer">15% flat rate · 40% initiation fee · M50/month admin</div>
+        <div class="calc-disclaimer">20% monthly interest (reducing balance) · No initiation fee · No admin fee</div>
       </div>
 
     </div>
@@ -375,16 +375,16 @@ input[type=range] {
         <input type="range" id="m-term" min="1" max="6" step="1" value="3" oninput="calcM()">
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;background:rgba(201,148,58,.07);border:1px solid rgba(201,148,58,.18);border-radius:9px;padding:13px 15px">
-        <div><div class="cr-lbl">Monthly Payment</div><div class="cr-val accent" id="m-monthly" style="font-size:22px">M 4,067</div></div>
-        <div><div class="cr-lbl">Total Repayable</div><div class="cr-val" id="m-total" style="font-size:22px">M 12,200</div></div>
-        <div style="grid-column:span 2"><div class="cr-small" id="m-breakdown">Principal M5,000 · Initiation M2,000 · Interest M2,250 · Admin M150</div></div>
+      <div class="calc-result">
+        <div><div class="cr-lbl">Monthly Payment</div><div class="cr-val accent" id="m-monthly">M 2,374</div></div>
+        <div><div class="cr-lbl">Total Repayable</div><div class="cr-val" id="m-total">M 7,122</div></div>
+        <div style="grid-column:span 2"><div class="cr-small" id="m-breakdown">Principal M5,000 · Interest M2,122 · No Fees</div></div>
       </div>
 
       <a href="{{ route('borrower.register') }}" class="calc-apply" style="margin-top:12px">
         <i class="bi bi-arrow-right-circle-fill"></i> Apply for this Loan
       </a>
-      <div class="calc-disclaimer" style="color:rgba(255,255,255,.28)">15% flat rate · 40% initiation fee · M50/month admin</div>
+      <div class="calc-disclaimer" style="color:rgba(255,255,255,.28)">20% monthly interest (reducing balance) · No initiation fee · No admin fee</div>
     </div>
   </div>
 
@@ -415,15 +415,14 @@ function calc() {
   const t = parseInt(document.getElementById('c-term').value);
   document.getElementById('c-amt-lbl').textContent  = 'M ' + a.toLocaleString();
   document.getElementById('c-term-lbl').textContent = t + (t === 1 ? ' month' : ' months');
-  const init     = Math.round(a * 0.40);
-  const interest = Math.round(a * 0.15 * t);
-  const admin    = 50 * t;
-  const total    = a + init + interest + admin;
-  const monthly  = Math.round(total / t);
+  const r = 0.20;
+  const monthly = (r > 0 && t > 0) ? Math.round((a * r * Math.pow(1 + r, t)) / (Math.pow(1 + r, t) - 1)) : Math.round(a / t);
+  const total   = monthly * t;
+  const interest = total - a;
   document.getElementById('c-monthly').textContent   = 'M ' + monthly.toLocaleString();
   document.getElementById('c-total').textContent     = 'M ' + total.toLocaleString();
   document.getElementById('c-breakdown').textContent =
-    `Principal M${a.toLocaleString()} · Initiation M${init.toLocaleString()} · Interest M${interest.toLocaleString()} · Admin M${admin.toLocaleString()}`;
+    `Principal M${a.toLocaleString()} · Interest M${interest.toLocaleString()} · No Extra Fees`;
 }
 
 // ── Mobile calculator ────────────────────────────────
@@ -446,11 +445,10 @@ function calcM() {
   const t = parseInt(document.getElementById('m-term').value);
   document.getElementById('m-amt-lbl').textContent  = 'M ' + a.toLocaleString();
   document.getElementById('m-term-lbl').textContent = t + (t === 1 ? ' month' : ' months');
-  const init     = Math.round(a * 0.40);
-  const interest = Math.round(a * 0.15 * t);
-  const admin    = 50 * t;
-  const total    = a + init + interest + admin;
-  const monthly  = Math.round(total / t);
+  const r = 0.20;
+  const monthly = (r > 0 && t > 0) ? Math.round((a * r * Math.pow(1 + r, t)) / (Math.pow(1 + r, t) - 1)) : Math.round(a / t);
+  const total   = monthly * t;
+  const interest = total - a;
   document.getElementById('m-monthly').textContent  = 'M ' + monthly.toLocaleString();
   document.getElementById('m-total').textContent    = 'M ' + total.toLocaleString();
   document.getElementById('m-breakdown').textContent =
