@@ -159,12 +159,11 @@ class ApplicationController extends Controller
         $net = $gross - $ded;
 
         // Schedule calculations
-        $rate           = $product->interest_rate / 100;
-        $totalInterest  = round($amount * $rate * $term, 2);
-        $initiationFee  = round($amount * ($product->initiation_fee_rate / 100), 2);
-        $totalAdmin     = (float) $product->admin_fee_fixed * $term;
-        $totalRepayable = $amount + $totalInterest + $initiationFee + $totalAdmin;
-        $monthlyInstalment = round($totalRepayable / $term, 2);
+        $initiationFee     = round($amount * ($product->initiation_fee_rate / 100), 2);
+        $totalAdmin        = (float) $product->admin_fee_fixed * $term;
+        $monthlyInstalment = $product->calcMonthly($amount, $term);
+        $totalRepayable    = round($monthlyInstalment * $term, 2);
+        $totalInterest     = round(max(0, $totalRepayable - $amount - $initiationFee - $totalAdmin), 2);
 
         // 2× capital limit check
         if ($totalRepayable > (2 * $amount)) {
@@ -374,12 +373,11 @@ class ApplicationController extends Controller
         $term    = (int) $request->term;
         $salary  = (float) $request->salary;
 
-        $rate           = $product->interest_rate / 100;
-        $totalInterest  = round($amount * $rate * $term, 2);
         $initiationFee  = round($amount * ($product->initiation_fee_rate / 100), 2);
         $totalAdmin     = (float) $product->admin_fee_fixed * $term;
-        $totalRepayable = $amount + $totalInterest + $initiationFee + $totalAdmin;
-        $instalment     = round($totalRepayable / $term, 2);
+        $instalment     = $product->calcMonthly($amount, $term);
+        $totalRepayable = round($instalment * $term, 2);
+        $totalInterest  = round(max(0, $totalRepayable - $amount - $initiationFee - $totalAdmin), 2);
         $maxInstalment  = round($salary * 0.30, 2);
         $capExceeded    = $totalRepayable > (2 * $amount);
 

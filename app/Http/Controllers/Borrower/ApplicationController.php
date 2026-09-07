@@ -127,8 +127,7 @@ class ApplicationController extends Controller
                     $p = (float) $request->requested_amount;
                     $t = (int) $request->requested_term;
                     if ($t > 0) {
-                        $total = $p + ($p * ($product->interest_rate / 100) * $t) + ($p * ($product->initiation_fee_rate / 100)) + ($product->admin_fee_fixed * $t);
-                        $monthly = $total / $t;
+                        $monthly = $product->calcMonthly($p, $t);
                         if ($monthly > ($aff->net_salary * 0.30)) {
                             return back()->withInput()->with('error', 'The estimated monthly repayment (M' . number_format($monthly, 2) . ') exceeds 30% of your net salary. Please decrease the loan amount or increase the loan term.');
                         }

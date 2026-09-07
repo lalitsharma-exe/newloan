@@ -64,8 +64,8 @@ Disburse
           $principal  = (float)$loan->principal_amount;
           $rate       = (float)$loan->interest_rate;
           $term       = (int)$loan->term_months;
-          $initFee    = round($principal * (($product?->initiation_fee_rate ?? 40)/100), 2);
-          $adminTotal = ($product?->admin_fee_fixed ?? 50) * $term;
+          $initFee    = round($principal * (($product?->initiation_fee_rate ?? 0)/100), 2);
+          $adminTotal = ($product?->admin_fee_fixed ?? 16) * $term;
           $totalInt   = round($principal * ($rate/100) * $term, 2);
           $totalRepay = $loan->total_amount;
           $monthly    = $loan->monthly_installment;

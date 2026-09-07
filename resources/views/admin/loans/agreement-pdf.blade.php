@@ -94,9 +94,9 @@
   $principal   = (float) $loan->principal_amount;
   $term        = (int)   $loan->term_months;
   $rate        = (float) $loan->interest_rate;
-  $initRate    = ($product?->initiation_fee_rate ?? 40);
+  $initRate    = ($product?->initiation_fee_rate ?? 0);
   $initFee     = round($principal * $initRate / 100, 2);
-  $adminMonth  = (float) ($product?->admin_fee_fixed ?? 50);
+  $adminMonth  = (float) ($product?->admin_fee_fixed ?? 16);
   $adminTotal  = $adminMonth * $term;
   $totalInt    = round($principal * ($rate/100) * $term, 2);
   $totalFees   = $initFee + $adminTotal;

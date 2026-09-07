@@ -50,7 +50,7 @@
         <span class="range">M100 – M20,000</span>
         <h2>Government Employee Loan</h2>
         <div style="margin-top:28px">
-          @foreach(['Interest Rate'=>'20% per month (reducing balance)','Initiation Fee'=>'None (M0)','Admin Fee'=>'None (M0)','Late Penalty'=>'M20 per 10 days overdue','Min Term'=>'1 month','Max Term'=>'24 months'] as $l=>$v)
+          @foreach(['Interest Rate'=>'20% per month (reducing balance)','Initiation Fee'=>'None (M0)','Service Fee'=>'M16 per month','Late Penalty'=>'M20 per 10 days overdue','Min Term'=>'1 month','Max Term'=>'24 months'] as $l=>$v)
           <div class="fee-row"><span>{{ $l }}</span><span>{{ $v }}</span></div>
           @endforeach
         </div>
@@ -106,7 +106,7 @@
         <span class="range">M100 – M4,000</span>
         <h2>Private Sector Loan</h2>
         <div style="margin-top:28px">
-          @foreach(['Interest Rate'=>'20% per month (reducing balance)','Initiation Fee'=>'None (M0)','Admin Fee'=>'None (M0)','Late Penalty'=>'M20 per 10 days overdue','Min Term'=>'1 month','Max Term'=>'24 months'] as $l=>$v)
+          @foreach(['Interest Rate'=>'20% per month (reducing balance)','Initiation Fee'=>'None (M0)','Service Fee'=>'M16 per month','Late Penalty'=>'M20 per 10 days overdue','Min Term'=>'1 month','Max Term'=>'24 months'] as $l=>$v)
           <div class="fee-row"><span>{{ $l }}</span><span>{{ $v }}</span></div>
           @endforeach
         </div>
@@ -122,7 +122,7 @@
         <span class="range">M100 – M4,000</span>
         <h2>Pensioner Loan</h2>
         <div style="margin-top:28px">
-          @foreach(['Interest Rate'=>'20% per month (reducing balance)','Initiation Fee'=>'None (M0)','Admin Fee'=>'None (M0)','Late Penalty'=>'M20 per 10 days overdue','Min Term'=>'1 month','Max Term'=>'24 months'] as $l=>$v)
+          @foreach(['Interest Rate'=>'20% per month (reducing balance)','Initiation Fee'=>'None (M0)','Service Fee'=>'M16 per month','Late Penalty'=>'M20 per 10 days overdue','Min Term'=>'1 month','Max Term'=>'24 months'] as $l=>$v)
           <div class="fee-row"><span>{{ $l }}</span><span>{{ $v }}</span></div>
           @endforeach
         </div>

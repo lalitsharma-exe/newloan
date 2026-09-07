@@ -197,8 +197,8 @@ class ApplicationService
             // Calculate what amount would be affordable
             $affordableMonthly = $disposable;
             // Reverse-calculate affordable principal from affordable monthly
-            $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 50);
-            $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
+            $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 16);
+            $initiationRate  = ($product?->initiation_fee_rate ?? 0) / 100;
             $rateDecimal     = $rate / 100;
             // monthly = principal * (1 + rate*term + initiationRate) / term + adminPerMonth
             // => principal = (monthly - adminPerMonth) * term / (1 + rate*term + initiationRate)

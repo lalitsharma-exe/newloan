@@ -68,7 +68,7 @@
                             <div class="fg">
                                 <label class="fl">Admin Fee (Monthly Fixed) *</label>
                                 <div style="position: relative;">
-                                    <input type="number" name="admin_fee_fixed" class="fc" value="{{ old('admin_fee_fixed', 50) }}" step="0.01" min="0" required>
+                                    <input type="number" name="admin_fee_fixed" class="fc" value="{{ old('admin_fee_fixed', 16) }}" step="0.01" min="0" required>
                                     <span style="position: absolute; left: 12px; top: 10px; color: var(--muted); font-weight: 600;">M</span>
                                     <style>input[name=admin_fee_fixed] { padding-left: 30px; }</style>
                                 </div>

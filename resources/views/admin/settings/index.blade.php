@@ -227,7 +227,7 @@
                 <label class="fl">Admin Fee Fixed <span style="font-weight:400;color:var(--muted)">(M/month)</span></label>
                 <div class="input-addon">
                   <span class="prefix">M</span>
-                  <input type="number" name="admin_fee_fixed" class="fc has-prefix" value="{{ \App\Models\SystemSetting::get('admin_fee_fixed',50) }}" step="0.01">
+                  <input type="number" name="admin_fee_fixed" class="fc has-prefix" value="{{ \App\Models\SystemSetting::get('admin_fee_fixed', 16) }}" step="0.01">
                 </div>
               </div>
               <div class="fg">

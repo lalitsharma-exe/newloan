@@ -103,8 +103,8 @@ class LoanService
 
         $product        = $loan->loanProduct;
         $newRate        = isset($data['interest_rate']) ? (float)$data['interest_rate'] / 100 : $loan->interest_rate / 100;
-        $adminPerMonth  = (float) ($product?->admin_fee_fixed ?? 50);
-        $initiationRate = ($product?->initiation_fee_rate ?? 40) / 100;
+        $adminPerMonth  = (float) ($product?->admin_fee_fixed ?? 16);
+        $initiationRate = ($product?->initiation_fee_rate ?? 0) / 100;
         
         $currentRemainingCount = $remaining->count();
         $requestedTerm         = isset($data['new_term']) ? (int)$data['new_term'] : $currentRemainingCount;
@@ -406,8 +406,8 @@ class LoanService
                     ? \App\Models\LoanProduct::where('name', 'like', "%{$productName}%")->first()
                     : \App\Models\LoanProduct::active()->first();
 
-                $initiationRate  = ($product?->initiation_fee_rate ?? 40) / 100;
-                $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 50);
+                $initiationRate  = ($product?->initiation_fee_rate ?? 0) / 100;
+                $adminPerMonth   = (float) ($product?->admin_fee_fixed ?? 16);
                 $totalInterest   = round($principal * ($rate / 100) * $term, 2);
                 $totalInitiation = round($principal * $initiationRate, 2);
                 $totalAdmin      = $adminPerMonth * $term;

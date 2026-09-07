@@ -346,7 +346,7 @@ input[type=range] {
         <a href="{{ route('borrower.register') }}" class="calc-apply">
           <i class="bi bi-arrow-right-circle-fill"></i> Apply for this Loan
         </a>
-        <div class="calc-disclaimer">20% monthly interest (reducing balance) · No initiation fee · No admin fee</div>
+        <div class="calc-disclaimer">20% monthly interest (reducing balance) · M16/month service fee · No initiation fee</div>
       </div>
 
     </div>
@@ -376,15 +376,15 @@ input[type=range] {
       </div>
 
       <div class="calc-result">
-        <div><div class="cr-lbl">Monthly Payment</div><div class="cr-val accent" id="m-monthly">M 2,374</div></div>
-        <div><div class="cr-lbl">Total Repayable</div><div class="cr-val" id="m-total">M 7,122</div></div>
-        <div style="grid-column:span 2"><div class="cr-small" id="m-breakdown">Principal M5,000 · Interest M2,122 · No Fees</div></div>
+        <div><div class="cr-lbl">Monthly Payment</div><div class="cr-val accent" id="m-monthly">M 2,390</div></div>
+        <div><div class="cr-lbl">Total Repayable</div><div class="cr-val" id="m-total">M 7,170</div></div>
+        <div style="grid-column:span 2"><div class="cr-small" id="m-breakdown">Principal M5,000 · Interest M2,122 · Service Fee M48</div></div>
       </div>
 
       <a href="{{ route('borrower.register') }}" class="calc-apply" style="margin-top:12px">
         <i class="bi bi-arrow-right-circle-fill"></i> Apply for this Loan
       </a>
-      <div class="calc-disclaimer" style="color:rgba(255,255,255,.28)">20% monthly interest (reducing balance) · No initiation fee · No admin fee</div>
+      <div class="calc-disclaimer" style="color:rgba(255,255,255,.28)">20% monthly interest (reducing balance) · M16/month service fee · No initiation fee</div>
     </div>
   </div>
 
@@ -416,13 +416,16 @@ function calc() {
   document.getElementById('c-amt-lbl').textContent  = 'M ' + a.toLocaleString();
   document.getElementById('c-term-lbl').textContent = t + (t === 1 ? ' month' : ' months');
   const r = 0.20;
-  const monthly = (r > 0 && t > 0) ? Math.round((a * r * Math.pow(1 + r, t)) / (Math.pow(1 + r, t) - 1)) : Math.round(a / t);
+  const serviceFeePerMonth = 16;
+  const pmt = (r > 0 && t > 0) ? (a * r * Math.pow(1 + r, t)) / (Math.pow(1 + r, t) - 1) : (a / t);
+  const monthly = Math.round(pmt + serviceFeePerMonth);
   const total   = monthly * t;
-  const interest = total - a;
+  const totalServiceFee = serviceFeePerMonth * t;
+  const interest = total - a - totalServiceFee;
   document.getElementById('c-monthly').textContent   = 'M ' + monthly.toLocaleString();
   document.getElementById('c-total').textContent     = 'M ' + total.toLocaleString();
   document.getElementById('c-breakdown').textContent =
-    `Principal M${a.toLocaleString()} · Interest M${interest.toLocaleString()} · No Extra Fees`;
+    `Principal M${a.toLocaleString()} · Interest M${interest.toLocaleString()} · Service Fee M${totalServiceFee.toLocaleString()}`;
 }
 
 // ── Mobile calculator ────────────────────────────────
@@ -446,13 +449,16 @@ function calcM() {
   document.getElementById('m-amt-lbl').textContent  = 'M ' + a.toLocaleString();
   document.getElementById('m-term-lbl').textContent = t + (t === 1 ? ' month' : ' months');
   const r = 0.20;
-  const monthly = (r > 0 && t > 0) ? Math.round((a * r * Math.pow(1 + r, t)) / (Math.pow(1 + r, t) - 1)) : Math.round(a / t);
+  const serviceFeePerMonth = 16;
+  const pmt = (r > 0 && t > 0) ? (a * r * Math.pow(1 + r, t)) / (Math.pow(1 + r, t) - 1) : (a / t);
+  const monthly = Math.round(pmt + serviceFeePerMonth);
   const total   = monthly * t;
-  const interest = total - a;
+  const totalServiceFee = serviceFeePerMonth * t;
+  const interest = total - a - totalServiceFee;
   document.getElementById('m-monthly').textContent  = 'M ' + monthly.toLocaleString();
   document.getElementById('m-total').textContent    = 'M ' + total.toLocaleString();
   document.getElementById('m-breakdown').textContent =
-    `Principal M${a.toLocaleString()} · Initiation M${init.toLocaleString()} · Interest M${interest.toLocaleString()} · Admin M${admin.toLocaleString()}`;
+    `Principal M${a.toLocaleString()} · Interest M${interest.toLocaleString()} · Service Fee M${totalServiceFee.toLocaleString()}`;
 }
 
 calc();
