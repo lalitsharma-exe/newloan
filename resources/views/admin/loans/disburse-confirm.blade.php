@@ -309,6 +309,7 @@ Disburse
 
           <form method="POST" action="{{ route('admin.loans.disburse', $loan) }}" id="disburseForm" enctype="multipart/form-data">
             @csrf
+            <input type="hidden" name="disbursement_method" id="selectedDisbursementMethod" value="{{ ($loan->payout_method ?? 'bank_transfer') === 'cpay_wallet' ? 'cpay_wallet' : 'bank_transfer' }}">
 
             <div class="fg">
               <label class="fl">Disbursement Date *</label>
@@ -321,7 +322,7 @@ Disburse
               <select name="treasury_account_id" class="fc" id="accountSelect" required onchange="updateAccountInfo()">
                 <option value="" disabled selected>— Select Account —</option>
                 @foreach($accounts as $acc)
-                  <option value="{{ $acc->id }}" data-type="{{ $acc->type }}" data-director="{{ $acc->is_director_owned ? '1' : '0' }}">
+                  <option value="{{ $acc->id }}" data-type="{{ $acc->type }}" data-director="{{ $acc->is_director_owned ? '1' : '0' }}" data-name="{{ strtolower($acc->name) }}">
                     {{ $acc->name }} ({{ $acc->is_director_owned ? 'Director' : 'Company' }}) 
                     @if(!$acc->is_director_owned) — Balance: L {{ number_format($acc->balance, 2) }} @endif
                   </option>
@@ -377,12 +378,25 @@ Disburse
 <script>
 function updateAccountInfo() {
     const sel = document.getElementById('accountSelect');
+    if (!sel || sel.selectedIndex < 0) return;
     const opt = sel.options[sel.selectedIndex];
+    if (!opt || !opt.value) return;
+
     const info = document.getElementById('accountInfo');
     const isDirector = opt.getAttribute('data-director') === '1';
+    const type = opt.getAttribute('data-type');
+    const name = opt.getAttribute('data-name') || '';
     
     if (isDirector) {
         info.innerHTML = '<span style="color:#7c3aed;font-weight:700"><i class="bi bi-person-check-fill"></i> Director Funded:</span> No company cash affected. Recorded as capital investment.';
+    } else if (type === 'cash_float' || name.includes('cash box')) {
+        info.innerHTML = '<span style="color:#10b981;font-weight:700"><i class="bi bi-cash-stack"></i> Cash Box:</span> Physical cash disbursement. Cash is handed directly to borrower. Reduces cash float immediately.';
+        // Auto-select Cash method radio if not selected
+        const cashRadio = document.querySelector('input[name="_method_preview"][value="cash"]');
+        if (cashRadio && !cashRadio.checked) {
+            cashRadio.checked = true;
+            switchMethod('cash', false);
+        }
     } else {
         info.innerHTML = '<span style="color:#10b981;font-weight:700"><i class="bi bi-wallet2"></i> Company Funded:</span> Will reduce company cash balance immediately.';
     }
@@ -402,7 +416,7 @@ document.getElementById('confirmCheck')?.addEventListener('change', function() {
     }
 });
 
-function switchMethod(val) {
+function switchMethod(val, autoSelectAcc = true) {
     document.querySelectorAll('.method-card').forEach(c => {
         c.style.borderColor = 'var(--border)';
         c.style.background  = '';
@@ -412,6 +426,38 @@ function switchMethod(val) {
     if (card && colors[val]) { 
         card.style.borderColor = colors[val]; 
         card.style.background = colors[val]+'18'; 
+    }
+
+    const hiddenMethod = document.getElementById('selectedDisbursementMethod');
+    if (hiddenMethod) hiddenMethod.value = val;
+
+    // Toggle conditional method input panels
+    const mpesaBox = document.getElementById('mpesaFields');
+    const cpayBox  = document.getElementById('cpayWalletFields');
+    if (mpesaBox) mpesaBox.style.display = (val === 'mpesa_b2c') ? 'block' : 'none';
+    if (cpayBox)  cpayBox.style.display  = (val === 'cpay_wallet') ? 'block' : 'none';
+
+    // If Cash selected, auto-select Cash Box account in dropdown and prefill reference
+    if (val === 'cash') {
+        if (autoSelectAcc) {
+            const sel = document.getElementById('accountSelect');
+            if (sel) {
+                for (let i = 0; i < sel.options.length; i++) {
+                    const opt = sel.options[i];
+                    const optType = opt.getAttribute('data-type');
+                    const optName = opt.getAttribute('data-name') || '';
+                    if (optType === 'cash_float' || optName.includes('cash box')) {
+                        sel.selectedIndex = i;
+                        updateAccountInfo();
+                        break;
+                    }
+                }
+            }
+        }
+        const refInput = document.querySelector('input[name="transaction_reference"]');
+        if (refInput && !refInput.value) {
+            refInput.value = 'CASH-' + '{{ $loan->loan_number }}' + '-' + '{{ now()->format("Ymd") }}';
+        }
     }
 }
 </script>

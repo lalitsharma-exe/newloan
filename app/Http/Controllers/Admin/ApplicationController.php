@@ -112,10 +112,13 @@ class ApplicationController extends Controller
 
     public function updateAffordability(Request $request, LoanApplication $application)
     {
-        $data = $request->validate([
+        $request->validate([
             'monthly_earnings'         => 'required|numeric|min:0',
             'tax_deduction'            => 'nullable|numeric|min:0',
             'existing_loans_deduction' => 'nullable|numeric|min:0',
+            'pension_deduction'        => 'nullable|numeric|min:0',
+            'insurance_deduction'      => 'nullable|numeric|min:0',
+            'subscriptions_deduction'  => 'nullable|numeric|min:0',
             'other_deductions'         => 'nullable|numeric|min:0',
             'transport'                => 'nullable|numeric|min:0',
             'groceries'                => 'nullable|numeric|min:0',
@@ -131,10 +134,32 @@ class ApplicationController extends Controller
             'other_expenses'           => 'nullable|numeric|min:0',
         ]);
 
-        foreach ($data as $key => $val) {
-            if ($val === null) {
-                $data[$key] = 0;
-            }
+        $numericFields = [
+            'monthly_earnings',
+            'tax_deduction',
+            'existing_loans_deduction',
+            'pension_deduction',
+            'insurance_deduction',
+            'subscriptions_deduction',
+            'other_deductions',
+            'transport',
+            'groceries',
+            'utilities',
+            'rent',
+            'education',
+            'communication',
+            'other_insurance',
+            'medical',
+            'other_loan_repayments',
+            'family_support',
+            'entertainment',
+            'other_expenses',
+        ];
+
+        $data = [];
+        foreach ($numericFields as $field) {
+            $val = $request->input($field);
+            $data[$field] = ($val !== null && $val !== '') ? (float)$val : 0.00;
         }
 
         $afford = $application->affordability()->updateOrCreate(

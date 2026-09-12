@@ -60,6 +60,68 @@ class AffordabilityAssessment extends Model
         'max_loan_amount'          => 'decimal:2',
     ];
 
+    protected $attributes = [
+        'monthly_earnings'         => 0,
+        'tax_deduction'            => 0,
+        'existing_loans_deduction' => 0,
+        'pension_deduction'        => 0,
+        'insurance_deduction'      => 0,
+        'subscriptions_deduction'  => 0,
+        'other_deductions'         => 0,
+        'net_salary'               => 0,
+        'transport'                => 0,
+        'groceries'                => 0,
+        'utilities'                => 0,
+        'rent'                     => 0,
+        'other_expenses'           => 0,
+        'education'                => 0,
+        'communication'            => 0,
+        'other_insurance'          => 0,
+        'medical'                  => 0,
+        'other_loan_repayments'    => 0,
+        'family_support'           => 0,
+        'entertainment'            => 0,
+        'total_living_expenses'    => 0,
+        'disposable_income'        => 0,
+        'suggested_loan_amount'    => 0,
+        'max_loan_amount'          => 0,
+    ];
+
+    protected static function booted()
+    {
+        static::saving(function ($model) {
+            $numericKeys = [
+                'monthly_earnings',
+                'tax_deduction',
+                'existing_loans_deduction',
+                'pension_deduction',
+                'insurance_deduction',
+                'subscriptions_deduction',
+                'other_deductions',
+                'transport',
+                'groceries',
+                'utilities',
+                'rent',
+                'other_expenses',
+                'education',
+                'communication',
+                'other_insurance',
+                'medical',
+                'other_loan_repayments',
+                'family_support',
+                'entertainment',
+            ];
+
+            foreach ($numericKeys as $key) {
+                if ($model->{$key} === null || $model->{$key} === '') {
+                    $model->{$key} = 0;
+                }
+            }
+
+            $model->recalculate();
+        });
+    }
+
     public function application()
     {
         return $this->belongsTo(LoanApplication::class, 'application_id');

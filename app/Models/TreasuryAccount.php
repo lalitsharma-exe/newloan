@@ -33,4 +33,25 @@ class TreasuryAccount extends Model
     {
         return $this->hasMany(OperatingExpense::class);
     }
+
+    /**
+     * Ensure the Cash Box treasury account exists and is active.
+     */
+    public static function ensureCashBox(): self
+    {
+        $account = static::whereRaw('LOWER(name) = ?', ['cash box'])->first();
+        if (!$account) {
+            $account = static::create([
+                'name'              => 'Cash Box',
+                'type'              => 'cash_float',
+                'institution'       => 'Office Safe',
+                'balance'           => 0.00,
+                'is_active'         => true,
+                'is_director_owned' => false,
+            ]);
+        } elseif (!$account->is_active) {
+            $account->update(['is_active' => true]);
+        }
+        return $account;
+    }
 }

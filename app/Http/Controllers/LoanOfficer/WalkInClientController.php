@@ -263,10 +263,13 @@ class WalkInClientController extends Controller
 
     private function saveAffordability(Request $request, LoanApplication $application): void
     {
-        $data = $request->validate([
+        $request->validate([
             'monthly_earnings'         => 'required|numeric|min:0',
             'tax_deduction'            => 'nullable|numeric|min:0',
             'existing_loans_deduction' => 'nullable|numeric|min:0',
+            'pension_deduction'        => 'nullable|numeric|min:0',
+            'insurance_deduction'      => 'nullable|numeric|min:0',
+            'subscriptions_deduction'  => 'nullable|numeric|min:0',
             'other_deductions'         => 'nullable|numeric|min:0',
             'rent'                     => 'nullable|numeric|min:0',
             'groceries'                => 'nullable|numeric|min:0',
@@ -282,15 +285,37 @@ class WalkInClientController extends Controller
             'other_expenses'           => 'nullable|numeric|min:0',
         ]);
 
-        foreach ($data as $key => $val) {
-            if ($val === null) {
-                $data[$key] = 0;
-            }
+        $numericFields = [
+            'monthly_earnings',
+            'tax_deduction',
+            'existing_loans_deduction',
+            'pension_deduction',
+            'insurance_deduction',
+            'subscriptions_deduction',
+            'other_deductions',
+            'transport',
+            'groceries',
+            'utilities',
+            'rent',
+            'education',
+            'communication',
+            'other_insurance',
+            'medical',
+            'other_loan_repayments',
+            'family_support',
+            'entertainment',
+            'other_expenses',
+        ];
+
+        $data = ['application_id' => $application->id];
+        foreach ($numericFields as $field) {
+            $val = $request->input($field);
+            $data[$field] = ($val !== null && $val !== '') ? (float)$val : 0.00;
         }
 
         $a = AffordabilityAssessment::updateOrCreate(
             ['application_id' => $application->id],
-            array_merge($data, ['application_id' => $application->id])
+            $data
         );
         $a->recalculate();
         $a->save();

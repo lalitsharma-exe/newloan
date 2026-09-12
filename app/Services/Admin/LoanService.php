@@ -696,12 +696,37 @@ class LoanService
             $account = \App\Models\TreasuryAccount::findOrFail($data['treasury_account_id']);
             $isMD = $account->is_director_owned;
 
+            $disbMethod = $data['disbursement_method'] ?? null;
+            if (!$disbMethod) {
+                if ($account->type === 'cash_float' || strtolower($account->name) === 'cash box') {
+                    $disbMethod = 'cash';
+                } elseif ($account->type === 'bank') {
+                    $disbMethod = 'bank_transfer';
+                } else {
+                    $disbMethod = 'mpesa_b2c';
+                }
+            }
+
+            if ($isMD) {
+                $paymentMethod = 'Mobile Wallet';
+            } elseif ($disbMethod === 'cash' || $account->type === 'cash_float' || strtolower($account->name) === 'cash box') {
+                $paymentMethod = 'Cash';
+                $disbMethod = 'cash';
+            } elseif ($account->type === 'bank') {
+                $paymentMethod = 'Bank Transfer';
+            } elseif ($disbMethod === 'cpay_wallet') {
+                $paymentMethod = 'CPay Wallet';
+            } else {
+                $paymentMethod = 'Mobile Wallet';
+            }
+
             $loan->update([
                 'status'                    => 'active',
                 'disbursement_date'         => $data['disbursement_date'],
                 'disbursed_from_account_id' => $account->id,
                 'transaction_reference'     => $data['transaction_reference'],
-                'payment_method'            => $isMD ? 'Mobile Wallet' : ($account->type === 'bank' ? 'Bank Transfer' : 'Mobile Wallet'),
+                'payment_method'            => $paymentMethod,
+                'disbursement_method'       => $disbMethod,
                 'funding_source_type'       => $isMD ? 'Director' : 'Company',
                 'authorisation_confirmed'   => true,
                 'authorisation_at'          => now(),
@@ -728,7 +753,7 @@ class LoanService
                     'direction'           => 'out',
                     'amount'              => $loan->principal_amount,
                     'reference'           => $data['transaction_reference'],
-                    'description'         => "Disbursement for Loan {$loan->loan_number}",
+                    'description'         => "Disbursement for Loan {$loan->loan_number}" . ($paymentMethod === 'Cash' ? ' (Cash Box)' : ''),
                     'loan_id'             => $loan->id,
                     'recorded_by'         => $admin->id,
                 ]);

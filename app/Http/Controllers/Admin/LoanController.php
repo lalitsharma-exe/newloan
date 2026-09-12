@@ -41,6 +41,7 @@ class LoanController extends Controller
     public function show(Loan $loan)
     {
         $loan->load(['user', 'loanProduct', 'application', 'installments', 'payments.verifiedBy']);
+        TreasuryAccount::ensureCashBox();
         $accounts = TreasuryAccount::where('is_active', true)->get();
         return view('admin.loans.show', compact('loan', 'accounts'));
     }
@@ -52,6 +53,7 @@ class LoanController extends Controller
         $cpayConfigured = $this->cpay->isConfigured();
         $cpayIsSandbox  = $this->cpay->isSandbox();
         $mpesaConfigured = $this->mpesa->isConfigured();
+        TreasuryAccount::ensureCashBox();
         $accounts = TreasuryAccount::where('is_active', true)->get();
         return view('admin.loans.disburse-confirm', compact('loan','checks','reference','cpayConfigured','cpayIsSandbox','mpesaConfigured', 'accounts'));
     }
@@ -61,6 +63,7 @@ class LoanController extends Controller
         $request->validate([
             'treasury_account_id'   => 'required|exists:treasury_accounts,id',
             'disbursement_date'     => 'required|date|before_or_equal:today',
+            'disbursement_method'   => 'nullable|string|max:50',
             'transaction_reference' => 'required|string|max:100',
             'notes'                 => 'nullable|string|max:500',
             'authorisation'         => 'required|accepted',
