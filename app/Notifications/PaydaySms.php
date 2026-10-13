@@ -37,7 +37,9 @@ class PaydaySms extends Notification implements ShouldQueue
         $name = $notifiable->name;
         $amount = number_format($this->installment->outstanding_amount, 2);
 
+        $appName = config('app.name', 'Prosperity Loans');
+
         return "Hi {$name}, \n" .
-               "It’s payday. Please remember to pay your MyLoan amount of M{$amount} today. Thanks for staying on track.";
+               "It’s payday. Please remember to pay your {$appName} amount of M{$amount} today. Thanks for staying on track.";
     }
 }

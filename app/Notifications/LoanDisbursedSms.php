@@ -27,6 +27,7 @@ class LoanDisbursedSms extends Notification implements ShouldQueue
         $amount  = number_format($this->loan->principal_amount, 2);
         $method  = str_replace('_', ' ', $this->loan->payout_method);
         
-        return "Your loan {$loanNum} of M{$amount} has been DISBURSED via {$method}. Please check your account. Thank you for choosing MyLoan.";
+        $appName = config('app.name', 'Prosperity Loans');
+        return "Your loan {$loanNum} of M{$amount} has been DISBURSED via {$method}. Please check your account. Thank you for choosing {$appName}.";
     }
 }

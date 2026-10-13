@@ -4,11 +4,11 @@
  * Usage: php sms_test.php +26654567665
  */
 
-$clientId  = '0d4576e0-658d-4bef-9cd2-eeb87d20330a';
-$apiSecret = 'SahLZ110hjFZuEHc4Id/3q1dvhALSIpi';
-$sender    = 'MyLoan';
+$clientId  = '48c33642-4297-4738-b5fd-9fcf87a6dc5f';
+$apiSecret = '6783ce88-751a-46c0-b216-d399d98b465c';
+$sender    = 'Prosperity';
 $to        = $argv[1] ?? '26654567665';   // pass number as argument
-$message   = 'MyLoan test OTP: 123456. Do not share.';
+$message   = 'Prosperity Loans test OTP: 123456. Do not share.';
 
 // Remove + and non-digits
 $number = preg_replace('/[^0-9]/', '', $to);

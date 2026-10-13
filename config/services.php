@@ -58,7 +58,7 @@ return [
     'bulksms' => [
         'username' => env('BULKSMS_USERNAME', ''),
         'password' => env('BULKSMS_PASSWORD', ''),
-        'sender'   => env('BULKSMS_SENDER', 'MyLoan'),
+        'sender'   => env('BULKSMS_SENDER', 'Prosperity'),
     ],
 
     'mpesa' => [

@@ -41,7 +41,9 @@ class OverduePaymentSms extends Notification implements ShouldQueue
         $dueDateRaw = $this->installment->due_date;
         $dueDateStr = ($dueDateRaw instanceof \Carbon\Carbon) ? $dueDateRaw->format('d M Y') : date('d M Y', strtotime($dueDateRaw));
 
+        $appName = config('app.name', 'Prosperity Loans');
+
         return "Hi {$name}, \n" .
-               "Your MyLoan payment of M{$amount} due {$dueDateStr} is overdue. Please pay now to avoid extra charges.";
+               "Your {$appName} payment of M{$amount} due {$dueDateStr} is overdue. Please pay now to avoid extra charges.";
     }
 }

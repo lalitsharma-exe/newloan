@@ -36,7 +36,10 @@ class LoanFullyPaidSms extends Notification implements ShouldQueue
     {
         $name = $notifiable->name;
 
+        $appName = config('app.name', 'Prosperity Loans');
+        $appUrl  = config('app.url', 'https://prosperityloans.co.ls');
+
         return "Hi {$name}, \n" .
-               "Your MyLoan loan is fully paid 🎉 You qualify for another loan! Apply anytime: https://myloan.co.ls";
+               "Your {$appName} loan is fully paid 🎉 You qualify for another loan! Apply anytime: {$appUrl}";
     }
 }

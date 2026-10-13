@@ -29,7 +29,7 @@ class SmsService
     {
         $this->clientId  = config('services.bulksms.username', '');
         $this->apiSecret = config('services.bulksms.password', '');
-        $this->sender    = config('services.bulksms.sender', 'MyLoan');
+        $this->sender    = config('services.bulksms.sender', 'Prosperity');
         $this->enabled   = !empty($this->clientId) && !empty($this->apiSecret);
     }
 
@@ -111,7 +111,8 @@ class SmsService
             'updated_at' => now(),
         ]);
 
-        $message = "Your MyLoan verification code is: {$otp}\nDo not share this. Expires in 10 minutes.";
+        $appName = config('app.name', 'Prosperity Loans');
+        $message = "Your {$appName} verification code is: {$otp}\nDo not share this. Expires in 10 minutes.";
         $sent    = $this->send($phone, $message);
 
         if (!$sent) {
