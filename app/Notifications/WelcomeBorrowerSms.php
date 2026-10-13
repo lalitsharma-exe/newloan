@@ -37,6 +37,7 @@ class WelcomeBorrowerSms extends Notification implements ShouldQueue
         $phone = $notifiable->phone;
         $appName = config('app.name', 'Prosperity Loans');
         $appUrl  = config('app.url', 'https://prosperityloans.co.ls');
+        $password = $this->plainPassword;
 
         return "Hi {$name}, welcome to {$appName} \n" .
                "Login: {$appUrl}\n" .
