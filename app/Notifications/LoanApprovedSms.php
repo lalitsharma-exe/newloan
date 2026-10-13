@@ -24,7 +24,7 @@ class LoanApprovedSms extends Notification implements ShouldQueue
     public function toSms(object $notifiable): string
     {
         $appNum = $this->application->application_number;
-        $amount = number_format($this->application->approved_amount, 2);
+        $amount = number_format((float) ($this->application->approved_amount ?? $this->application->requested_amount ?? 0), 2);
         
         return "Congratulations! Your loan application {$appNum} for M{$amount} has been APPROVED. Funds will be disbursed shortly.";
     }
