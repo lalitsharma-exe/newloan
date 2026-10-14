@@ -10,8 +10,8 @@ use App\Models\{Loan, Payment, SystemSetting};
  */
 class MpesaService
 {
-    private string $apiKey;
-    private string $publicKey;
+    private ?string $apiKey;
+    private ?string $publicKey;
     private string $market;
     private string $host;
     private string $env;
@@ -19,11 +19,11 @@ class MpesaService
 
     public function __construct()
     {
-        $this->apiKey    = config('services.mpesa.api_key');
-        $this->publicKey = config('services.mpesa.public_key');
-        $this->market    = config('services.mpesa.market', 'vodacomLES');
-        $this->host      = config('services.mpesa.host', 'openapi.m-pesa.com');
-        $this->env       = config('services.mpesa.env', 'sandbox');
+        $this->apiKey    = config('services.mpesa.api_key') ?? '';
+        $this->publicKey = config('services.mpesa.public_key') ?? '';
+        $this->market    = config('services.mpesa.market') ?? 'vodacomLES';
+        $this->host      = config('services.mpesa.host') ?? 'openapi.m-pesa.com';
+        $this->env       = config('services.mpesa.env') ?? 'sandbox';
 
         $this->baseUrl = "https://{$this->host}/{$this->env}/ipg/v2/{$this->market}";
     }
@@ -33,6 +33,10 @@ class MpesaService
      */
     public function getSessionID(): ?string
     {
+        if (!$this->isConfigured()) {
+            return null;
+        }
+
         return Cache::remember('mpesa_session_id', 3300, function () {
             try {
                 $encryptedKey = $this->encryptValue($this->apiKey, $this->publicKey);
